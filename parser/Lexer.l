@@ -3,6 +3,7 @@
 %}
 
 %%
+[\n\t]      { ; }
 .           { return UNKNOWN; }
 %%
 

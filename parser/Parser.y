@@ -4,6 +4,9 @@
 
 using namespace std;
 
+int lineno = 0;
+
+void PrintLineNo();
 void yyerror(const char* err);
 extern int yylex();
 %}
@@ -13,9 +16,14 @@ extern int yylex();
 %start line
 
 %%
-line: UNKNOWN | line UNKNOWN;
+line: UNKNOWN { PrintLineNo(); }| line UNKNOWN { PrintLineNo(); };
 %%
 
+
+void PrintLineNo() {
+    cout << "line num: " << lineno << "\n";
+    lineno++;
+}
 
 void yyerror(const char* err) {
     cout << err << '\n';

@@ -72,10 +72,13 @@
 
 using namespace std;
 
+int lineno = 0;
+
+void PrintLineNo();
 void yyerror(const char* err);
 extern int yylex();
 
-#line 79 "./parser/Parser.cpp"
+#line 82 "./parser/Parser.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -501,7 +504,7 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    16,    16,    16
+       0,    19,    19,    19
 };
 #endif
 
@@ -1284,8 +1287,20 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
+  case 2:
+#line 19 "./parser/Parser.y"
+              { PrintLineNo(); }
+#line 1294 "./parser/Parser.cpp"
+    break;
 
-#line 1289 "./parser/Parser.cpp"
+  case 3:
+#line 19 "./parser/Parser.y"
+                                               { PrintLineNo(); }
+#line 1300 "./parser/Parser.cpp"
+    break;
+
+
+#line 1304 "./parser/Parser.cpp"
 
       default: break;
     }
@@ -1517,9 +1532,14 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 17 "./parser/Parser.y"
+#line 20 "./parser/Parser.y"
 
 
+
+void PrintLineNo() {
+    cout << "line num: " << lineno << "\n";
+    lineno++;
+}
 
 void yyerror(const char* err) {
     cout << err << '\n';
