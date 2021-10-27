@@ -68,17 +68,16 @@ extern int yydebug;
     NOT = 274,
     EXIT = 275,
     NEWLINE = 276,
-    POW = 277,
-    INT_VAL = 278,
-    DOUBLE_VAL = 279,
-    STRING_VAL = 280,
-    CHAR_VAL = 281,
-    BOOL_VAL = 282,
-    FLOAT_VAL = 283,
-    MULTI_WS = 284,
-    SINGLE_WS = 285,
-    ID = 286,
-    UNKNOWN = 287
+    INT_VAL = 277,
+    DOUBLE_VAL = 278,
+    STRING_VAL = 279,
+    CHAR_VAL = 280,
+    BOOL_VAL = 281,
+    FLOAT_VAL = 282,
+    MULTI_WS = 283,
+    SINGLE_WS = 284,
+    ID = 285,
+    UNKNOWN = 286
   };
 #endif
 

@@ -954,7 +954,7 @@ YY_RULE_SETUP
 case 31:
 YY_RULE_SETUP
 #line 55 "./parser/Lexer.l"
-{ return UNKNOWN;}
+{ cout << "unknown char found\n"; return UNKNOWN;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP

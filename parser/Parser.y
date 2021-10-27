@@ -304,7 +304,7 @@ expr:                           term {
                                 }
                                 ;
 
-prog:                           expr | statement;
+prog:                           expr | statement | error { i.GarbageCollect(); return 1; };
 
 line:                           prog {i.GarbageCollect();} | line prog {i.GarbageCollect();};
 %%
@@ -317,7 +317,6 @@ void PrintLineNo() {
 
 void yyerror(const char* err) {
     cout << err << '\n';
-    cout << yytext << '\n';
 }
 
 int main() {
