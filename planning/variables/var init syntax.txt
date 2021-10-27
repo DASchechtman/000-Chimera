@@ -1,0 +1,77 @@
+symantics:
+
+can use the initail declaration only for variables that don't yet exist in the symbol table
+can use the reassign declaration only for variables that are in the symbol table
+
+note: you can init/reassign vars to expressions (ie something like 1 + 3). however the expression must return a type
+that matches the variable it's being stored in
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+tokens:
+
+    - consts [
+
+        -- var types
+        int
+        float
+        double
+        bool
+        char
+        string
+
+        -- assignment
+        =
+
+        -- line end
+        \n
+        ;
+
+        -- init assignment
+        :
+
+        -- bool vals
+        true
+        false
+    ]
+
+    - flexiable [
+
+        -- var names
+        x
+        y
+        (in general a var is an id that has one letter to start, and any number of letter/numbers following)
+
+        -- ints
+        0
+        10
+        (in general just a list of one or more digits)
+
+        -- decimals
+        8.2
+        1.2
+        (in general just a list of digits with a '.' preceded by 0 or more digits, and followed by one or more digits)
+
+        -- string
+        "hello world"
+        (in general a list of 0 or more characters in between two double quotes)
+
+        -- char
+        'h'
+        (in general a single character in between two single quotes)
+    ]
+
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// inital
+x: int = 0
+y: float = 8.2
+
+//etc
+
+// reassign
+x = 10
+y = 1.2

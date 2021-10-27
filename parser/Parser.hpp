@@ -49,16 +49,40 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    UNKNOWN = 258
+    INT = 258,
+    FLOAT = 259,
+    DOUBLE = 260,
+    BOOL = 261,
+    CHAR = 262,
+    STRING = 263,
+    CAST = 264,
+    LESS = 265,
+    GREATER = 266,
+    LESS_EQUAL = 267,
+    GREATER_EQUAL = 268,
+    EQUAL = 269,
+    NOT_EQUAL = 270,
+    PRINT = 271,
+    AND = 272,
+    OR = 273,
+    NOT = 274,
+    EXIT = 275,
+    NEWLINE = 276,
+    POW = 277,
+    INT_VAL = 278,
+    DOUBLE_VAL = 279,
+    STRING_VAL = 280,
+    CHAR_VAL = 281,
+    BOOL_VAL = 282,
+    FLOAT_VAL = 283,
+    MULTI_WS = 284,
+    SINGLE_WS = 285,
+    ID = 286,
+    UNKNOWN = 287
   };
 #endif
 
 /* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
-#endif
 
 
 extern YYSTYPE yylval;

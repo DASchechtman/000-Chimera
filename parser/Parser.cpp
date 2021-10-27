@@ -69,16 +69,23 @@
 #line 2 "./parser/Parser.y"
 
 #include <iostream>
+#include <string>
+#include "Utils/UnionStruct.hpp"
+#include "../src/ChmrInterpreter.hpp"
+#include "Utils/IntrBridge.hpp"
 
 using namespace std;
 
 int lineno = 0;
+ChmrInterpreter i;
 
 void PrintLineNo();
 void yyerror(const char* err);
 extern int yylex();
+extern char *yytext;
 
-#line 82 "./parser/Parser.cpp"
+
+#line 89 "./parser/Parser.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -106,7 +113,7 @@ extern int yylex();
 # undef YYERROR_VERBOSE
 # define YYERROR_VERBOSE 1
 #else
-# define YYERROR_VERBOSE 0
+# define YYERROR_VERBOSE 1
 #endif
 
 /* Use api.header.include to #include this header
@@ -126,16 +133,40 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    UNKNOWN = 258
+    INT = 258,
+    FLOAT = 259,
+    DOUBLE = 260,
+    BOOL = 261,
+    CHAR = 262,
+    STRING = 263,
+    CAST = 264,
+    LESS = 265,
+    GREATER = 266,
+    LESS_EQUAL = 267,
+    GREATER_EQUAL = 268,
+    EQUAL = 269,
+    NOT_EQUAL = 270,
+    PRINT = 271,
+    AND = 272,
+    OR = 273,
+    NOT = 274,
+    EXIT = 275,
+    NEWLINE = 276,
+    POW = 277,
+    INT_VAL = 278,
+    DOUBLE_VAL = 279,
+    STRING_VAL = 280,
+    CHAR_VAL = 281,
+    BOOL_VAL = 282,
+    FLOAT_VAL = 283,
+    MULTI_WS = 284,
+    SINGLE_WS = 285,
+    ID = 286,
+    UNKNOWN = 287
   };
 #endif
 
 /* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
-#endif
 
 
 extern YYSTYPE yylval;
@@ -243,7 +274,7 @@ typedef int yytype_uint16;
 #define YYSIZEOF(X) YY_CAST (YYPTRDIFF_T, sizeof (X))
 
 /* Stored state numbers (used for stacks). */
-typedef yytype_int8 yy_state_t;
+typedef yytype_uint8 yy_state_t;
 
 /* State numbers in computations.  */
 typedef int yy_state_fast_t;
@@ -446,21 +477,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  3
+#define YYFINAL  41
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   3
+#define YYLAST   250
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  4
+#define YYNTOKENS  43
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  2
+#define YYNNTS  12
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  3
+#define YYNRULES  51
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  5
+#define YYNSTATES  161
 
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   258
+#define YYMAXUTOK   287
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -476,6 +507,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+      36,    38,    40,    37,     2,    39,     2,    41,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,    33,     2,
+       2,    34,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,    42,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,    35,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -488,32 +528,38 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     1,     2,     3
+       2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
+       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      25,    26,    27,    28,    29,    30,    31,    32
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_int8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    19,    19,    19
+       0,    53,    53,    55,    63,    71,    79,    91,    99,   107,
+     112,   113,   114,   115,   116,   117,   120,   120,   122,   122,
+     124,   129,   137,   143,   156,   157,   164,   167,   170,   173,
+     180,   187,   194,   201,   208,   215,   222,   229,   235,   242,
+     249,   256,   263,   270,   277,   284,   291,   298,   307,   307,
+     309,   309
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE || 0
+#if YYDEBUG || YYERROR_VERBOSE || 1
 /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "UNKNOWN", "$accept", "line", YY_NULLPTR
+  "$end", "error", "$undefined", "INT", "FLOAT", "DOUBLE", "BOOL", "CHAR",
+  "STRING", "CAST", "LESS", "GREATER", "LESS_EQUAL", "GREATER_EQUAL",
+  "EQUAL", "NOT_EQUAL", "PRINT", "AND", "OR", "NOT", "EXIT", "NEWLINE",
+  "POW", "INT_VAL", "DOUBLE_VAL", "STRING_VAL", "CHAR_VAL", "BOOL_VAL",
+  "FLOAT_VAL", "MULTI_WS", "SINGLE_WS", "ID", "UNKNOWN", "':'", "'='",
+  "'|'", "'('", "'+'", "')'", "'-'", "'*'", "'/'", "'^'", "$accept",
+  "newline", "term", "types", "any_ws", "opt_ws", "assign", "expr_list",
+  "statement", "expr", "prog", "line", YY_NULLPTR
 };
 #endif
 
@@ -522,25 +568,45 @@ static const char *const yytname[] =
    (internal) symbol number NUM (which must be that of a token).  */
 static const yytype_int16 yytoknum[] =
 {
-       0,   256,   257,   258
+       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
+     265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
+     275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
+     285,   286,   287,    58,    61,   124,    40,    43,    41,    45,
+      42,    47,    94
 };
 # endif
 
-#define YYPACT_NINF (-3)
+#define YYPACT_NINF (-61)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-1)
+#define YYTABLE_NINF (-20)
 
 #define yytable_value_is_error(Yyn) \
   0
 
   /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
      STATE-NUM.  */
-static const yytype_int8 yypact[] =
+static const yytype_int16 yypact[] =
 {
-      -2,    -3,     0,    -3,    -3
+     -11,   -26,   -61,   -61,   -61,   -61,   -61,   -61,   -61,   -61,
+      70,   125,   -61,   -61,   -13,   -61,   -61,   -61,     7,   -61,
+     -61,   -61,   -24,   -26,   -10,   -26,   -26,   -26,   -26,   -26,
+     -26,   -26,   -26,   -26,   -26,   -26,   -26,   -26,   -26,   -26,
+     -61,   -61,   -61,   -26,    81,   -26,   145,   145,   145,   145,
+     145,   145,   145,   145,   145,   145,   145,   145,   145,   145,
+     145,   145,   -61,   -61,   -61,   -61,   -61,   -61,   -26,   145,
+     -61,   -26,   -61,   -26,   -26,   -26,   -26,   -26,   -26,   -26,
+     -26,   -26,   -26,   -26,   -26,   -26,   -26,   -26,    -8,   -61,
+     206,   145,   145,   145,   145,   145,   145,   145,   145,   -17,
+     145,   -16,   145,    -9,   145,    -2,   145,    -1,   145,   145,
+      10,   -26,    25,   -61,   -26,   -26,   -26,   -26,   -26,   -26,
+     -26,   -26,   -61,   -26,   -61,    32,   -61,    36,   -61,    38,
+     -61,   -26,   -13,   145,   -61,    33,    34,    35,    37,    44,
+      63,    64,    67,    68,   -61,   145,   -61,   -61,    80,   -61,
+     -61,   -61,   -61,   -61,   -61,   -61,   -61,   -61,   -61,   -61,
+     -61
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -548,51 +614,145 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     2,     0,     1,     3
+       0,    19,    26,     2,     3,     4,     6,     7,     8,     5,
+       9,     0,    27,    28,     0,    49,    48,    50,     0,    16,
+      17,    18,     0,    19,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      24,     1,    51,    19,     0,    19,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,    10,    11,    12,    13,    14,    15,    19,     0,
+       9,     0,    22,     0,     0,     0,     0,     0,     0,     0,
+       0,    19,    19,    19,    19,    19,     0,    19,     0,    21,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      18,     0,    18,     0,    18,     0,    18,     0,     0,    18,
+       0,    19,     0,    23,    19,    19,    19,    19,    19,    19,
+      19,    19,    46,    19,    30,     0,    32,     0,    34,     0,
+      36,    19,     0,     0,    38,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    31,     0,    33,    35,     0,    25,
+      20,    39,    40,    41,    42,    43,    44,    45,    47,    29,
+      37
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -3,    -3
+     -61,   -12,   -61,    31,   121,    -4,   -61,   -60,   -61,     0,
+     104,   -61
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2
+      -1,    12,    13,    68,    21,    22,    14,    71,    15,    72,
+      17,    18
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
      positive, shift that token.  If negative, reduce the rule whose
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_int8 yytable[] =
+static const yytype_int16 yytable[] =
 {
-       3,     1,     0,     4
+      16,    87,    40,    19,    20,     1,    24,    41,     3,     2,
+       3,    43,     4,     5,     6,     7,     8,     9,    16,    44,
+      10,   122,   124,     1,    45,    11,   111,     2,     3,   126,
+       4,     5,     6,     7,     8,     9,   128,   130,    10,    61,
+     123,    69,   125,    11,   127,   132,   129,    73,    74,    75,
+      76,    77,    78,    79,    80,    81,    82,    83,    84,    85,
+      86,    19,    20,   134,    88,    19,    20,    19,    20,    89,
+     144,   151,   152,   153,   146,   154,   147,    99,   101,   103,
+     105,   107,   155,   110,    62,    63,    64,    65,    66,    67,
+     113,   114,   115,   116,   117,   118,   119,   120,   121,    19,
+      20,   156,   157,    23,   -19,   158,   159,   133,   131,   113,
+     135,   136,   137,   138,   139,   140,   141,   142,   160,   143,
+     149,   112,    42,     0,     0,     0,     0,   148,     0,     0,
+       0,     0,     0,   150,    25,    26,    27,    28,    29,    30,
+      31,     0,    32,    33,    34,   113,    46,    47,    48,    49,
+      50,    51,    52,    53,    54,    55,    56,    57,    58,    59,
+      60,     0,    35,     0,    36,    37,    38,    39,     4,     5,
+       6,     7,     8,     9,     0,     0,    70,     0,     0,     0,
+       0,    11,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,    90,     0,    91,    92,    93,    94,    95,    96,
+      97,    98,     0,   100,   102,   104,   106,   108,   109,    62,
+      63,    64,    65,    66,    67,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     4,
+       5,     6,     7,     8,     9,     0,     0,    70,     0,     0,
+       0,     0,    11,     0,   109,     0,   145,     0,   145,     0,
+     145
 };
 
-static const yytype_int8 yycheck[] =
+static const yytype_int16 yycheck[] =
 {
-       0,     3,    -1,     3
+       0,    61,    14,    29,    30,    16,    10,     0,    21,    20,
+      21,    35,    23,    24,    25,    26,    27,    28,    18,    23,
+      31,    38,    38,    16,    34,    36,    34,    20,    21,    38,
+      23,    24,    25,    26,    27,    28,    38,    38,    31,    43,
+     100,    45,   102,    36,   104,    35,   106,    47,    48,    49,
+      50,    51,    52,    53,    54,    55,    56,    57,    58,    59,
+      60,    29,    30,    38,    68,    29,    30,    29,    30,    69,
+      38,    38,    38,    38,    38,    38,    38,    81,    82,    83,
+      84,    85,    38,    87,     3,     4,     5,     6,     7,     8,
+      90,    91,    92,    93,    94,    95,    96,    97,    98,    29,
+      30,    38,    38,    33,    34,    38,    38,   111,   108,   109,
+     114,   115,   116,   117,   118,   119,   120,   121,    38,   123,
+     132,    90,    18,    -1,    -1,    -1,    -1,   131,    -1,    -1,
+      -1,    -1,    -1,   133,     9,    10,    11,    12,    13,    14,
+      15,    -1,    17,    18,    19,   145,    25,    26,    27,    28,
+      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
+      39,    -1,    37,    -1,    39,    40,    41,    42,    23,    24,
+      25,    26,    27,    28,    -1,    -1,    31,    -1,    -1,    -1,
+      -1,    36,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    71,    -1,    73,    74,    75,    76,    77,    78,
+      79,    80,    -1,    82,    83,    84,    85,    86,    87,     3,
+       4,     5,     6,     7,     8,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    23,
+      24,    25,    26,    27,    28,    -1,    -1,    31,    -1,    -1,
+      -1,    -1,    36,    -1,   123,    -1,   125,    -1,   127,    -1,
+     129
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,     5,     0,     3
+       0,    16,    20,    21,    23,    24,    25,    26,    27,    28,
+      31,    36,    44,    45,    49,    51,    52,    53,    54,    29,
+      30,    47,    48,    33,    48,     9,    10,    11,    12,    13,
+      14,    15,    17,    18,    19,    37,    39,    40,    41,    42,
+      44,     0,    53,    35,    48,    34,    47,    47,    47,    47,
+      47,    47,    47,    47,    47,    47,    47,    47,    47,    47,
+      47,    48,     3,     4,     5,     6,     7,     8,    46,    48,
+      31,    50,    52,    52,    52,    52,    52,    52,    52,    52,
+      52,    52,    52,    52,    52,    52,    52,    50,    48,    52,
+      47,    47,    47,    47,    47,    47,    47,    47,    47,    48,
+      47,    48,    47,    48,    47,    48,    47,    48,    47,    47,
+      48,    34,    46,    52,    52,    52,    52,    52,    52,    52,
+      52,    52,    38,    50,    38,    50,    38,    50,    38,    50,
+      38,    52,    35,    48,    38,    48,    48,    48,    48,    48,
+      48,    48,    48,    48,    38,    47,    38,    38,    48,    44,
+      52,    38,    38,    38,    38,    38,    38,    38,    38,    38,
+      38
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
-       0,     4,     5,     5
+       0,    43,    44,    45,    45,    45,    45,    45,    45,    45,
+      46,    46,    46,    46,    46,    46,    47,    47,    48,    48,
+      49,    49,    50,    50,    51,    51,    51,    51,    52,    52,
+      52,    52,    52,    52,    52,    52,    52,    52,    52,    52,
+      52,    52,    52,    52,    52,    52,    52,    52,    53,    53,
+      54,    54
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     2
+       0,     2,     1,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     0,
+       8,     5,     1,     3,     2,     8,     1,     1,     1,     8,
+       6,     7,     6,     7,     6,     7,     6,     8,     7,     8,
+       8,     8,     8,     8,     8,     8,     6,     8,     1,     1,
+       1,     2
 };
 
 
@@ -1287,20 +1447,446 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 2:
-#line 19 "./parser/Parser.y"
-              { PrintLineNo(); }
-#line 1294 "./parser/Parser.cpp"
-    break;
-
   case 3:
-#line 19 "./parser/Parser.y"
-                                               { PrintLineNo(); }
-#line 1300 "./parser/Parser.cpp"
+#line 55 "./parser/Parser.y"
+                                                { 
+                                                    string tmp_name = CreateTempVar((yyvsp[0].int_val), i);
+                                                    if (tmp_name.empty()) {
+                                                        cout << "Error: couldn't create temp var\n";
+                                                        return 1;
+                                                    }
+                                                    (yyval.tmp_id) = tmp_name;
+                                                }
+#line 1461 "./parser/Parser.cpp"
+    break;
+
+  case 4:
+#line 63 "./parser/Parser.y"
+                                                { 
+                                                    string tmp_name = CreateTempVar((yyvsp[0].dou_val), i);
+                                                    if (tmp_name.empty()) {
+                                                        cout << "Error: couldn't create temp var\n";
+                                                        return 1;
+                                                    }
+                                                    (yyval.tmp_id) = tmp_name;
+                                                }
+#line 1474 "./parser/Parser.cpp"
+    break;
+
+  case 5:
+#line 71 "./parser/Parser.y"
+                                                { 
+                                                    string tmp_name = CreateTempVar((yyvsp[0].flo_val), i);
+                                                    if (tmp_name.empty()) {
+                                                        cout << "Error: couldn't create temp var\n";
+                                                        return 1;
+                                                    }
+                                                    (yyval.tmp_id) = tmp_name;
+                                                }
+#line 1487 "./parser/Parser.cpp"
+    break;
+
+  case 6:
+#line 79 "./parser/Parser.y"
+                                                { 
+                                                    // deliberately declared data type here
+                                                    // because $1 is a StrWrapper, not a string. 
+                                                    // so implicit conversion will cause bugs that don't
+                                                    // allow for compilation
+                                                     string tmp_name = CreateTempVar<string>((yyvsp[0].str_val), i);
+                                                     if (tmp_name.empty()) {
+                                                         cout << "Error: couldn't create temp var\n";
+                                                         return 1;
+                                                     }
+                                                     (yyval.tmp_id) = tmp_name;
+                                                }
+#line 1504 "./parser/Parser.cpp"
+    break;
+
+  case 7:
+#line 91 "./parser/Parser.y"
+                                                { 
+                                                    string tmp_name = CreateTempVar((yyvsp[0].char_val), i);
+                                                    if (tmp_name.empty()) {
+                                                        cout << "Error: couldn't create temp var\n";
+                                                        return 1;
+                                                    }
+                                                    (yyval.tmp_id) = tmp_name;
+                                                }
+#line 1517 "./parser/Parser.cpp"
+    break;
+
+  case 8:
+#line 99 "./parser/Parser.y"
+                                                { 
+                                                    string tmp_name = CreateTempVar((yyvsp[0].bol_val), i);
+                                                    if (tmp_name.empty()) {
+                                                        cout << "Error: couldn't create temp var\n";
+                                                        return 1;
+                                                    }
+                                                    (yyval.tmp_id) = tmp_name;
+                                                }
+#line 1530 "./parser/Parser.cpp"
+    break;
+
+  case 9:
+#line 107 "./parser/Parser.y"
+                                                { 
+                                                    (yyval.tmp_id) = CloneToTemp((yyvsp[0].id), i);
+                                                }
+#line 1538 "./parser/Parser.cpp"
+    break;
+
+  case 10:
+#line 112 "./parser/Parser.y"
+                                                { (yyval.types) = (yyvsp[0].types); }
+#line 1544 "./parser/Parser.cpp"
+    break;
+
+  case 11:
+#line 113 "./parser/Parser.y"
+                                                { (yyval.types) = (yyvsp[0].types); }
+#line 1550 "./parser/Parser.cpp"
+    break;
+
+  case 12:
+#line 114 "./parser/Parser.y"
+                                                { (yyval.types) = (yyvsp[0].types); }
+#line 1556 "./parser/Parser.cpp"
+    break;
+
+  case 13:
+#line 115 "./parser/Parser.y"
+                                                { (yyval.types) = (yyvsp[0].types); }
+#line 1562 "./parser/Parser.cpp"
+    break;
+
+  case 14:
+#line 116 "./parser/Parser.y"
+                                                { (yyval.types) = (yyvsp[0].types); }
+#line 1568 "./parser/Parser.cpp"
+    break;
+
+  case 15:
+#line 117 "./parser/Parser.y"
+                                                { (yyval.types) = (yyvsp[0].types); }
+#line 1574 "./parser/Parser.cpp"
+    break;
+
+  case 20:
+#line 124 "./parser/Parser.y"
+                                                                           {
+                                    if (Assign((yyvsp[-7].id), (yyvsp[0].tmp_id), (yyvsp[-4].types), i).empty()) {
+                                        return 1;
+                                    }
+                                }
+#line 1584 "./parser/Parser.cpp"
+    break;
+
+  case 21:
+#line 129 "./parser/Parser.y"
+                                                            {
+                                    if(Reassign((yyvsp[-4].id), (yyvsp[0].tmp_id), i).empty()) {
+                                        return 1;
+                                    }
+                                }
+#line 1594 "./parser/Parser.cpp"
+    break;
+
+  case 22:
+#line 137 "./parser/Parser.y"
+                                     {
+                                    if(!(yyvsp[0].tmp_id).GetFinalResult().empty()) { 
+                                        (yyvsp[0].tmp_id).AddPending((yyvsp[0].tmp_id)); 
+                                    }
+                                    (yyval.tmp_id) = (yyvsp[0].tmp_id); 
+                                }
+#line 1605 "./parser/Parser.cpp"
+    break;
+
+  case 23:
+#line 143 "./parser/Parser.y"
+                                                        {  
+                                    if(!(yyvsp[-2].tmp_id).GetFinalResult().empty()) { 
+                                        (yyvsp[-2].tmp_id).AddPending((yyvsp[0].tmp_id)); 
+                                    }
+                                    for(unsigned int i = 0; i < (yyvsp[0].tmp_id).PendingDataSize(); i++) {
+                                        (yyvsp[-2].tmp_id).AddPending((yyvsp[0].tmp_id)[i]);
+                                    }
+                                    (yyval.tmp_id) = (yyvsp[-2].tmp_id);
+                                }
+#line 1619 "./parser/Parser.cpp"
+    break;
+
+  case 25:
+#line 157 "./parser/Parser.y"
+                                                                                       { 
+                                    for(unsigned int index = 0; index < (yyvsp[-3].tmp_id).PendingDataSize(); index++) {
+                                        Print((yyvsp[-3].tmp_id)[index], ' ', i);
+                                    }
+                                    
+                                    cout << "\n"; 
+                                }
+#line 1631 "./parser/Parser.cpp"
+    break;
+
+  case 26:
+#line 164 "./parser/Parser.y"
+                                       {
+                                    return 0;
+                                }
+#line 1639 "./parser/Parser.cpp"
+    break;
+
+  case 28:
+#line 170 "./parser/Parser.y"
+                                     {
+                                    (yyval.tmp_id) = (yyvsp[0].tmp_id);
+                                }
+#line 1647 "./parser/Parser.cpp"
+    break;
+
+  case 29:
+#line 173 "./parser/Parser.y"
+                                                                                 {
+                                    string tmp = Add((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
+                                    if(tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1659 "./parser/Parser.cpp"
+    break;
+
+  case 30:
+#line 180 "./parser/Parser.y"
+                                                                 {
+                                    string tmp = Add((yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1671 "./parser/Parser.cpp"
+    break;
+
+  case 31:
+#line 187 "./parser/Parser.y"
+                                                                           {
+                                    string tmp = Subtract((yyvsp[-3].tmp_id), (yyvsp[-1].tmp_id), i);
+                                    if(tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1683 "./parser/Parser.cpp"
+    break;
+
+  case 32:
+#line 194 "./parser/Parser.y"
+                                                                 {
+                                    string tmp = Subtract((yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1695 "./parser/Parser.cpp"
+    break;
+
+  case 33:
+#line 201 "./parser/Parser.y"
+                                                                           {
+                                    string tmp = Multiply((yyvsp[-3].tmp_id), (yyvsp[-1].tmp_id), i);
+                                    if(tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1707 "./parser/Parser.cpp"
+    break;
+
+  case 34:
+#line 208 "./parser/Parser.y"
+                                                                 {
+                                    string tmp = Multiply((yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1719 "./parser/Parser.cpp"
+    break;
+
+  case 35:
+#line 215 "./parser/Parser.y"
+                                                                           {
+                                    string tmp = Divide((yyvsp[-3].tmp_id), (yyvsp[-1].tmp_id), i);
+                                    if(tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1731 "./parser/Parser.cpp"
+    break;
+
+  case 36:
+#line 222 "./parser/Parser.y"
+                                                                 {
+                                    string tmp = Divide((yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1743 "./parser/Parser.cpp"
+    break;
+
+  case 37:
+#line 229 "./parser/Parser.y"
+                                                                             {
+                                    if (i.Pow((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id)) == 1) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = (yyvsp[-4].tmp_id);
+                                }
+#line 1754 "./parser/Parser.cpp"
+    break;
+
+  case 38:
+#line 235 "./parser/Parser.y"
+                                                                             {
+                                    string tmp = Cast((yyval.tmp_id), (yyvsp[-3].tmp_id), (yyvsp[-1].types), i);
+                                    if (tmp.empty()) {
+                                        cout << "Error: couldn't cast\n";
+                                        return 1;
+                                    }
+                                }
+#line 1766 "./parser/Parser.cpp"
+    break;
+
+  case 39:
+#line 242 "./parser/Parser.y"
+                                                                              {
+                                    string tmp = Less((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1778 "./parser/Parser.cpp"
+    break;
+
+  case 40:
+#line 249 "./parser/Parser.y"
+                                                                                 {
+                                    string tmp = Greater((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1790 "./parser/Parser.cpp"
+    break;
+
+  case 41:
+#line 256 "./parser/Parser.y"
+                                                                                   {
+                                    string tmp = LessEqual((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1802 "./parser/Parser.cpp"
+    break;
+
+  case 42:
+#line 263 "./parser/Parser.y"
+                                                                                       {
+                                    string tmp = GreaterEqual((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1814 "./parser/Parser.cpp"
+    break;
+
+  case 43:
+#line 270 "./parser/Parser.y"
+                                                                              {
+                                    string tmp = Equal((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1826 "./parser/Parser.cpp"
+    break;
+
+  case 44:
+#line 277 "./parser/Parser.y"
+                                                                                   {
+                                    string tmp = NotEqual((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1838 "./parser/Parser.cpp"
+    break;
+
+  case 45:
+#line 284 "./parser/Parser.y"
+                                                                             {
+                                    string tmp = And((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1850 "./parser/Parser.cpp"
+    break;
+
+  case 46:
+#line 291 "./parser/Parser.y"
+                                                                 {
+                                    string tmp = Not((yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1862 "./parser/Parser.cpp"
+    break;
+
+  case 47:
+#line 298 "./parser/Parser.y"
+                                                                            {
+                                    string tmp = Or((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    (yyval.tmp_id) = tmp;
+                                }
+#line 1874 "./parser/Parser.cpp"
+    break;
+
+  case 50:
+#line 309 "./parser/Parser.y"
+                                     {i.GarbageCollect();}
+#line 1880 "./parser/Parser.cpp"
+    break;
+
+  case 51:
+#line 309 "./parser/Parser.y"
+                                                                       {i.GarbageCollect();}
+#line 1886 "./parser/Parser.cpp"
     break;
 
 
-#line 1304 "./parser/Parser.cpp"
+#line 1890 "./parser/Parser.cpp"
 
       default: break;
     }
@@ -1532,7 +2118,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 20 "./parser/Parser.y"
+#line 310 "./parser/Parser.y"
 
 
 
@@ -1543,8 +2129,13 @@ void PrintLineNo() {
 
 void yyerror(const char* err) {
     cout << err << '\n';
+    cout << yytext << '\n';
 }
 
 int main() {
-    return yyparse();
+    int x = yyparse();
+    while(x != 0) {
+        x = yyparse();
+    }
+    return x;
 }

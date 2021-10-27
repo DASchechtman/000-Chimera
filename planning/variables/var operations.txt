@@ -1,0 +1,68 @@
+symantics:
+
+used prefix notation on because it'll be easier to parse, and therefore not as much setup is needed to make bison work
+expressions can be performed on terms too (ie raw data like 1, 1.1, "hello world", etc) and will return a value based appropreate for the
+operation
+
+whitespaces are a sepator mark. Commas are not what seperate arguments/expressions/vars/terms etc
+
+with the math opers will convert the output to the highest data type.
+    - for example (+ 4 4.3) // will output a double
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+tokens
+
+    - const [ 
+        (
+        )
+        +
+        -
+        *
+        /
+        cast
+        int
+        string
+        less
+        greater
+        less-equal
+        greater-equal
+        equal
+        print
+        |
+        and
+        or
+        not
+    ]
+
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// math opers
+(+ a b ...)
+(- a b ...)
+(* a b ...)
+(/ a b ...)
+(^ a b ...) // pow
+
+
+// cast oper
+(cast a int)
+(cast b string)
+
+// compare opers
+(less a b)
+(greater a b)
+(less-equal a b)
+(greater-equal a b)
+(equal a b)
+(not-equal a b)
+
+// logical opers
+(and a b)
+(not a)
+(or a b)
+
+// print var
+print| a b ... |
