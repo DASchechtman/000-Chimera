@@ -33,6 +33,7 @@ public:
     string GetFinalResult();
 
     void AddPending(string data);
+    void ClearPending();
     size_t PendingDataSize();
     bool HasPendingData();
     string GetPending(unsigned int i);

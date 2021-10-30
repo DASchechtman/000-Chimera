@@ -46,6 +46,10 @@ void StrWrapper::AddPending(string data) {
     m_extra_data.push_back(data);
 }
 
+void StrWrapper::ClearPending() {
+    m_extra_data.clear();
+}
+
 size_t StrWrapper::PendingDataSize() {
     return m_extra_data.size();
 }

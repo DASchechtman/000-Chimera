@@ -1,6 +1,9 @@
 SRCS := $(shell find ./src -name '*.cpp')
 PARSER_UTILS := $(shell find ./parser/Utils -name '*.cpp')
 EXE_NAME = main
+CWD := $(shell pwd)
+TEST_FILES = $(shell find "./tests/" -name '*.ch')
+FOR_TEST = $(foreach i,$(TEST_FILES),echo $(i); ./$(EXE_NAME) $(i); echo "";)
 
 build:
 	bison -d ./parser/Parser.y -o ./parser/Parser.cpp
@@ -11,9 +14,14 @@ build:
 run:
 	./$(EXE_NAME)
 
+test:
+	@echo ""
+	$(FOR_TEST)
+
 debug-png:
 	bison -g ./parser/Parser.y -o ./parser/Parser.cpp
 	dot -Tpng ./parser/Parser.dot -o ./parser/Parser.png
 
 debug-txt:
-	bison --debug ./parser/Parser.y -o ./parser/Parser.cpp
+	bison --verbos ./parser/Parser.y
+	rm Parser.tab.c

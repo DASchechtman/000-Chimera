@@ -83,9 +83,9 @@ string CloneToTemp(string id, ChmrInterpreter &i)
     return i.CloneToTemp(id);
 }
 
-void Print(string var_id, char end, ChmrInterpreter &i)
+int Print(string var_id, char end, ChmrInterpreter &i)
 {
-    i.PrintVar(var_id, end);
+    return i.PrintVar(var_id, end);
 }
 
 string Add(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
@@ -171,9 +171,11 @@ string Greater(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
 string GreaterEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
     return i.GreaterEqual(var_id_1, var_id_2);
 }
+
 string Equal(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
     return i.Equal(var_id_1, var_id_2);
 }
+
 string NotEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
     string res_var_name = i.Equal(var_id_1, var_id_2);
     if (res_var_name.empty()) {

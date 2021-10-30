@@ -2,6 +2,8 @@
 %{
 #include <iostream>
 #include <string>
+#include <unistd.h>
+#include <stdio.h>
 #include "Utils/UnionStruct.hpp"
 #include "../src/ChmrInterpreter.hpp"
 #include "Utils/IntrBridge.hpp"
@@ -15,6 +17,7 @@ void PrintLineNo();
 void yyerror(const char* err);
 extern int yylex();
 extern char *yytext;
+extern FILE *yyin;
 
 %}
 
@@ -25,7 +28,7 @@ extern char *yytext;
 
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
-%token NEWLINE
+%token NEWLINE SEMICOLON EOPU
 
 // data values
 %token <int_val> INT_VAL 
@@ -42,7 +45,7 @@ extern char *yytext;
 %token <id> ID
 
 %type <types> types
-%type <tmp_id> term expr expr_list
+%type <tmp_id> term expr exprList math_expr compare_expr boolExpr
 
 %token UNKNOWN
 
@@ -50,7 +53,7 @@ extern char *yytext;
 
 %%
 
-newline:                        NEWLINE;
+newline:                        NEWLINE | SEMICOLON;
 
 term:                           INT_VAL         { 
                                                     string tmp_name = CreateTempVar($1, i);
@@ -105,7 +108,11 @@ term:                           INT_VAL         {
                                                     $$ = tmp_name;
                                                 }
                                 | ID            { 
-                                                    $$ = CloneToTemp($1, i);
+                                                    string tmp = CloneToTemp($1, i);
+                                                    if (tmp.empty()) {
+                                                        return 1;
+                                                    }
+                                                    $$ = tmp;
                                                 }
                                 ;
 
@@ -134,44 +141,70 @@ assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                 ;
 
 
-expr_list:                      expr {
-                                    if(!$1.GetFinalResult().empty()) { 
-                                        $1.AddPending($1); 
+exprList:                      opt_ws expr {
+                                    if(!$expr.GetFinalResult().empty()) { 
+                                        $expr.AddPending($expr); 
                                     }
-                                    $$ = $1; 
+                                    $$ = $expr; 
                                 } 
-                                | expr_list any_ws expr {  
-                                    if(!$1.GetFinalResult().empty()) { 
-                                        $1.AddPending($3); 
+                                | opt_ws NEWLINE opt_ws expr {
+                                    if(!$expr.GetFinalResult().empty()) {
+                                        $expr.AddPending($expr);
                                     }
-                                    for(unsigned int i = 0; i < $3.PendingDataSize(); i++) {
-                                        $1.AddPending($3[i]);
+                                    $$ = $expr;
+                                }
+                                | exprList[prev] any_ws expr {  
+                                    if(!$prev.GetFinalResult().empty()) { 
+                                        $prev.AddPending($expr); 
                                     }
-                                    $$ = $1;
+                                    for(unsigned int i = 0; i < $expr.PendingDataSize(); i++) {
+                                        $prev.AddPending($expr[i]);
+                                    }
+                                    $$ = $prev;
+                                }
+                                | exprList[prev] opt_ws NEWLINE opt_ws expr {
+                                    auto list = $prev;
+                                    if(!list.GetFinalResult().empty()) { 
+                                        list.AddPending($expr); 
+                                    }
+                                    for(unsigned int i = 0; i < $expr.PendingDataSize(); i++) {
+                                        list.AddPending($expr[i]);
+                                    }
+                                    $$ = list;
                                 }
                                 ;
 
+opt_newline:                    opt_ws NEWLINE opt_ws;
 
+opt_ws_or_nl:                opt_ws | opt_newline;
+ws_or_nl:                    any_ws | opt_newline;
 
-statement:                      assign newline
-                                | PRINT opt_ws '|' opt_ws expr_list opt_ws '|' newline { 
-                                    for(unsigned int index = 0; index < $5.PendingDataSize(); index++) {
-                                        Print($5[index], ' ', i);
+statement:                      assign
+                                | PRINT opt_ws '|' exprList opt_ws_or_nl '|' { 
+                                    int err = 2;
+                    
+                                    for(unsigned int index = 0; index < $exprList.PendingDataSize(); index++) {
+                                        err = Print($exprList[index], ' ', i);
+                                        if (err == 1) {
+                                            break;
+                                        }
                                     }
                                     
-                                    cout << "\n"; 
+                                    if (err == 1) {
+                                        cout << "Error: print error\n";
+                                        return 1;
+                                    }
+                                    else if ($exprList.PendingDataSize() > 0) {
+                                        cout << '\n';
+                                    }
                                 }
-                                | EXIT {
-                                    return 0;
-                                }
-                                | newline
+                                | EXIT { return 0; }
                                 ;
 
-expr:                           term {
-                                    $$ = $1;
-                                }
-                                | '(' '+' any_ws expr any_ws expr_list opt_ws')' {
-                                    string tmp = Add($4, $6, i);
+
+//MATH OPERS BELOW ---------------------------------------------------------------------------------------------------------------------------------------------------
+math_expr:                      '(' '+' any_ws expr[left] any_ws exprList[right] opt_ws')' {
+                                    string tmp = Add($left, $right, i);
                                     if(tmp.empty()) {
                                         return 1;
                                     }
@@ -184,7 +217,7 @@ expr:                           term {
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '-' any_ws expr any_ws expr_list ')' {
+                                | '(' '-' any_ws expr any_ws exprList ')' {
                                     string tmp = Subtract($4, $6, i);
                                     if(tmp.empty()) {
                                         return 1;
@@ -198,7 +231,7 @@ expr:                           term {
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '*' any_ws expr any_ws expr_list ')' {
+                                | '(' '*' any_ws expr any_ws exprList ')' {
                                     string tmp = Multiply($4, $6, i);
                                     if(tmp.empty()) {
                                         return 1;
@@ -212,7 +245,7 @@ expr:                           term {
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '/' any_ws expr any_ws expr_list ')' {
+                                | '(' '/' any_ws expr any_ws exprList opt_ws_or_nl ')' {
                                     string tmp = Divide($4, $6, i);
                                     if(tmp.empty()) {
                                         return 1;
@@ -227,19 +260,28 @@ expr:                           term {
                                     $$ = tmp;
                                 }
                                 | '(' '^' any_ws expr any_ws expr opt_ws ')' {
-                                    if (i.Pow($4, $6) == 1) {
+                                    string var_1 = $4;
+                                    string var_2 = $6;
+
+                                    if (var_1.empty()) {
+                                        var_1 = $4[0];
+                                    }
+                                    if (var_2.empty()) {
+                                        var_2 = $6[0];
+                                    }
+                                    
+                                    if (i.Pow(var_1, var_2) == 1) {
                                         return 1;
                                     }
-                                    $$ = $4;
+                                    $4.ClearPending();
+                                    $$ = var_1;
                                 }
-                                | '(' CAST any_ws expr_list any_ws types ')' {
-                                    string tmp = Cast($$, $4, $6, i);
-                                    if (tmp.empty()) {
-                                        cout << "Error: couldn't cast\n";
-                                        return 1;
-                                    }
-                                }
-                                | '(' LESS any_ws expr any_ws expr opt_ws ')' {
+                                ;
+//MATH OPER ABOVE ------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//COMPARE OPERS BELOW --------------------------------------------------------------------------------------------------------------------------------------------------
+
+compare_expr:                   '(' LESS any_ws expr any_ws expr opt_ws ')' {
                                     string tmp = Less($4, $6, i);
                                     if (tmp.empty()) {
                                         return 1;
@@ -281,7 +323,11 @@ expr:                           term {
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' AND any_ws expr any_ws expr opt_ws ')' {
+                                ;
+//COMPARE OPER ABOVE ------------------------------------------------------------------------------------------------------------------------------------------------
+
+//BOOL OPERS BELOW ---------------------------------------------------------------------------------------------------------------------------------------------------
+boolExpr:                      '(' AND any_ws expr any_ws expr opt_ws ')' {
                                     string tmp = And($4, $6, i);
                                     if (tmp.empty()) {
                                         return 1;
@@ -303,8 +349,40 @@ expr:                           term {
                                     $$ = tmp;
                                 }
                                 ;
+//BOOL OPER ABOVE -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-prog:                           expr | statement | error { i.GarbageCollect(); return 1; };
+expr:                           term {
+                                    $$ = $1;
+                                }
+                                | math_expr {
+                                    $$ = $1;
+                                }
+                                | '(' CAST any_ws exprList ws_or_nl types opt_ws_or_nl ')' {
+                                    string tmp = Cast($$, $4, $types, i);
+                                    if (tmp.empty()) {
+                                        cout << "Error: couldn't cast\n";
+                                        return 1;
+                                    }
+
+                                }
+                                | compare_expr {
+                                    $$ = $1;
+                                }
+                                | boolExpr {
+                                    $$ = $1;
+                                }
+                                ;
+
+prog:                           expr newline 
+                                | expr EOPU
+                                | statement newline
+                                | statement EOPU
+                                | newline 
+                                | EOPU { 
+                                    return 0 ;
+                                }
+                                | any_ws  
+                                | error { i.GarbageCollect(); return 1; };
 
 line:                           prog {i.GarbageCollect();} | line prog {i.GarbageCollect();};
 %%
@@ -319,10 +397,24 @@ void yyerror(const char* err) {
     cout << err << '\n';
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    bool in_file_mode = false;
+    FILE *file = nullptr;
+    if (argc > 1) {
+        FILE *file = fopen(argv[1], "r");
+        
+        if (file) {
+            yyin = file;
+            in_file_mode = true;
+        }
+    }
     int x = yyparse();
     while(x != 0) {
         x = yyparse();
+    }
+
+    if (file != nullptr) {
+        fclose(file);
     }
     return x;
 }

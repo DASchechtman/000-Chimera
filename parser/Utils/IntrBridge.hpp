@@ -9,7 +9,7 @@ using namespace std;
 string Assign(string new_var, string data_var, string type, ChmrInterpreter &i);
 string Reassign(string var, string data_var, ChmrInterpreter &i);
 string CloneToTemp(string id, ChmrInterpreter &i);
-void Print(string var_id, char end, ChmrInterpreter &i);
+int Print(string var_id, char end, ChmrInterpreter &i);
 
 string Add(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i);
 string Subtract(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i);
