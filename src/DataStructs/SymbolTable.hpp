@@ -30,6 +30,5 @@ public:
     string AddEntry(string var_id, ChimeraObject *object);
     ChimeraObject* GetEntry(string var_id);
     void RemoveEntry(string var_id);
-    void FreeMemory();
-
+    void FreeTempItems();
 };

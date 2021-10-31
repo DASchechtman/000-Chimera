@@ -3,9 +3,16 @@
 
 
 using namespace std;
-    
 
+// PRIVATE METHODS BELOW -----------------------------------------------------------------------------------
+// PRIVATE METHODS ABOVE -----------------------------------------------------------------------------------
 
+// PROTECTED METHODS BELOW ---------------------------------------------------------------------------------
+// PROTECTED METHODS ABOVE ---------------------------------------------------------------------------------
+
+// PUBLIC METHODS BELOW ------------------------------------------------------------------------------------
+
+// oper overload -------------------------------------------
 void StrWrapper::operator=(string const &data) {
     m_primary_data = data;
 }
@@ -17,7 +24,10 @@ void StrWrapper::operator=(const char *data) {
 string StrWrapper::operator[](unsigned int i) {
     return m_extra_data[i];
 }
+// oper overload ---------------------------------------------
 
+
+// setters ---------------------------------------------------
 void StrWrapper::SetFinalResult(string data) {
     m_primary_data = data;
 }
@@ -35,27 +45,18 @@ void StrWrapper::SetWithOmittedEnds(const char* data) {
         i++;
     }
 }
+// setters -------------------------------------------------------
 
-
+// getters -------------------------------------------------------
 string StrWrapper::GetFinalResult() {
     return m_primary_data;
 }
+// getters -------------------------------------------------------
 
 
+// extra data methods ---------------------------------------------
 void StrWrapper::AddPending(string data) {
     m_extra_data.push_back(data);
-}
-
-void StrWrapper::ClearPending() {
-    m_extra_data.clear();
-}
-
-size_t StrWrapper::PendingDataSize() {
-    return m_extra_data.size();
-}
-
-bool StrWrapper::HasPendingData() {
-    return m_extra_data.size() > 0;
 }
 
 string StrWrapper::GetPending(unsigned int i) {
@@ -71,3 +72,18 @@ string StrWrapper::RemoveFromPending(unsigned int i) {
     m_extra_data.erase(m_extra_data.begin() + i);
     return tmp;
 }
+
+void StrWrapper::ClearPending() {
+    m_extra_data.clear();
+}
+
+size_t StrWrapper::PendingDataSize() {
+    return m_extra_data.size();
+}
+
+bool StrWrapper::HasPendingData() {
+    return m_extra_data.size() > 0;
+}
+// extra data methods -----------------------------------------------
+
+// PUBLIC METHODS ABOVE ------------------------------------------------------------------------------------

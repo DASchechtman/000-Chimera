@@ -71,7 +71,7 @@ void SymbolTable::RemoveEntry(string var_id) {
     }
 }
 
-void SymbolTable::FreeMemory() {
+void SymbolTable::FreeTempItems() {
     auto it = m_table.begin();
     vector<string> item_names;
 

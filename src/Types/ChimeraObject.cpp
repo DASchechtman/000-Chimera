@@ -46,35 +46,47 @@ void ChimeraObject::SetType(VAR_TYPES new_type) {
 
 //PUBLIC METHODS BELOW ------------------------------------------------------------------------------------------------------------------------------
 
+bool ChimeraObject::IsNumber() {
+    return IsNumber(this);
+}
+
+bool ChimeraObject::IsText() {
+    return IsText(this);
+}
+
+bool ChimeraObject::IsBool() {
+    return IsBool(this);
+}
+
 string ChimeraObject::GetTypeName() {
-    string type_name = UNDEFINED_TYPE;
+    string type_name = UNDEFINED_TYPE_NAME;
 
     if (m_type == OBJECT_DATA_TYPE) {
-        type_name = OBJECT_TYPE;
+        type_name = OBJECT_TYPE_NAME;
     }
     else if (m_type == NUMBER_DATA_TYPE) {
-        type_name = NUMBER_TYPE;
+        type_name = NUMBER_TYPE_NAME;
     }
     else if (m_type == TEXT_DATA_TYPE) {
-        type_name = TEXT_TYPE;
+        type_name = TEXT_TYPE_NAME;
     }
     else if (m_type == INT_DATA_TYPE) {
-        type_name = INT_TYPE;
+        type_name = INT_TYPE_NAME;
     }
     else if (m_type == FLOAT_DATA_TYPE) {
-        type_name = FLOAT_TYPE;
+        type_name = FLOAT_TYPE_NAME;
     }
     else if (m_type == DOUBLE_DATA_TYPE) {
-        type_name = DOUBLE_TYPE;
+        type_name = DOUBLE_TYPE_NAME;
     }
     else if (m_type == CHAR_DATA_TYPE) {
-        type_name = CHAR_TYPE;
+        type_name = CHAR_TYPE_NAME;
     }
     else if (m_type == STRING_DATA_TYPE) {
-        type_name = STRING_TYPE;
+        type_name = STRING_TYPE_NAME;
     }
     else if (m_type == BOOL_DATA_TYPE) {
-        type_name = BOOL_TYPE;
+        type_name = BOOL_TYPE_NAME;
     }
 
     return type_name;
@@ -114,6 +126,7 @@ int ChimeraObject::Set(string &data) {
     printf(m_set_err, GetTypeName().c_str(), "string\0");
     return 1;
 }
+//SET OVERRIDES ABOVE ----------------------------------------------------------------------------------------------------------------------------------------
 
 //GET OVERRIDES BELOW -----------------------------------------------------------------------------------------------------------------------------------------
 int ChimeraObject::Get(int &data) {
@@ -146,29 +159,30 @@ int ChimeraObject::Get(bool &data) {
     printf(m_get_err, "bool\0", GetTypeName().c_str());
     return 1;
 }
+//GETTER METHODS ABOVE ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 ChimeraObject* ChimeraObject::ConvertTo(string type ) {
-    if (type == INT_TYPE) {
+    if (type == INT_TYPE_NAME) {
         return new Int(ToInt());
     }
-    else if (type == FLOAT_TYPE) {
+    else if (type == FLOAT_TYPE_NAME) {
         return new Float(ToFloat());
     }
-    else if (type == DOUBLE_TYPE) {
+    else if (type == DOUBLE_TYPE_NAME) {
         return new Double(ToDouble());
     }
-    else if (type == CHAR_TYPE) {
+    else if (type == CHAR_TYPE_NAME) {
         return new Char(ToChar());
     }
-    else if (type == STRING_TYPE) {
+    else if (type == STRING_TYPE_NAME) {
         return new String(ToStr());
     }
-    else if (type == BOOL_TYPE) {
+    else if (type == BOOL_TYPE_NAME) {
         return new Bool(ToBool());
     }
     else {
-        cout << "Error: invalid conversion to type " << GetTypeName() << '\n';
+        cout << "Error: invalid conversion to type " << type << '\n';
         return nullptr;
     }
 }

@@ -35,7 +35,7 @@ print|
 |
 
 $ logical operation test $
-print| (and "hello" (and "world" 5)) |
-print| (and "hello" (and "world" 0)) |
-print| (or "hello" (and "world" 0)) |
-print| (not (and "hello" (and "world" 5))) |
+print| "hello and world and 5:" (and "hello" (and "world" 5)) |
+print| "hello and world and 0" (and "hello" (and "world" 0)) |
+print| "hello or (world and 0):" (or "hello" (and "world" 0)) |
+print| "not (hello and world and 5):" (not (and "hello" (and "world" 5))) |

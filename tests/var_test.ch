@@ -36,7 +36,8 @@ str_val = (+ (cast
                     's' 
             string
             ))
-char_val = (cast 99 char)
+
+char_val = (cast 99 97 char)
 bol_val = false
 
 
@@ -53,5 +54,5 @@ print|
 print| "should throw a parser error\n" |
 error: int = "hello"
 
-print| "should also throw a parse error\n" |
+print| "shouldn't reach this point cuz of the above error\n" |
 error2 = 99

@@ -18,16 +18,16 @@ enum VAR_TYPES {
     BOOL_DATA_TYPE
 };
 
-const string INT_TYPE = "int";
-const string FLOAT_TYPE = "float";
-const string DOUBLE_TYPE = "double";
-const string CHAR_TYPE = "char";
-const string STRING_TYPE = "string";
-const string BOOL_TYPE = "bool";
-const string OBJECT_TYPE = "object";
-const string UNDEFINED_TYPE = "undefined";
-const string TEXT_TYPE = "text";
-const string NUMBER_TYPE = "number";
+const string INT_TYPE_NAME = "int";
+const string FLOAT_TYPE_NAME = "float";
+const string DOUBLE_TYPE_NAME = "double";
+const string CHAR_TYPE_NAME = "char";
+const string STRING_TYPE_NAME = "string";
+const string BOOL_TYPE_NAME = "bool";
+const string OBJECT_TYPE_NAME = "object";
+const string UNDEFINED_TYPE_NAME = "undefined";
+const string TEXT_TYPE_NAME = "text";
+const string NUMBER_TYPE_NAME = "number";
 
 union ObjectData {
     string *str;
@@ -93,6 +93,10 @@ public:
         }
         return output;
     }
+
+    virtual bool IsNumber();
+    virtual bool IsText();
+    virtual bool IsBool();
 
     virtual string GetTypeName();
 

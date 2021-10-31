@@ -16,9 +16,9 @@ ChmrInterpreter i;
 void PrintLineNo();
 void yyerror(const char* err);
 extern int yylex();
-extern char *yytext;
 extern FILE *yyin;
-
+extern void yyrestart(FILE* input);
+extern char* yytext;
 %}
 
 %define parse.error verbose
@@ -175,7 +175,6 @@ exprList:                      opt_ws expr {
                                 ;
 
 opt_newline:                    opt_ws NEWLINE opt_ws;
-
 opt_ws_or_nl:                opt_ws | opt_newline;
 ws_or_nl:                    any_ws | opt_newline;
 
@@ -198,7 +197,7 @@ statement:                      assign
                                         cout << '\n';
                                     }
                                 }
-                                | EXIT { return 0; }
+                                | EXIT '|' opt_ws '|'{ return 0; }
                                 ;
 
 
@@ -363,7 +362,6 @@ expr:                           term {
                                         cout << "Error: couldn't cast\n";
                                         return 1;
                                     }
-
                                 }
                                 | compare_expr {
                                     $$ = $1;
@@ -395,6 +393,7 @@ void PrintLineNo() {
 
 void yyerror(const char* err) {
     cout << err << '\n';
+    cout << yytext << '\n';
 }
 
 int main(int argc, char *argv[]) {
@@ -409,7 +408,12 @@ int main(int argc, char *argv[]) {
         }
     }
     int x = yyparse();
-    while(x != 0) {
+    while(x != 0 && !in_file_mode) {
+        // makes sure to clear the token buffer
+        // so that when a parser or interpreter error
+        // happens, tokens aren't trying to be read again
+        yyrestart(yyin);
+        
         x = yyparse();
     }
 
