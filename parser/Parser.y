@@ -152,7 +152,11 @@ assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                     }
                                 }
                                 | ID ':' opt_ws unionTypes opt_ws '=' opt_ws expr {
-                                    if (i.MakeUnion($1, $4, $8).empty()) {
+                                    string data = $expr;
+                                    if (data.empty() && $expr.PendingDataSize() > 0) {
+                                        data = $expr[0];
+                                    }
+                                    if (i.MakeUnion($1, $4, data).empty()) {
                                         return 1;
                                     }
                                 }

@@ -544,12 +544,12 @@ static const yytype_int16 yyrline[] =
 {
        0,    56,    56,    56,    58,    66,    74,    82,    94,   102,
      110,   119,   120,   121,   122,   123,   124,   128,   133,   139,
-     139,   141,   141,   143,   148,   154,   159,   167,   173,   179,
-     188,   200,   201,   201,   202,   202,   204,   205,   216,   221,
-     228,   235,   242,   249,   256,   263,   270,   277,   299,   306,
-     313,   320,   327,   334,   345,   352,   359,   369,   372,   375,
-     382,   385,   390,   391,   392,   393,   394,   395,   398,   399,
-     401,   401
+     139,   141,   141,   143,   148,   154,   163,   171,   177,   183,
+     192,   204,   205,   205,   206,   206,   208,   209,   220,   225,
+     232,   239,   246,   253,   260,   267,   274,   281,   303,   310,
+     317,   324,   331,   338,   349,   356,   363,   373,   376,   379,
+     386,   389,   394,   395,   396,   397,   398,   399,   402,   403,
+     405,   405
 };
 #endif
 
@@ -1661,47 +1661,51 @@ yyreduce:
   case 25:
 #line 154 "./parser/Parser.y"
                                                                                   {
-                                    if (i.MakeUnion((yyvsp[-7].id), (yyvsp[-4].tmp_id), (yyvsp[0].tmp_id)).empty()) {
+                                    string data = (yyvsp[0].tmp_id);
+                                    if (data.empty() && (yyvsp[0].tmp_id).PendingDataSize() > 0) {
+                                        data = (yyvsp[0].tmp_id)[0];
+                                    }
+                                    if (i.MakeUnion((yyvsp[-7].id), (yyvsp[-4].tmp_id), data).empty()) {
                                         return 1;
                                     }
                                 }
-#line 1669 "./parser/Parser.cpp"
+#line 1673 "./parser/Parser.cpp"
     break;
 
   case 26:
-#line 159 "./parser/Parser.y"
+#line 163 "./parser/Parser.y"
                                                             {
                                     if(Reassign((yyvsp[-4].id), (yyvsp[0].tmp_id), i).empty()) {
                                         return 1;
                                     }
                                 }
-#line 1679 "./parser/Parser.cpp"
+#line 1683 "./parser/Parser.cpp"
     break;
 
   case 27:
-#line 167 "./parser/Parser.y"
+#line 171 "./parser/Parser.y"
                                            {
                                     if(!(yyvsp[0].tmp_id).GetFinalResult().empty()) { 
                                         (yyvsp[0].tmp_id).AddPending((yyvsp[0].tmp_id)); 
                                     }
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id); 
                                 }
-#line 1690 "./parser/Parser.cpp"
+#line 1694 "./parser/Parser.cpp"
     break;
 
   case 28:
-#line 173 "./parser/Parser.y"
+#line 177 "./parser/Parser.y"
                                                              {
                                     if(!(yyvsp[0].tmp_id).GetFinalResult().empty()) {
                                         (yyvsp[0].tmp_id).AddPending((yyvsp[0].tmp_id));
                                     }
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                 }
-#line 1701 "./parser/Parser.cpp"
+#line 1705 "./parser/Parser.cpp"
     break;
 
   case 29:
-#line 179 "./parser/Parser.y"
+#line 183 "./parser/Parser.y"
                                                              {  
                                     if(!(yyvsp[-2].tmp_id).GetFinalResult().empty()) { 
                                         (yyvsp[-2].tmp_id).AddPending((yyvsp[0].tmp_id)); 
@@ -1711,11 +1715,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = (yyvsp[-2].tmp_id);
                                 }
-#line 1715 "./parser/Parser.cpp"
+#line 1719 "./parser/Parser.cpp"
     break;
 
   case 30:
-#line 188 "./parser/Parser.y"
+#line 192 "./parser/Parser.y"
                                                                             {
                                     auto list = (yyvsp[-4].tmp_id);
                                     if(!list.GetFinalResult().empty()) { 
@@ -1726,11 +1730,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = list;
                                 }
-#line 1730 "./parser/Parser.cpp"
+#line 1734 "./parser/Parser.cpp"
     break;
 
   case 37:
-#line 205 "./parser/Parser.y"
+#line 209 "./parser/Parser.y"
                                                                              { 
                                     int err = Print((yyvsp[-2].tmp_id), ' ', i);
                                     
@@ -1742,17 +1746,17 @@ yyreduce:
                                         cout << '\n';
                                     }
                                 }
-#line 1746 "./parser/Parser.cpp"
+#line 1750 "./parser/Parser.cpp"
     break;
 
   case 38:
-#line 216 "./parser/Parser.y"
+#line 220 "./parser/Parser.y"
                                                      { return 0; }
-#line 1752 "./parser/Parser.cpp"
+#line 1756 "./parser/Parser.cpp"
     break;
 
   case 39:
-#line 221 "./parser/Parser.y"
+#line 225 "./parser/Parser.y"
                                                                                            {
                                     string tmp = Add((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
                                     if(tmp.empty()) {
@@ -1760,11 +1764,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1764 "./parser/Parser.cpp"
+#line 1768 "./parser/Parser.cpp"
     break;
 
   case 40:
-#line 228 "./parser/Parser.y"
+#line 232 "./parser/Parser.y"
                                                                  {
                                     string tmp = Add((yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1772,11 +1776,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1776 "./parser/Parser.cpp"
+#line 1780 "./parser/Parser.cpp"
     break;
 
   case 41:
-#line 235 "./parser/Parser.y"
+#line 239 "./parser/Parser.y"
                                                                           {
                                     string tmp = Subtract((yyvsp[-3].tmp_id), (yyvsp[-1].tmp_id), i);
                                     if(tmp.empty()) {
@@ -1784,11 +1788,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1788 "./parser/Parser.cpp"
+#line 1792 "./parser/Parser.cpp"
     break;
 
   case 42:
-#line 242 "./parser/Parser.y"
+#line 246 "./parser/Parser.y"
                                                                  {
                                     string tmp = Subtract((yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1796,11 +1800,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1800 "./parser/Parser.cpp"
+#line 1804 "./parser/Parser.cpp"
     break;
 
   case 43:
-#line 249 "./parser/Parser.y"
+#line 253 "./parser/Parser.y"
                                                                           {
                                     string tmp = Multiply((yyvsp[-3].tmp_id), (yyvsp[-1].tmp_id), i);
                                     if(tmp.empty()) {
@@ -1808,11 +1812,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1812 "./parser/Parser.cpp"
+#line 1816 "./parser/Parser.cpp"
     break;
 
   case 44:
-#line 256 "./parser/Parser.y"
+#line 260 "./parser/Parser.y"
                                                                  {
                                     string tmp = Multiply((yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1820,11 +1824,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1824 "./parser/Parser.cpp"
+#line 1828 "./parser/Parser.cpp"
     break;
 
   case 45:
-#line 263 "./parser/Parser.y"
+#line 267 "./parser/Parser.y"
                                                                                        {
                                     string tmp = Divide((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
                                     if(tmp.empty()) {
@@ -1832,11 +1836,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1836 "./parser/Parser.cpp"
+#line 1840 "./parser/Parser.cpp"
     break;
 
   case 46:
-#line 270 "./parser/Parser.y"
+#line 274 "./parser/Parser.y"
                                                                  {
                                     string tmp = Divide((yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1844,11 +1848,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1848 "./parser/Parser.cpp"
+#line 1852 "./parser/Parser.cpp"
     break;
 
   case 47:
-#line 277 "./parser/Parser.y"
+#line 281 "./parser/Parser.y"
                                                                              {
                                     string var_1 = (yyvsp[-4].tmp_id);
                                     string var_2 = (yyvsp[-2].tmp_id);
@@ -1866,11 +1870,11 @@ yyreduce:
                                     (yyvsp[-4].tmp_id).ClearPending();
                                     (yyval.tmp_id) = var_1;
                                 }
-#line 1870 "./parser/Parser.cpp"
+#line 1874 "./parser/Parser.cpp"
     break;
 
   case 48:
-#line 299 "./parser/Parser.y"
+#line 303 "./parser/Parser.y"
                                                                             {
                                     string tmp = Less((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1878,11 +1882,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1882 "./parser/Parser.cpp"
+#line 1886 "./parser/Parser.cpp"
     break;
 
   case 49:
-#line 306 "./parser/Parser.y"
+#line 310 "./parser/Parser.y"
                                                                                  {
                                     string tmp = Greater((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1890,11 +1894,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1894 "./parser/Parser.cpp"
+#line 1898 "./parser/Parser.cpp"
     break;
 
   case 50:
-#line 313 "./parser/Parser.y"
+#line 317 "./parser/Parser.y"
                                                                                    {
                                     string tmp = LessEqual((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1902,11 +1906,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1906 "./parser/Parser.cpp"
+#line 1910 "./parser/Parser.cpp"
     break;
 
   case 51:
-#line 320 "./parser/Parser.y"
+#line 324 "./parser/Parser.y"
                                                                                        {
                                     string tmp = GreaterEqual((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1914,11 +1918,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1918 "./parser/Parser.cpp"
+#line 1922 "./parser/Parser.cpp"
     break;
 
   case 52:
-#line 327 "./parser/Parser.y"
+#line 331 "./parser/Parser.y"
                                                                               {
                                     string tmp = Equal((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1926,11 +1930,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1930 "./parser/Parser.cpp"
+#line 1934 "./parser/Parser.cpp"
     break;
 
   case 53:
-#line 334 "./parser/Parser.y"
+#line 338 "./parser/Parser.y"
                                                                                    {
                                     string tmp = NotEqual((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1938,11 +1942,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1942 "./parser/Parser.cpp"
+#line 1946 "./parser/Parser.cpp"
     break;
 
   case 54:
-#line 345 "./parser/Parser.y"
+#line 349 "./parser/Parser.y"
                                                                           {
                                     string tmp = And((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1950,11 +1954,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1954 "./parser/Parser.cpp"
+#line 1958 "./parser/Parser.cpp"
     break;
 
   case 55:
-#line 352 "./parser/Parser.y"
+#line 356 "./parser/Parser.y"
                                                                  {
                                     string tmp = Not((yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1962,11 +1966,11 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1966 "./parser/Parser.cpp"
+#line 1970 "./parser/Parser.cpp"
     break;
 
   case 56:
-#line 359 "./parser/Parser.y"
+#line 363 "./parser/Parser.y"
                                                                             {
                                     string tmp = Or((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id), i);
                                     if (tmp.empty()) {
@@ -1974,27 +1978,27 @@ yyreduce:
                                     }
                                     (yyval.tmp_id) = tmp;
                                 }
-#line 1978 "./parser/Parser.cpp"
+#line 1982 "./parser/Parser.cpp"
     break;
 
   case 57:
-#line 369 "./parser/Parser.y"
+#line 373 "./parser/Parser.y"
                                      {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                 }
-#line 1986 "./parser/Parser.cpp"
+#line 1990 "./parser/Parser.cpp"
     break;
 
   case 58:
-#line 372 "./parser/Parser.y"
+#line 376 "./parser/Parser.y"
                                             {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                 }
-#line 1994 "./parser/Parser.cpp"
+#line 1998 "./parser/Parser.cpp"
     break;
 
   case 59:
-#line 375 "./parser/Parser.y"
+#line 379 "./parser/Parser.y"
                                                                                            {
                                     string tmp = Cast((yyval.tmp_id), (yyvsp[-4].tmp_id), (yyvsp[-2].types), i);
                                     if (tmp.empty()) {
@@ -2002,53 +2006,53 @@ yyreduce:
                                         return 1;
                                     }
                                 }
-#line 2006 "./parser/Parser.cpp"
+#line 2010 "./parser/Parser.cpp"
     break;
 
   case 60:
-#line 382 "./parser/Parser.y"
+#line 386 "./parser/Parser.y"
                                                {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                 }
-#line 2014 "./parser/Parser.cpp"
+#line 2018 "./parser/Parser.cpp"
     break;
 
   case 61:
-#line 385 "./parser/Parser.y"
+#line 389 "./parser/Parser.y"
                                            {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                 }
-#line 2022 "./parser/Parser.cpp"
+#line 2026 "./parser/Parser.cpp"
     break;
 
   case 67:
-#line 395 "./parser/Parser.y"
+#line 399 "./parser/Parser.y"
                                        { 
                                     return 0 ;
                                 }
-#line 2030 "./parser/Parser.cpp"
+#line 2034 "./parser/Parser.cpp"
     break;
 
   case 69:
-#line 399 "./parser/Parser.y"
+#line 403 "./parser/Parser.y"
                                         { i.GarbageCollect(); return 1; }
-#line 2036 "./parser/Parser.cpp"
+#line 2040 "./parser/Parser.cpp"
     break;
 
   case 70:
-#line 401 "./parser/Parser.y"
+#line 405 "./parser/Parser.y"
                                      {i.GarbageCollect();}
-#line 2042 "./parser/Parser.cpp"
+#line 2046 "./parser/Parser.cpp"
     break;
 
   case 71:
-#line 401 "./parser/Parser.y"
+#line 405 "./parser/Parser.y"
                                                                        {i.GarbageCollect();}
-#line 2048 "./parser/Parser.cpp"
+#line 2052 "./parser/Parser.cpp"
     break;
 
 
-#line 2052 "./parser/Parser.cpp"
+#line 2056 "./parser/Parser.cpp"
 
       default: break;
     }
@@ -2280,7 +2284,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 402 "./parser/Parser.y"
+#line 406 "./parser/Parser.y"
 
 
 
