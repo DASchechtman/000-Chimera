@@ -37,7 +37,7 @@ str_val = (+ (cast
             string
             ))
 
-char_val = (cast 99 97 char)
+char_val = (cast 97 char)
 bol_val = false
 
 

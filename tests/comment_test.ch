@@ -8,7 +8,7 @@ $
     $ hello: string = "hello"
 $
 $
-print| "after comment" |
+print| "after comment" hello |
 
 # this is another comment
 

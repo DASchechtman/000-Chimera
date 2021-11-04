@@ -180,14 +180,7 @@ ws_or_nl:                    any_ws | opt_newline;
 
 statement:                      assign
                                 | PRINT opt_ws '|' exprList opt_ws_or_nl '|' { 
-                                    int err = 2;
-                    
-                                    for(unsigned int index = 0; index < $exprList.PendingDataSize(); index++) {
-                                        err = Print($exprList[index], ' ', i);
-                                        if (err == 1) {
-                                            break;
-                                        }
-                                    }
+                                    int err = Print($exprList, ' ', i);
                                     
                                     if (err == 1) {
                                         cout << "Error: print error\n";

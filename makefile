@@ -11,6 +11,12 @@ build:
 	mv lex.yy.c ./parser/
 	g++ ./parser/Parser.cpp ./parser/lex.yy.c $(PARSER_UTILS) $(SRCS) -o $(EXE_NAME)
 
+debug:
+	bison -d ./parser/Parser.y -o ./parser/Parser.cpp
+	flex ./parser/Lexer.l
+	mv lex.yy.c ./parser/
+	g++ -g ./parser/Parser.cpp ./parser/lex.yy.c $(PARSER_UTILS) $(SRCS) -o $(EXE_NAME)
+
 run:
 	./$(EXE_NAME)
 

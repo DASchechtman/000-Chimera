@@ -14,7 +14,7 @@ using namespace std;
 string Assign(StrWrapper new_var, StrWrapper data_var, StrWrapper type, ChmrInterpreter &i);
 string Reassign(StrWrapper var, StrWrapper data_var, ChmrInterpreter &i);
 string CloneToTemp(StrWrapper id, ChmrInterpreter &i);
-int Print(string var_id, char end, ChmrInterpreter &i);
+int Print(StrWrapper var_id, char end, ChmrInterpreter &i);
 
 string Add(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i);
 string Subtract(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i);

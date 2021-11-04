@@ -136,9 +136,16 @@ string CloneToTemp(StrWrapper id, ChmrInterpreter &i)
     return i.CloneToTemp(id);
 }
 
-int Print(string var_id, char end, ChmrInterpreter &i)
+int Print(StrWrapper var_id, char end, ChmrInterpreter &i)
 {
-    return i.PrintVar(var_id, end);
+    int err = 2;
+    for(unsigned int index = 0; index < var_id.PendingDataSize(); index++) {
+        err = i.PrintVar(var_id[index], end);
+        if (err == 1) {
+            break;
+        }
+    }
+    return err;
 }
 
 
