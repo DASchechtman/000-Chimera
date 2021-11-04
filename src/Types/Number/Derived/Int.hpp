@@ -21,6 +21,7 @@ public:
     int Subtract(Number &other);
     int Multiply(Number &other);
     int Divide(Number &other);
+    int Pow(Number &other);
 
     string ToStr();
     unsigned char ToChar();

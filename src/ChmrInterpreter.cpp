@@ -101,7 +101,7 @@ int ChmrInterpreter::DoMath(string var_id_1, string var_id_2, OPER_CODE code, in
     if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
     {
         cout << "Error: trying to do math operation on a non-numerical value\n";
-        return 1;
+        return FAIL;
     }
 
     auto var_1 = m_table.GetEntry(var_id_1);
@@ -256,7 +256,7 @@ int ChmrInterpreter::Multiply(string var_id_1, string var_id_2)
     {
         if (!is_num)
         {
-            return 1;
+            return FAIL;
         }
 
         return ((Number *)obj_1)->Multiply(*(Number *)obj_2);
@@ -271,7 +271,7 @@ int ChmrInterpreter::Divide(string var_id_1, string var_id_2)
     {
         if (!is_num)
         {
-            return 1;
+            return FAIL;
         }
 
         return ((Number *)obj_1)->Divide(*(Number *)obj_2);
@@ -286,13 +286,10 @@ int ChmrInterpreter::Pow(string base_id, string exp_id)
     {
         if (!is_num)
         {
-            return 1;
+            return FAIL;
         }
 
-        auto num_1 = ((Number *)obj_2)->GetOtherNumber(*(Number *)obj_1);
-        auto num_2 = ((Number *)obj_1)->GetOtherNumber(*(Number *)obj_2);
-        long double result = pow(num_1, num_2);
-        return obj_1->Set(result);
+        return ((Number*)obj_1)->Pow(*(Number*)obj_2);
     };
 
     return DoMath(base_id, exp_id, POW, callback);
@@ -430,13 +427,13 @@ int ChmrInterpreter::PrintVar(string var_id, char end)
     if (!m_table.Has(var_id))
     {
         cout << "Error: cannot print var " << var_id << '\n';
-        return 1;
+        return FAIL;
     }
 
     auto obj = m_table.GetEntry(var_id);
     cout << *obj << end;
 
-    return 0;
+    return SUCCEED;
 }
 
 // PUBLIC METHODS ABOVE -----------------------------------------------------------------------------

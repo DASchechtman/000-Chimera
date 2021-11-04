@@ -13,45 +13,45 @@ Char::Char(char data) {
 
 int Char::Set(int &data) {
     m_data.character = (char)data;
-    return 0;
+    return SUCCEED;
 }
 
 int Char::Set(float &data) {
     m_data.character = (char)(int)data;
-    return 0;
+    return SUCCEED;
 }
 
 
 int Char::Set(long double &data) {
     m_data.character = (char)(int)(float)data;
-    return 0;
+    return SUCCEED;
 }
 
 
 int Char::Set(unsigned char &data) {
     m_data.character = data;
-    return 0;
+    return SUCCEED;
 }
 
 
 int Char::Get(unsigned char &data) {
     data = m_data.character;
-    return 0;
+    return SUCCEED;
 }
 
 int Char::Add(Number &other) {
     m_data.character += (char)(int)(float)GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Char::Subtract(Number &other) {
     m_data.character -= (char)(int)(float)GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Char::Multiply(Number &other) {
     m_data.character *= (char)(int)(float)GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Char::Divide(Number &other) {
@@ -60,13 +60,13 @@ int Char::Divide(Number &other) {
     }
     catch(const char* msg){
         cout << msg;
-        return 1;
+        return FAIL;
     }
     catch (int err) {
-        return 1;
+        return FAIL;
     }
     
-    return 0;
+    return SUCCEED;
 }
 
 ChimeraObject* Char::Clone() {

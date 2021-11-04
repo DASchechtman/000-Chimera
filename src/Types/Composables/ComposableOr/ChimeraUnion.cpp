@@ -113,21 +113,21 @@ string ChimeraUnion::ToStr() {
 
 int ChimeraUnion::ToInt() {
     if (m_var == nullptr) {
-        return 0;
+        return SUCCEED;
     }
     return m_var->ToInt();
 }
 
 float ChimeraUnion::ToFloat() {
     if (m_var == nullptr) {
-        return 0;
+        return SUCCEED;
     }
     return m_var->ToFloat();
 }
 
 long double ChimeraUnion::ToDouble() {
     if(m_var == nullptr) {
-        return 0;
+        return SUCCEED;
     }
     return m_var->ToDouble();
 }

@@ -1,4 +1,8 @@
 #include "Double.hpp"
+#include <iostream>
+#include <cmath>
+
+using namespace std;
 
 
 Double::Double() {
@@ -13,43 +17,43 @@ Double::Double(double data) {
 
 int Double::Set(int &data) {
     m_data.decimal = data;
-    return 0;
+    return SUCCEED;
 }
 
 int Double::Set(float &data) {
     m_data.decimal = data;
-    return 0;
+    return SUCCEED;
 }
 
 int Double::Set(long double &data) {
     m_data.decimal = data;
-    return 0;
+    return SUCCEED;
 }
 
 int Double::Set(unsigned char &data) {
     m_data.decimal = data;
-    return 0;
+    return SUCCEED;
 }
 
 
 int Double::Get(long double &data) {
     data = m_data.decimal;
-    return 0;
+    return SUCCEED;
 }
 
 int Double::Add(Number &other) {
     m_data.decimal += GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Double::Subtract(Number &other) {
     m_data.decimal -= GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Double::Multiply(Number &other) {
     m_data.decimal *= GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Double::Divide(Number &other) {
@@ -58,13 +62,26 @@ int Double::Divide(Number &other) {
     }
     catch(const char* msg){
         cout << msg;
-        return 1;
+        return FAIL;
     }
     catch (int err) {
-        return 1;
+        return FAIL;
     }
     
-    return 0;
+    return SUCCEED;
+}
+
+int Double::Pow(Number &other) {
+    try {
+        auto other_num = GetOtherNumber(other);
+        m_data.decimal = pow(m_data.decimal, other_num);
+    }
+    catch (const char *msg) {
+        cout << msg;
+        return FAIL;
+    }
+
+    return SUCCEED;
 }
 
 

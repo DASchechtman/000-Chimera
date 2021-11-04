@@ -29,7 +29,7 @@ String::~String() {
 
 int String::Set(string &data) {
     m_data.str->assign(data);
-    return 0;
+    return SUCCEED;
 }
 
 int String::Set(unsigned char &data) {
@@ -38,17 +38,17 @@ int String::Set(unsigned char &data) {
     c_str[1] = '\0';
     m_data.str->assign(c_str);
     delete[] c_str;
-    return 0;
+    return SUCCEED;
 }
 
 int String::Get(string &data) {
     data = *m_data.str;
-    return 0;
+    return SUCCEED;
 }
 
 int String::Add(Text &other) {
     m_data.str->append(other.GetText());
-    return 0;
+    return SUCCEED;
 }
 
 int String::Subtract(Text &other) {
@@ -58,7 +58,7 @@ int String::Subtract(Text &other) {
     if (start != string::npos) {
         m_data.str->erase(start, other_text.length());
     }
-    return 0;
+    return SUCCEED;
 }
 
 

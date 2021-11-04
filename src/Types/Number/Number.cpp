@@ -66,22 +66,27 @@ long double Number::DivideByZeroGuard(Number &other) {
 
 int Number::Add(Number &other) {
     cout << "Error: 'Add' on baseclass Number isn't implemented yet\n";
-    return 1;
+    return FAIL;
 }
 
 int Number::Subtract(Number &other) {
     cout << "Error: 'Subtract' on baseclass Number isn't implemented yet\n";
-    return 1;
+    return FAIL;
 }
 
 int Number::Multiply(Number &other) {
     cout << "Error: 'Multiply' on baseclass Number isn't implemented yet\n";
-    return 1;
+    return FAIL;
 }
 
 int Number::Divide(Number &other) {
     cout << "Error: 'Divide' on baseclass Number isn't implemented yet\n";
-    return 1; 
+    return FAIL; 
+}
+
+int Number::Pow(Number &other) {
+    cout << "Error: 'Pow' on baseclass Number isn't implemented yet\n";
+    return FAIL;
 }
 
 // PUBLIC METHODS ABOVE ------------------------------------------------------------------------------------------------------------------------------------------------

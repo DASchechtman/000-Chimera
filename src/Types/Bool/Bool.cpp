@@ -15,12 +15,12 @@ Bool::Bool(bool data) {
 
 int Bool::Set(bool &data) {
     m_data.boolean = data;
-    return 0;
+    return SUCCEED;
 }
 
 int Bool::Get(bool &data) {
     data = m_data.boolean;
-    return 0;
+    return SUCCEED;
 }
 
 ChimeraObject* Bool::Clone() {

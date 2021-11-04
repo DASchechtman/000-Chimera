@@ -1,4 +1,8 @@
 #include "Float.hpp"
+#include <cmath>
+#include <iostream>
+
+using namespace std;
 
 Float::Float() {
     m_data.floating = 0;
@@ -12,43 +16,43 @@ Float::Float(float data) {
 
 int Float::Set(int &data) {
     m_data.floating = data;
-    return 0;
+    return SUCCEED;
 }
 
 int Float::Set(float &data) {
     m_data.floating = data;
-    return 0;
+    return SUCCEED;
 }
 
 int Float::Set(long double &data) {
     m_data.floating = (float)data;
-    return 0;
+    return SUCCEED;
 }
 
 int Float::Set(unsigned char &data) {
     m_data.floating = data;
-    return 0;
+    return SUCCEED;
 }
 
 
 int Float::Get(float &data) {
     data = m_data.floating;
-    return 0;
+    return SUCCEED;
 }
 
 int Float::Add(Number &other) {
     m_data.floating += (float)GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Float::Subtract(Number &other) {
     m_data.floating -= (float)GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Float::Multiply(Number &other) {
     m_data.floating *= (float)GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Float::Divide(Number &other) {
@@ -57,13 +61,26 @@ int Float::Divide(Number &other) {
     }
     catch(const char* msg){
         cout << msg;
-        return 1;
+        return FAIL;
     }
     catch (int err) {
-        return 1;
+        return FAIL;
     }
     
-    return 0;
+    return SUCCEED;
+}
+
+int Float::Pow(Number &other) {
+    try {
+        auto other_num = GetOtherNumber(other);
+        m_data.floating = pow(m_data.floating, other_num);
+    }
+    catch (const char *msg) {
+        cout << msg;
+        return FAIL;
+    }
+
+    return SUCCEED;
 }
 
 

@@ -15,4 +15,5 @@ public:
     virtual int Subtract(Number &other);
     virtual int Multiply(Number &other);
     virtual int Divide(Number &other);
+    virtual int Pow(Number &other);
 };

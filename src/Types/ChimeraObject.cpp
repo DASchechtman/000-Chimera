@@ -99,65 +99,65 @@ VAR_TYPES ChimeraObject::GetType() {
 // SET OVERRIDES BELOW ------------------------------------------------------------------------------------------------------------------------------------
 int ChimeraObject::Set(int &data) {
     printf(m_set_err, GetTypeName().c_str(), "int\0");
-    return 1;
+    return FAIL;
 }
 
 int ChimeraObject::Set(float &data) {
     printf(m_set_err, GetTypeName().c_str(), "float\0");
-    return 1;
+    return FAIL;
 }
 
 int ChimeraObject::Set(long double &data) {
     printf(m_set_err, GetTypeName().c_str(), "double\0");
-    return 1;
+    return FAIL;
 }
 
 int ChimeraObject::Set(unsigned char &data) {
     printf(m_set_err, GetTypeName().c_str(), "char\0");
-    return 1;
+    return FAIL;
 }
 
 int ChimeraObject::Set(bool &data) {
     printf(m_set_err, GetTypeName().c_str(), "bool\0");
-    return 1;
+    return FAIL;
 }
 
 int ChimeraObject::Set(string &data) {
     printf(m_set_err, GetTypeName().c_str(), "string\0");
-    return 1;
+    return FAIL;
 }
 //SET OVERRIDES ABOVE ----------------------------------------------------------------------------------------------------------------------------------------
 
 //GET OVERRIDES BELOW -----------------------------------------------------------------------------------------------------------------------------------------
 int ChimeraObject::Get(int &data) {
     printf(m_get_err, "int\0", GetTypeName().c_str());
-    return 1;
+    return FAIL;
 }
 
 int ChimeraObject::Get(float &data) {
     printf(m_get_err, "float\0", GetTypeName().c_str());
-    return 1;
+    return FAIL;
 }
 
 int ChimeraObject::Get(long double &data) {
     printf(m_get_err, "double\0", GetTypeName().c_str());
-    return 1;
+    return FAIL;
 }
 
 int ChimeraObject::Get(unsigned char &data) {
     printf(m_get_err, "char\0", GetTypeName().c_str());
-    return 1;
+    return FAIL;
 }
 
 
 int ChimeraObject::Get(string &data) {
     printf(m_get_err, "string\0", GetTypeName().c_str());
-    return 1;
+    return FAIL;
 }
 
 int ChimeraObject::Get(bool &data) {
     printf(m_get_err, "bool\0", GetTypeName().c_str());
-    return 1;
+    return FAIL;
 }
 //GETTER METHODS ABOVE ------------------------------------------------------------------------------------------------------------------------------------------
 

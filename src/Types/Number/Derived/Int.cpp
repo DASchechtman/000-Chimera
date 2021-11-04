@@ -1,5 +1,6 @@
 #include "Int.hpp"
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -15,43 +16,43 @@ Int::Int(int data) {
 
 int Int::Set(int &data) {
     m_data.integer = data;
-    return 0;
+    return SUCCEED;
 }
 
 int Int::Set(float &data) {
     m_data.integer = (int)data;
-    return 0;
+    return SUCCEED;
 }
 
 int Int::Set(long double &data) {
     m_data.integer = (int)(float)data;
-    return 0;
+    return SUCCEED;
 }
 
 int Int::Set(unsigned char &data) {
     m_data.integer = data;
-    return 0;
+    return SUCCEED;
 }
 
 
 int Int::Get(int &data) {
     data = m_data.integer;
-    return 0;
+    return SUCCEED;
 }
 
 int Int::Add(Number &other) {
     m_data.integer += (int)(float)GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Int::Subtract(Number &other) {
     m_data.integer -= (int)(float)GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Int::Multiply(Number &other) {
     m_data.integer *= (int)(float)GetOtherNumber(other);
-    return 0;
+    return SUCCEED;
 }
 
 int Int::Divide(Number &other) {
@@ -60,13 +61,26 @@ int Int::Divide(Number &other) {
     }
     catch(const char* msg){
         cout << msg;
-        return 1;
+        return FAIL;
     }
     catch (int err) {
-        return 1;
+        return FAIL;
     }
     
-    return 0;
+    return SUCCEED;
+}
+
+int Int::Pow(Number &other) {
+    try {
+        auto other_num = GetOtherNumber(other);
+        m_data.integer = pow(m_data.integer, other_num);
+    }
+    catch (const char *msg) {
+        cout << msg;
+        return FAIL;
+    }
+
+    return SUCCEED;
 }
 
 ChimeraObject* Int::Clone() {
