@@ -174,6 +174,30 @@ string ChmrInterpreter::Rebind(string to, string from)
     }
 }
 
+string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown) {
+    if (!m_table.Has(var_id_2)) {
+        cout << "Error: cannot make a union type, var " << var_id_2 << " doesn't exist\n";
+        return "";
+    }
+
+    auto type_list = types;
+
+    if (unknown) {
+        type_list = {INT_TYPE_NAME, FLOAT_TYPE_NAME, DOUBLE_TYPE_NAME, CHAR_TYPE_NAME, BOOL_TYPE_NAME, STRING_TYPE_NAME};
+    }
+
+    auto from = m_table.GetEntry(var_id_2);
+    auto to = new ChimeraUnion(type_list, from);
+
+    if (to->GetType() == UNDEFINED_DATA_TYPE) {
+        cout << "Error: initalized union with non-allowable type\n";
+        delete to;
+        return "";
+    }
+
+    return m_table.AddEntry(var_id, to);
+}
+
 string ChmrInterpreter::CloneToTemp(string var_id)
 {
     if (!m_table.Has(var_id))

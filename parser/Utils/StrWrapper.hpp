@@ -36,6 +36,10 @@ public:
         return m_primary_data;
     }
 
+    operator vector<string>() {
+        return m_extra_data;
+    }
+
     // easy way to print so I don't have to call a method returning
     // some internal data of an object
     friend ostream &operator<<(ostream &output, const StrWrapper &str)

@@ -2,8 +2,9 @@
 
 #include <type_traits>
 #include <string>
-#include "DataStructs/SymbolTable.hpp"
 #include <iostream>
+#include <vector>
+#include "DataStructs/SymbolTable.hpp"
 #include "./ChmrInterpreter.hpp"
 #include "Types/Number/Derived/Int.hpp"
 #include "Types/Number/Derived/Float.hpp"
@@ -11,6 +12,7 @@
 #include "Types/Bool/Bool.hpp"
 #include "Types/Text/Derived/String.hpp"
 #include "Types/Number/Derived/Char.hpp"
+#include "Types/Composables/ComposableOr/ChimeraUnion.hpp"
 
 using namespace std;
 
@@ -50,6 +52,8 @@ public:
 
     string Bind(string to, string from, string type);
     string Rebind(string to, string from);
+
+    string MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown=false);
 
     // method used to make clones of user defined vars
     // so that if you do say (print|(+ x 1)|). the actual

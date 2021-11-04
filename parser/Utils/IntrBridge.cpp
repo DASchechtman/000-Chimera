@@ -111,7 +111,16 @@ string PerformOper(
 
 string Assign(StrWrapper new_var, StrWrapper data_var, StrWrapper type, ChmrInterpreter &i)
 {
-    return i.Bind(new_var, data_var, type);
+    string data = data_var.GetFinalResult();
+
+    if (data.empty() && data_var.HasPendingData()) {
+        if (data_var.PendingDataSize() > 1) {
+            cout << "Error: can only assign var to one value\n";
+            return "";
+        }
+        data = data_var.GetPending(0);
+    }
+    return i.Bind(new_var, data, type);
 }
 
 string Reassign(StrWrapper var_name, StrWrapper data_var, ChmrInterpreter &i)

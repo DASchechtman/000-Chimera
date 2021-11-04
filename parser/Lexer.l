@@ -12,7 +12,7 @@ string TextVal(const char* str);
 
 ID                      [a-zA-Z][a-zA-Z0-9_?]*
 DIGIT                   [0-9]
-DEC                     ({DIGIT}+[.]{DIGIT}+|[.]{DIGIT}+)
+DEC                     ({DIGIT}+[.]{DIGIT}+|[.]{DIGIT}+|{DIGIT}+d)
 FLOAT                   ({DEC}f|{DIGIT}+f)
 CHAR                    (\\.|[^\\"])
 SINGLE_CHAR_TOKS        [=:()+\-*/|^]
@@ -31,6 +31,7 @@ double                          { yylval.types = yytext; return DOUBLE; }
 bool                            { yylval.types = yytext; return BOOL; }
 char                            { yylval.types = yytext; return CHAR; }
 string                          { yylval.types = yytext; return STRING; }
+unknown                         { yylval.types = yytext; return UNKNOWN; }
 
 cast                            { return CAST; }
 less                            { return LESS; }

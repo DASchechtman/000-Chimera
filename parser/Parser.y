@@ -45,7 +45,7 @@ extern char* yytext;
 %token <id> ID
 
 %type <types> types
-%type <tmp_id> term expr exprList math_expr compare_expr boolExpr
+%type <tmp_id> term expr exprList math_expr compare_expr boolExpr unionTypes
 
 %token UNKNOWN
 
@@ -124,12 +124,35 @@ types:                          INT             { $$ = $1; }
                                 | STRING        { $$ = $1; }
                                 ;
 
+
+unionTypes:                     types opt_ws '|' opt_ws types{
+                                    $1.AddPending($1);
+                                    $1.AddPending($5);
+                                    $$ = $1;
+                                }
+                                | unionTypes opt_ws '|' opt_ws types {
+                                    $1.AddPending($5);
+                                    $$ = $1;
+                                }
+                                ;
+
 any_ws:                         MULTI_WS | SINGLE_WS;
 
 opt_ws:                         any_ws | %empty;
 
 assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                     if (Assign($1, $8, $4, i).empty()) {
+                                        return 1;
+                                    }
+                                }
+                                | ID ':' opt_ws UNKNOWN opt_ws '=' opt_ws expr {
+                                    vector<string> none;
+                                    if(i.MakeUnion($ID, none, $expr, true).empty()) {
+                                        return 1;
+                                    }
+                                }
+                                | ID ':' opt_ws unionTypes opt_ws '=' opt_ws expr {
+                                    if (i.MakeUnion($1, $4, $8).empty()) {
                                         return 1;
                                     }
                                 }

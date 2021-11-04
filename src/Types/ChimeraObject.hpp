@@ -6,7 +6,6 @@
 using namespace std;
 
 enum VAR_TYPES {
-    UNDEFINED_DATA_TYPE, 
     OBJECT_DATA_TYPE, 
     NUMBER_DATA_TYPE, 
     TEXT_DATA_TYPE, 
@@ -15,7 +14,8 @@ enum VAR_TYPES {
     FLOAT_DATA_TYPE, 
     CHAR_DATA_TYPE, 
     STRING_DATA_TYPE, 
-    BOOL_DATA_TYPE
+    BOOL_DATA_TYPE,
+    UNDEFINED_DATA_TYPE, 
 };
 
 const string INT_TYPE_NAME = "int";
@@ -28,6 +28,9 @@ const string OBJECT_TYPE_NAME = "object";
 const string UNDEFINED_TYPE_NAME = "undefined";
 const string TEXT_TYPE_NAME = "text";
 const string NUMBER_TYPE_NAME = "number";
+
+const int FAIL = 1;
+const int SUCCEED = 0;
 
 union ObjectData {
     string *str;
