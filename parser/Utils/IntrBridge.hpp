@@ -6,6 +6,7 @@ much code into it's own cpp file as possible so that I can keep things more flex
 #pragma once
 
 #include <string>
+#include <vector>
 #include "../../src/ChmrInterpreter.hpp"
 #include "StrWrapper.hpp"
 
@@ -14,6 +15,8 @@ using namespace std;
 string Assign(StrWrapper new_var, StrWrapper data_var, StrWrapper type, ChmrInterpreter &i);
 string Reassign(StrWrapper var, StrWrapper data_var, ChmrInterpreter &i);
 string CloneToTemp(StrWrapper id, ChmrInterpreter &i);
+string MakeUnion(StrWrapper id, vector<string> types, StrWrapper data, ChmrInterpreter &i);
+string MakeUnknown(StrWrapper id, StrWrapper data, ChmrInterpreter &i);
 int Print(StrWrapper var_id, char end, ChmrInterpreter &i);
 
 string Add(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i);

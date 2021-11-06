@@ -64,6 +64,10 @@ long double Number::DivideByZeroGuard(Number &other) {
 
 // PUBLIC METHODS BELOW --------------------------------------------------------------------------------------------------------------------------------------------
 
+long double Number::GetNumber() {
+   return GetOtherNumber(*this);
+}
+
 int Number::Add(Number &other) {
     cout << "Error: 'Add' on baseclass Number isn't implemented yet\n";
     return FAIL;

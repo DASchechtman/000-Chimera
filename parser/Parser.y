@@ -146,17 +146,14 @@ assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                     }
                                 }
                                 | ID ':' opt_ws UNKNOWN opt_ws '=' opt_ws expr {
-                                    vector<string> none;
-                                    if(i.MakeUnion($ID, none, $expr, true).empty()) {
+                                    bool made_union = !MakeUnknown($ID, $expr, i).empty();
+                                    if(!made_union) {
                                         return 1;
                                     }
                                 }
                                 | ID ':' opt_ws unionTypes opt_ws '=' opt_ws expr {
-                                    string data = $expr;
-                                    if (data.empty() && $expr.PendingDataSize() > 0) {
-                                        data = $expr[0];
-                                    }
-                                    if (i.MakeUnion($1, $4, data).empty()) {
+                                    auto union_name = MakeUnion($ID, $unionTypes, $expr, i);
+                                    if (union_name.empty()) {
                                         return 1;
                                     }
                                 }

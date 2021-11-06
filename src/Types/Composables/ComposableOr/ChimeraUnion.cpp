@@ -5,26 +5,26 @@ using namespace std;
 
 //PRIVATE METHODS BELOW -------------------------------------------------------------------------------------------------------------------------------------------
 
-bool ChimeraUnion::IsAllowable(VAR_TYPES key, vector<string> value) {
+bool ChimeraUnion::IsAllowableType(VAR_TYPES cur_type, vector<string> allowed_types) {
     bool is_allowed = false;
 
-    if (key == INT_DATA_TYPE) {
-        is_allowed = find(value.begin(), value.end(), INT_TYPE_NAME) != value.end();
+    if (cur_type == INT_DATA_TYPE) {
+        is_allowed = find(allowed_types.begin(), allowed_types.end(), INT_TYPE_NAME) != allowed_types.end();
     }
-    else if (key == FLOAT_DATA_TYPE) {
-        is_allowed = find(value.begin(), value.end(), FLOAT_TYPE_NAME) != value.end();
+    else if (cur_type == FLOAT_DATA_TYPE) {
+        is_allowed = find(allowed_types.begin(), allowed_types.end(), FLOAT_TYPE_NAME) != allowed_types.end();
     }
-    else if (key == DOUBLE_DATA_TYPE) {
-        is_allowed = find(value.begin(), value.end(), DOUBLE_TYPE_NAME) != value.end();
+    else if (cur_type == DOUBLE_DATA_TYPE) {
+        is_allowed = find(allowed_types.begin(), allowed_types.end(), DOUBLE_TYPE_NAME) != allowed_types.end();
     }
-    else if (key == CHAR_DATA_TYPE) {
-        is_allowed = find(value.begin(), value.end(), CHAR_TYPE_NAME) != value.end();
+    else if (cur_type == CHAR_DATA_TYPE) {
+        is_allowed = find(allowed_types.begin(), allowed_types.end(), CHAR_TYPE_NAME) != allowed_types.end();
     }
-    else if (key == STRING_DATA_TYPE) {
-        is_allowed = find(value.begin(), value.end(), STRING_TYPE_NAME) != value.end();
+    else if (cur_type == STRING_DATA_TYPE) {
+        is_allowed = find(allowed_types.begin(), allowed_types.end(), STRING_TYPE_NAME) != allowed_types.end();
     }
-    else if (key == BOOL_DATA_TYPE) {
-        is_allowed = find(value.begin(), value.end(), BOOL_TYPE_NAME) != value.end();
+    else if (cur_type == BOOL_DATA_TYPE) {
+        is_allowed = find(allowed_types.begin(), allowed_types.end(), BOOL_TYPE_NAME) != allowed_types.end();
     }
 
     return is_allowed;
@@ -40,7 +40,7 @@ ChimeraUnion::ChimeraUnion(vector<string> types, ChimeraObject *val) {
 
     for(int i = OBJECT_DATA_TYPE; i < UNDEFINED_DATA_TYPE; i++) {
         VAR_TYPES key = static_cast<VAR_TYPES>(i);
-        m_allowable_types[key] = IsAllowable(key, types);
+        m_allowable_types[key] = IsAllowableType(key, types);
         if (m_allowable_types[key] && val->GetType() == key && m_var == nullptr) {
             SetType(key);
             m_var = val->Clone();
@@ -113,21 +113,21 @@ string ChimeraUnion::ToStr() {
 
 int ChimeraUnion::ToInt() {
     if (m_var == nullptr) {
-        return SUCCEED;
+        return 0;
     }
     return m_var->ToInt();
 }
 
 float ChimeraUnion::ToFloat() {
     if (m_var == nullptr) {
-        return SUCCEED;
+        return 0;
     }
     return m_var->ToFloat();
 }
 
 long double ChimeraUnion::ToDouble() {
     if(m_var == nullptr) {
-        return SUCCEED;
+        return 0;
     }
     return m_var->ToDouble();
 }

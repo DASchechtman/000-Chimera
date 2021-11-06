@@ -18,6 +18,14 @@ enum VAR_TYPES {
     UNDEFINED_DATA_TYPE, 
 };
 
+enum COMPARE_OPERS {
+    LESS_OPER, 
+    LESS_EQUAL_OPER, 
+    GREATER_OPER, 
+    GREATER_EQUAL_OPER, 
+    EQUAL_OPER
+};
+
 const string INT_TYPE_NAME = "int";
 const string FLOAT_TYPE_NAME = "float";
 const string DOUBLE_TYPE_NAME = "double";
@@ -28,6 +36,8 @@ const string OBJECT_TYPE_NAME = "object";
 const string UNDEFINED_TYPE_NAME = "undefined";
 const string TEXT_TYPE_NAME = "text";
 const string NUMBER_TYPE_NAME = "number";
+
+const string EMPTY_VAR_NAME;
 
 const int FAIL = 1;
 const int SUCCEED = 0;
@@ -47,9 +57,10 @@ private:
     const char* m_get_err = "Error: cannot put '%s' in %s\n";
     const char* m_set_err = "Error: cannot set %s to '%s'\n";
 
-    bool IsNumber(ChimeraObject* other);
-    bool IsText(ChimeraObject* other);
-    bool IsBool(ChimeraObject* other);
+    bool PerformCompareOper(ChimeraObject* other, COMPARE_OPERS oper_code);
+
+    template<class T>
+    bool Compare(T a, T b, COMPARE_OPERS oper_code);
 
 protected:
     ObjectData m_data;
@@ -137,3 +148,26 @@ public:
     virtual ChimeraObject* Clone() = 0;
 
 };
+
+template<class T>
+bool ChimeraObject::Compare(T a, T b, COMPARE_OPERS oper_code) {
+    bool compare_res = false;
+
+    if (oper_code == LESS_OPER) {
+        compare_res = (a < b);
+    }
+    else if (oper_code == LESS_EQUAL_OPER) {
+        compare_res = (a <= b);
+    }
+    else if (oper_code == GREATER_OPER) {
+        compare_res = (a > b);
+    }
+    else if (oper_code == GREATER_EQUAL_OPER) {
+        compare_res = (a >= b);
+    }
+    else if (oper_code == EQUAL_OPER) {
+        compare_res = (a == b);
+    }
+
+    return compare_res;
+}

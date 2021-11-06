@@ -130,7 +130,7 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
             // no error message here because if Set fails it will print something
             m_table.RemoveEntry(new_var_name);
         }
-        new_var_name = "";
+        new_var_name = EMPTY_VAR_NAME;
     }
 
     return new_var_name;
@@ -148,7 +148,7 @@ string ChmrInterpreter::CloneOrCreate(string to, string type, T data)
         auto obj = m_table.GetEntry(to);
         if (obj->GetTypeName() != type)
         {
-            return "";
+            return EMPTY_VAR_NAME;
         }
         obj->Set(data);
         return to;
@@ -163,32 +163,32 @@ string ChmrInterpreter::CreateTmpVar(T data)
 {
     if (is_same<T, int>::value)
     {
-        return Create("", INT_TYPE_NAME, data);
+        return Create(EMPTY_VAR_NAME, INT_TYPE_NAME, data);
     }
     else if (is_same<T, float>::value)
     {
-        return Create("", FLOAT_TYPE_NAME, data);
+        return Create(EMPTY_VAR_NAME, FLOAT_TYPE_NAME, data);
     }
     else if (is_same<T, long double>::value)
     {
-        return Create("", DOUBLE_TYPE_NAME, data);
+        return Create(EMPTY_VAR_NAME, DOUBLE_TYPE_NAME, data);
     }
     else if (is_same<T, unsigned char>::value)
     {
-        return Create("", CHAR_TYPE_NAME, data);
+        return Create(EMPTY_VAR_NAME, CHAR_TYPE_NAME, data);
     }
     else if (is_same<T, string>::value)
     {
-        return Create("", STRING_TYPE_NAME, data);
+        return Create(EMPTY_VAR_NAME, STRING_TYPE_NAME, data);
     }
     else if (is_same<T, bool>::value)
     {
-        return Create("", BOOL_TYPE_NAME, data);
+        return Create(EMPTY_VAR_NAME, BOOL_TYPE_NAME, data);
     }
     else
     {
         cout << "Error: can not create unsupported type\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 };
 

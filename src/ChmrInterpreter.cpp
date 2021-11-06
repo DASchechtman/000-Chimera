@@ -13,11 +13,11 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
     if (!m_table.Has(from))
     {
         cout << "Error: can't bind data to nonexistant symbol\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto obj = m_table.GetEntry(from);
-    string var_id;
+    string var_id = EMPTY_VAR_NAME;
 
     switch (obj->GetType())
     {
@@ -76,7 +76,7 @@ string ChmrInterpreter::DoLogicOper(string var_id_1, string var_id_2, bool (*ope
     if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
     {
         cout << "Error: can't and a nonexistent value\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto var_1 = m_table.GetEntry(var_id_1);
@@ -93,7 +93,7 @@ string ChmrInterpreter::DoLogicOper(string var_id_1, string var_id_2, bool (*ope
     bool_1->Get(res_1);
     bool_2->Get(res_2);
 
-    return Create("", BOOL_TYPE_NAME, (*oper)(res_1, res_2));
+    return Create(EMPTY_VAR_NAME, BOOL_TYPE_NAME, (*oper)(res_1, res_2));
 }
 
 int ChmrInterpreter::DoMath(string var_id_1, string var_id_2, OPER_CODE code, int (*oper)(ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num))
@@ -153,7 +153,7 @@ string ChmrInterpreter::Bind(string to, string from, string type)
     if (m_table.Has(to))
     {
         cout << "Error: var " << to << " already exists\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
     else
     {
@@ -166,7 +166,7 @@ string ChmrInterpreter::Rebind(string to, string from)
     if (!m_table.Has(to))
     {
         cout << "Error: couldn't clone var\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
     else
     {
@@ -177,13 +177,20 @@ string ChmrInterpreter::Rebind(string to, string from)
 string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown) {
     if (!m_table.Has(var_id_2)) {
         cout << "Error: cannot make a union type, var " << var_id_2 << " doesn't exist\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto type_list = types;
 
     if (unknown) {
-        type_list = {INT_TYPE_NAME, FLOAT_TYPE_NAME, DOUBLE_TYPE_NAME, CHAR_TYPE_NAME, BOOL_TYPE_NAME, STRING_TYPE_NAME};
+        type_list = {
+            INT_TYPE_NAME, 
+            FLOAT_TYPE_NAME, 
+            DOUBLE_TYPE_NAME, 
+            CHAR_TYPE_NAME, 
+            BOOL_TYPE_NAME, 
+            STRING_TYPE_NAME
+        };
     }
 
     auto from = m_table.GetEntry(var_id_2);
@@ -192,7 +199,7 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
     if (to->GetType() == UNDEFINED_DATA_TYPE) {
         cout << "Error: initalized union with non-allowable type\n";
         delete to;
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     return m_table.AddEntry(var_id, to);
@@ -203,11 +210,11 @@ string ChmrInterpreter::CloneToTemp(string var_id)
     if (!m_table.Has(var_id))
     {
         cout << "Error: var doesn't exist\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto obj = m_table.GetEntry(var_id);
-    return MakeBind("", var_id, obj->GetTypeName());
+    return MakeBind(EMPTY_VAR_NAME, var_id, obj->GetTypeName());
 }
 
 int ChmrInterpreter::Add(string var_id_1, string var_id_2)
@@ -300,7 +307,7 @@ string ChmrInterpreter::Cast(string var_id, string type)
     if (!m_table.Has(var_id))
     {
         cout << "Error: var " << var_id << " doesn't exist\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto var = m_table.GetEntry(var_id)->ConvertTo(type);
@@ -308,7 +315,7 @@ string ChmrInterpreter::Cast(string var_id, string type)
     if (var == nullptr)
     {
         cout << "Error: trying to convert to non-supported type " << type << '\n';
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     return m_table.AddEntry("", var);
@@ -329,7 +336,7 @@ string ChmrInterpreter::Not(string var_id_1)
     if (!m_table.Has(var_id_1))
     {
         cout << "Error: cannot perform logical oper on nonexistent\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto var = m_table.GetEntry(var_id_1);
@@ -339,7 +346,7 @@ string ChmrInterpreter::Not(string var_id_1)
     bool res = false;
     bool_var->Get(res);
 
-    return Create("", BOOL_TYPE_NAME, !res);
+    return Create(EMPTY_VAR_NAME, BOOL_TYPE_NAME, !res);
 }
 
 string ChmrInterpreter::Less(string var_id_1, string var_id_2)
@@ -347,7 +354,7 @@ string ChmrInterpreter::Less(string var_id_1, string var_id_2)
     if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
     {
         cout << "Error: cannot compare nonexistent values\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto var_1 = m_table.GetEntry(var_id_1);
@@ -361,7 +368,7 @@ string ChmrInterpreter::LessEqual(string var_id_1, string var_id_2)
     if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
     {
         cout << "Error: cannot compare nonexistent values\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto var_1 = m_table.GetEntry(var_id_1);
@@ -375,7 +382,7 @@ string ChmrInterpreter::Greater(string var_id_1, string var_id_2)
     if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
     {
         cout << "Error: cannot compare nonexistent values\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto var_1 = m_table.GetEntry(var_id_1);
@@ -389,7 +396,7 @@ string ChmrInterpreter::GreaterEqual(string var_id_1, string var_id_2)
     if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
     {
         cout << "Error: cannot compare nonexistent values\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto var_1 = m_table.GetEntry(var_id_1);
@@ -403,7 +410,7 @@ string ChmrInterpreter::Equal(string var_id_1, string var_id_2)
     if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
     {
         cout << "Error: cannot compare nonexistent values\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     auto var_1 = m_table.GetEntry(var_id_1);

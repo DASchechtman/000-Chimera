@@ -13,7 +13,7 @@ private:
     vector<string> m_type_list;
     ChimeraObject *m_var = nullptr;
 
-    bool IsAllowable(VAR_TYPES key, vector<string> value);
+    bool IsAllowableType(VAR_TYPES cur_type, vector<string> allowed_types);
 
     template<class T>
     int SetTo(VAR_TYPES type, string type_name, T& data);

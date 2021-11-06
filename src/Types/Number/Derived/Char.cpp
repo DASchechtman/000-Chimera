@@ -55,6 +55,7 @@ int Char::Multiply(Number &other) {
 }
 
 int Char::Divide(Number &other) {
+    
     try {
         m_data.character /= (char)(int)(float)DivideByZeroGuard(other);
     }

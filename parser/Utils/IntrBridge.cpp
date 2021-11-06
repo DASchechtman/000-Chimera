@@ -4,8 +4,23 @@
 
 using namespace std;
 
-
 // FILE ONLY FUNCTIONS BELOW -----------------------------------------------------------------------
+
+string ExtractData(StrWrapper &data, int extract_limt = 1, string msg = "")
+{
+    string extracted = data.GetFinalResult();
+
+    if (extracted.empty() && data.HasPendingData())
+    {
+        extracted = data[0];
+        if (extract_limt > 0 && data.PendingDataSize() > extract_limt) {
+            cout << msg << '\n';
+            return EMPTY_VAR_NAME;
+        }
+    }
+
+    return extracted;
+}
 
 /*
 used to reuse a lot of the boilerplate code that is needed to perform an operation
@@ -33,9 +48,10 @@ string PerformOper(
                 // failed to perform operation
                 // no error massage because the oper will
                 // print one when it fails
-                return "";
+                return EMPTY_VAR_NAME;
             }
         }
+        
         var_id_1 = oper_cumulative;
     }
 
@@ -43,16 +59,15 @@ string PerformOper(
     // performs operation on the extra data in var_id_2
     // because an expression can be composed of something
     // with multiple data given i.d. (+ "hello" (cast ' ' 5 string))
-    // so is making sure that all the data is computed 
+    // so is making sure that all the data is computed
 
     if ((i->*oper)(var_id_1, var_id_2[0]) == 1)
     {
         // failed to perform operation
         // no error massage because the oper will
         // print one when it fails
-        return "";
+        return EMPTY_VAR_NAME;
     }
-
 
     for (unsigned int index = 1; index < var_id_2.PendingDataSize(); index++)
     {
@@ -61,7 +76,7 @@ string PerformOper(
             // failed to perform operation
             // no error massage because the oper will
             // print one when it fails
-            return "";
+            return EMPTY_VAR_NAME;
         }
     }
 
@@ -85,7 +100,7 @@ string PerformOper(
     if (!var_id.HasPendingData())
     {
         cout << "Error: cannot expand expression\n";
-        return "";
+        return EMPTY_VAR_NAME;
     }
 
     string accumulate = var_id[0];
@@ -95,7 +110,7 @@ string PerformOper(
         {
             // failed oper
             // no error message because the oper will print one on fail
-            return "";
+            return EMPTY_VAR_NAME;
         };
     }
 
@@ -104,35 +119,27 @@ string PerformOper(
 
 // FILE ONLY FUNCTIONS ABOVE -----------------------------------------------------------------------
 
-
 // IMPORTABLE FUNCTIONS BELOW ----------------------------------------------------------------------
 
 // assignment funcs ----------------------------------------------------------
 
 string Assign(StrWrapper new_var, StrWrapper data_var, StrWrapper type, ChmrInterpreter &i)
 {
-    string data = data_var.GetFinalResult();
+    string data = ExtractData(data_var, 1, "Error: can ony assign var to one value");
 
-    if (data.empty() && data_var.HasPendingData()) {
-        if (data_var.PendingDataSize() > 1) {
-            cout << "Error: can only assign var to one value\n";
-            return "";
-        }
-        data = data_var.GetPending(0);
+    if (data.empty()) {
+        return EMPTY_VAR_NAME;
     }
+
     return i.Bind(new_var, data, type);
 }
 
 string Reassign(StrWrapper var_name, StrWrapper data_var, ChmrInterpreter &i)
 {
-    string data = data_var.GetFinalResult();
+    string data = ExtractData(data_var, 1, "Error: can only reassign with one value");
 
-    if (data.empty() && data_var.HasPendingData()) {
-        if (data_var.PendingDataSize() > 1) {
-            cout << "Error: can only reassign a var to one value\n";
-            return "";
-        }
-        data = data_var.GetPending(0);
+    if (data.empty()) {
+        return EMPTY_VAR_NAME;
     }
 
     return i.Rebind(var_name, data);
@@ -148,17 +155,41 @@ string CloneToTemp(StrWrapper id, ChmrInterpreter &i)
 int Print(StrWrapper var_id, char end, ChmrInterpreter &i)
 {
     int err = 2;
-    for(unsigned int index = 0; index < var_id.PendingDataSize(); index++) {
+    for (unsigned int index = 0; index < var_id.PendingDataSize(); index++)
+    {
         err = i.PrintVar(var_id[index], end);
-        if (err == 1) {
+        if (err == 1)
+        {
             break;
         }
     }
     return err;
 }
 
-
 // two arg opers ---------------------------------------------------------
+
+string MakeUnion(StrWrapper id, vector<string> types, StrWrapper data, ChmrInterpreter &i)
+{
+    string value = ExtractData(data, 1, "Error: can only assign one type to union");
+
+    if (value.empty()) {
+        return EMPTY_VAR_NAME;
+    }
+
+    return i.MakeUnion(id, types, value);
+}
+
+string MakeUnknown(StrWrapper id, StrWrapper data, ChmrInterpreter &i)
+{
+    vector<string> none;
+    string value = ExtractData(data, 1, "Error: can only assign one type to union");
+
+    if (value.empty()) {
+        return EMPTY_VAR_NAME;
+    }
+
+    return i.MakeUnion(id, none, value, true);
+}
 
 string Add(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
 {
@@ -208,15 +239,18 @@ string Divide(StrWrapper var_id, ChmrInterpreter &i)
 
 // logical opers ------------------------------------------------------------
 
-string And(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
+string And(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
+{
     return i.And(var_id_1, var_id_2);
 }
 
-string Or(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
+string Or(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
+{
     return i.Or(var_id_1, var_id_2);
 }
 
-string Not(StrWrapper var_id_1, ChmrInterpreter &i) {
+string Not(StrWrapper var_id_1, ChmrInterpreter &i)
+{
     return i.Not(var_id_1);
 }
 
@@ -224,30 +258,37 @@ string Not(StrWrapper var_id_1, ChmrInterpreter &i) {
 
 // compare opers ------------------------------------------------------------
 
-string Less(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
+string Less(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
+{
     return i.Less(var_id_1, var_id_2);
 }
 
-string LessEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
+string LessEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
+{
     return i.LessEqual(var_id_1, var_id_2);
 }
 
-string Greater(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
+string Greater(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
+{
     return i.Greater(var_id_1, var_id_2);
 }
 
-string GreaterEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
+string GreaterEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
+{
     return i.GreaterEqual(var_id_1, var_id_2);
 }
 
-string Equal(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
+string Equal(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
+{
     return i.Equal(var_id_1, var_id_2);
 }
 
-string NotEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i) {
+string NotEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
+{
     string res_var_name = i.Equal(var_id_1, var_id_2);
-    if (res_var_name.empty()) {
-        return "";
+    if (res_var_name.empty())
+    {
+        return EMPTY_VAR_NAME;
     }
     return i.Not(res_var_name);
 }
@@ -268,7 +309,7 @@ string Cast(StrWrapper &store, StrWrapper var_id, StrWrapper type, ChmrInterpret
         if (casted_var_id.empty())
         {
             // cast operation failed to be performed for some reason
-            return "";
+            return EMPTY_VAR_NAME;
         }
         store.AddPending(casted_var_id);
     }
