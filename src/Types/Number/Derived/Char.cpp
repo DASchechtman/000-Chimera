@@ -11,7 +11,7 @@ Char::Char(char data) {
 }
 
 
-int Char::Set(int &data) {
+int Char::Set(int64 &data) {
     m_data.character = (char)data;
     return SUCCEED;
 }
@@ -28,13 +28,13 @@ int Char::Set(long double &data) {
 }
 
 
-int Char::Set(unsigned char &data) {
+int Char::Set(char32_t &data) {
     m_data.character = data;
     return SUCCEED;
 }
 
 
-int Char::Get(unsigned char &data) {
+int Char::Get(char32_t &data) {
     data = m_data.character;
     return SUCCEED;
 }
@@ -80,11 +80,11 @@ string Char::ToStr() {
     return to_str;
 }
 
-unsigned char Char::ToChar() {
+char32_t Char::ToChar() {
     return m_data.character;
 }
 
-int Char::ToInt() {
+int64 Char::ToInt() {
     return m_data.character;
 }
 

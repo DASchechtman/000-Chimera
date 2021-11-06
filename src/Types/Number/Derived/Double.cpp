@@ -15,7 +15,7 @@ Double::Double(double data) {
     SetType(DOUBLE_DATA_TYPE);
 }
 
-int Double::Set(int &data) {
+int Double::Set(int64 &data) {
     m_data.decimal = data;
     return SUCCEED;
 }
@@ -30,7 +30,7 @@ int Double::Set(long double &data) {
     return SUCCEED;
 }
 
-int Double::Set(unsigned char &data) {
+int Double::Set(char32_t &data) {
     m_data.decimal = data;
     return SUCCEED;
 }
@@ -93,7 +93,7 @@ string Double::ToStr() {
     return to_string(m_data.decimal);
 }
 
-unsigned char Double::ToChar() {
+char32_t Double::ToChar() {
     char to_char = 0;
 
     if (m_data.decimal < 0) {
@@ -109,8 +109,8 @@ unsigned char Double::ToChar() {
     return to_char;
 }
 
-int Double::ToInt() {
-    return (int)m_data.decimal;
+int64 Double::ToInt() {
+    return (int32_t)m_data.decimal;
 }
 
 float Double::ToFloat() {

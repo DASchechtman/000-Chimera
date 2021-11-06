@@ -9,6 +9,8 @@ protected:
 
 public:
 
+    Text();
+
     virtual int Add(Text &other);
     virtual int Subtract(Text &other); 
 

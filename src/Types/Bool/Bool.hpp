@@ -12,8 +12,8 @@ public:
     int Get(bool &data);
 
     string ToStr();
-    unsigned char ToChar();
-    int ToInt();
+    char32_t ToChar();
+    int64 ToInt();
     float ToFloat();
     long double ToDouble();
     bool ToBool();

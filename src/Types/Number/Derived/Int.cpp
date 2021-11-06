@@ -14,7 +14,7 @@ Int::Int(int data) {
     SetType(INT_DATA_TYPE);
 }
 
-int Int::Set(int &data) {
+int Int::Set(int64 &data) {
     m_data.integer = data;
     return SUCCEED;
 }
@@ -29,13 +29,13 @@ int Int::Set(long double &data) {
     return SUCCEED;
 }
 
-int Int::Set(unsigned char &data) {
+int Int::Set(char32_t &data) {
     m_data.integer = data;
     return SUCCEED;
 }
 
 
-int Int::Get(int &data) {
+int Int::Get(int64 &data) {
     data = m_data.integer;
     return SUCCEED;
 }
@@ -91,7 +91,7 @@ string Int::ToStr() {
     return to_string(m_data.integer);
 }
 
-unsigned char Int::ToChar() {
+char32_t Int::ToChar() {
     char to_char = 0;
 
     if (m_data.integer < 0) {
@@ -108,7 +108,7 @@ unsigned char Int::ToChar() {
 }
 
 
-int Int::ToInt() {
+int64 Int::ToInt() {
     return m_data.integer;
 }
 

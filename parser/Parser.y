@@ -28,7 +28,7 @@ extern char* yytext;
 
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
-%token NEWLINE SEMICOLON EOPU
+%token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW
 
 // data values
 %token <int_val> INT_VAL 
@@ -162,6 +162,11 @@ assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                         return 1;
                                     }
                                 }
+                                | ID ':' opt_ws types '<' REF '>' opt_ws '=' opt_ws expr {
+                                    if (i.RefBind($ID, $expr, $types).empty()) {
+                                        return 1;
+                                    }
+                                }
                                 ;
 
 
@@ -219,63 +224,63 @@ statement:                      assign
 
 
 //MATH OPERS BELOW ---------------------------------------------------------------------------------------------------------------------------------------------------
-math_expr:                      '(' '+' any_ws expr[left] any_ws exprList[right] opt_ws')' {
+math_expr:                      '(' ADD any_ws expr[left] any_ws exprList[right] opt_ws')' {
                                     string tmp = Add($left, $right, i);
                                     if(tmp.empty()) {
                                         return 1;
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '+' any_ws expr opt_ws ')' {
+                                | '(' ADD any_ws expr opt_ws ')' {
                                     string tmp = Add($4, i);
                                     if (tmp.empty()) {
                                         return 1;
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '-' any_ws expr any_ws exprList ')' {
+                                | '(' SUB any_ws expr any_ws exprList ')' {
                                     string tmp = Subtract($4, $6, i);
                                     if(tmp.empty()) {
                                         return 1;
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '-' any_ws expr opt_ws ')' {
+                                | '(' SUB any_ws expr opt_ws ')' {
                                     string tmp = Subtract($4, i);
                                     if (tmp.empty()) {
                                         return 1;
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '*' any_ws expr any_ws exprList ')' {
+                                | '(' MUL any_ws expr any_ws exprList ')' {
                                     string tmp = Multiply($4, $6, i);
                                     if(tmp.empty()) {
                                         return 1;
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '*' any_ws expr opt_ws ')' {
+                                | '(' MUL any_ws expr opt_ws ')' {
                                     string tmp = Multiply($4, i);
                                     if (tmp.empty()) {
                                         return 1;
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '/' any_ws expr any_ws exprList opt_ws_or_nl ')' {
+                                | '(' DIV any_ws expr any_ws exprList opt_ws_or_nl ')' {
                                     string tmp = Divide($4, $6, i);
                                     if(tmp.empty()) {
                                         return 1;
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '/' any_ws expr opt_ws ')' {
+                                | '(' DIV any_ws expr opt_ws ')' {
                                     string tmp = Divide($4, i);
                                     if (tmp.empty()) {
                                         return 1;
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' '^' any_ws expr any_ws expr opt_ws ')' {
+                                | '(' POW any_ws expr any_ws expr opt_ws ')' {
                                     string var_1 = $4;
                                     string var_2 = $6;
 

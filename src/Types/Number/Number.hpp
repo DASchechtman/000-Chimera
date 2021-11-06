@@ -11,6 +11,8 @@ protected:
 
 public:
 
+    Number();
+
     long double GetNumber();
 
     virtual int Add(Number &other);

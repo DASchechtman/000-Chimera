@@ -18,7 +18,7 @@ public:
     ~String();
 
     int Set(string &data);
-    int Set(unsigned char &data);
+    int Set(char32_t &data);
 
     int Get(string &data);
 
@@ -29,8 +29,8 @@ public:
     string GetText();
 
     string ToStr();
-    unsigned char ToChar();
-    int ToInt();
+    char32_t ToChar();
+    int64 ToInt();
     float ToFloat();
     long double ToDouble();
     bool ToBool();

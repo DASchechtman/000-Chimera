@@ -18,12 +18,13 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
 
     auto obj = m_table.GetEntry(from);
     string var_id = EMPTY_VAR_NAME;
+    string p = m_table.GetParent(to);
 
     switch (obj->GetType())
     {
     case INT_DATA_TYPE:
     {
-        int data = 0;
+        int64 data = 0;
         obj->Get(data);
         var_id = CloneOrCreate(to, type, data);
         break;
@@ -44,7 +45,7 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
     }
     case CHAR_DATA_TYPE:
     {
-        unsigned char data = 'a';
+        char32_t data = 'a';
         obj->Get(data);
         var_id = CloneOrCreate(to, type, data);
         break;
@@ -111,7 +112,7 @@ int ChmrInterpreter::DoMath(string var_id_1, string var_id_2, OPER_CODE code, in
 
     const char *oper_code_names[] = { "ADD\0", "SUBTRACT\0", "MULTIPLY\0", "DIVIDE\0", "POW\0" };
 
-    if (code == ADD || code == SUBTRACT)
+    if (code == ADD_CODE || code == SUBTRACT_CODE)
     {
         if (var_1->IsNumber() && var_2->IsNumber())
         {
@@ -126,7 +127,7 @@ int ChmrInterpreter::DoMath(string var_id_1, string var_id_2, OPER_CODE code, in
             cout << "Error: cannont perform oper " << oper_code_names[code] << " on a number and a non-number\n";
         }
     }
-    else if (code == MULTIPLY || code == DIVIDE || code == POW)
+    else if (code == MULTIPLY_CODE || code == DIVIDE_CODE || code == POW_CODE)
     {
         if (var_1->IsNumber() && var_2->IsNumber())
         {
@@ -174,6 +175,31 @@ string ChmrInterpreter::Rebind(string to, string from)
     }
 }
 
+string ChmrInterpreter::RefBind(string ref_id, string var_id, string type) {
+    int x = 0;
+    if (!m_table.Has(var_id)) {
+        cout << "Error: cannot bind a reference to a nonexistent var\n";
+        return EMPTY_VAR_NAME;
+    }
+    else if(m_table.IsTemp(var_id)) {
+        cout << "Error: cannot bind ref to a temp value\n";
+        return EMPTY_VAR_NAME;
+    }
+
+    auto obj = m_table.GetEntry(m_table.GetParent(var_id));
+
+    if (obj->GetTypeName() != type) {
+        cout << "Error: cannot reference type '" << obj->GetTypeName() << "' as " << type << "-ref\n";
+        return EMPTY_VAR_NAME;
+    }
+    else if (obj->GetGeneralType() == UNION_DATA_TYPE) {
+        cout << "Error: cannot make a reference to dynamic types 'unions'\n";
+        return EMPTY_VAR_NAME;
+    }
+
+    return m_table.AddOrUpdateRef(ref_id, obj);
+}
+
 string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown) {
     if (!m_table.Has(var_id_2)) {
         cout << "Error: cannot make a union type, var " << var_id_2 << " doesn't exist\n";
@@ -207,6 +233,7 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
 
 string ChmrInterpreter::CloneToTemp(string var_id)
 {
+    int x = 0;
     if (!m_table.Has(var_id))
     {
         cout << "Error: var doesn't exist\n";
@@ -214,7 +241,10 @@ string ChmrInterpreter::CloneToTemp(string var_id)
     }
 
     auto obj = m_table.GetEntry(var_id);
-    return MakeBind(EMPTY_VAR_NAME, var_id, obj->GetTypeName());
+    string tmp = m_table.AddEntry(EMPTY_VAR_NAME, obj->Clone());
+    m_table.SetParent(tmp, var_id);
+    return MakeBind(tmp, var_id, obj->GetTypeName());
+    return "";
 }
 
 int ChmrInterpreter::Add(string var_id_1, string var_id_2)
@@ -234,7 +264,7 @@ int ChmrInterpreter::Add(string var_id_1, string var_id_2)
         return err;
     };
 
-    return DoMath(var_id_1, var_id_2, ADD, callback);
+    return DoMath(var_id_1, var_id_2, ADD_CODE, callback);
 }
 
 int ChmrInterpreter::Subtract(string var_id_1, string var_id_2)
@@ -254,7 +284,7 @@ int ChmrInterpreter::Subtract(string var_id_1, string var_id_2)
         return err;
     };
 
-    return DoMath(var_id_1, var_id_2, SUBTRACT, callback);
+    return DoMath(var_id_1, var_id_2, SUBTRACT_CODE, callback);
 }
 
 int ChmrInterpreter::Multiply(string var_id_1, string var_id_2)
@@ -269,7 +299,7 @@ int ChmrInterpreter::Multiply(string var_id_1, string var_id_2)
         return ((Number *)obj_1)->Multiply(*(Number *)obj_2);
     };
 
-    return DoMath(var_id_1, var_id_2, MULTIPLY, callback);
+    return DoMath(var_id_1, var_id_2, MULTIPLY_CODE, callback);
 }
 
 int ChmrInterpreter::Divide(string var_id_1, string var_id_2)
@@ -284,7 +314,7 @@ int ChmrInterpreter::Divide(string var_id_1, string var_id_2)
         return ((Number *)obj_1)->Divide(*(Number *)obj_2);
     };
 
-    return DoMath(var_id_1, var_id_2, DIVIDE, callback);
+    return DoMath(var_id_1, var_id_2, DIVIDE_CODE, callback);
 }
 
 int ChmrInterpreter::Pow(string base_id, string exp_id)
@@ -299,7 +329,7 @@ int ChmrInterpreter::Pow(string base_id, string exp_id)
         return ((Number*)obj_1)->Pow(*(Number*)obj_2);
     };
 
-    return DoMath(base_id, exp_id, POW, callback);
+    return DoMath(base_id, exp_id, POW_CODE, callback);
 }
 
 string ChmrInterpreter::Cast(string var_id, string type)

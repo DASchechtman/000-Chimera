@@ -10,12 +10,12 @@ public:
     Int();
     Int(int data);
 
-    int Set(int &data);
+    int Set(int64 &data);
     int Set(float &data);
     int Set(long double &data);
-    int Set(unsigned char &data);
+    int Set(char32_t &data);
 
-    int Get(int &data);
+    int Get(int64 &data);
 
     int Add(Number &other);
     int Subtract(Number &other);
@@ -24,8 +24,8 @@ public:
     int Pow(Number &other);
 
     string ToStr();
-    unsigned char ToChar();
-    int ToInt();
+    char32_t ToChar();
+    int64 ToInt();
     float ToFloat();
     long double ToDouble();
     bool ToBool();

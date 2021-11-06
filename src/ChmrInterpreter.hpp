@@ -16,7 +16,7 @@
 
 using namespace std;
 
-enum OPER_CODE {ADD, SUBTRACT, MULTIPLY, DIVIDE, POW};
+enum OPER_CODE {ADD_CODE, SUBTRACT_CODE, MULTIPLY_CODE, DIVIDE_CODE, POW_CODE};
 
 /*
 note: in the interpreter, if a string returning method returns an empty string. that means the string failed
@@ -52,6 +52,7 @@ public:
 
     string Bind(string to, string from, string type);
     string Rebind(string to, string from);
+    string RefBind(string ref_id, string var_id, string type);
 
     string MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown=false);
 
@@ -118,8 +119,9 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
         new_var_name = m_table.AddEntry(var_id, new Bool());
     }
 
-    T new_data = data;
-    if (new_var_name.empty() || m_table.GetEntry(new_var_name)->Set(new_data) == 1)
+    T *new_data = new T(data);
+
+    if (new_var_name.empty() || m_table.GetEntry(new_var_name)->Set(*new_data) == 1)
     {
         if (new_var_name.empty())
         {
@@ -132,6 +134,8 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
         }
         new_var_name = EMPTY_VAR_NAME;
     }
+
+    delete new_data;
 
     return new_var_name;
 };
@@ -161,7 +165,7 @@ string ChmrInterpreter::CloneOrCreate(string to, string type, T data)
 template <class T>
 string ChmrInterpreter::CreateTmpVar(T data)
 {
-    if (is_same<T, int>::value)
+    if (is_same<T, int64>::value)
     {
         return Create(EMPTY_VAR_NAME, INT_TYPE_NAME, data);
     }
@@ -173,7 +177,7 @@ string ChmrInterpreter::CreateTmpVar(T data)
     {
         return Create(EMPTY_VAR_NAME, DOUBLE_TYPE_NAME, data);
     }
-    else if (is_same<T, unsigned char>::value)
+    else if (is_same<T, char32_t>::value)
     {
         return Create(EMPTY_VAR_NAME, CHAR_TYPE_NAME, data);
     }

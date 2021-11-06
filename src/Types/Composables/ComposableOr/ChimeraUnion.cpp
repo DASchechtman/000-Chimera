@@ -37,6 +37,7 @@ bool ChimeraUnion::IsAllowableType(VAR_TYPES cur_type, vector<string> allowed_ty
 ChimeraUnion::ChimeraUnion(vector<string> types, ChimeraObject *val) {
 
     SetType(UNDEFINED_DATA_TYPE);
+    SetGeneralType(UNION_DATA_TYPE);
 
     for(int i = OBJECT_DATA_TYPE; i < UNDEFINED_DATA_TYPE; i++) {
         VAR_TYPES key = static_cast<VAR_TYPES>(i);
@@ -56,7 +57,7 @@ ChimeraUnion::~ChimeraUnion() {
     }
 }
 
-int ChimeraUnion::Set(int &data) {
+int ChimeraUnion::Set(int64 &data) {
     return SetTo(INT_DATA_TYPE, INT_TYPE_NAME, data);
 }
 
@@ -68,7 +69,7 @@ int ChimeraUnion::Set(long double &data) {
     return SetTo(DOUBLE_DATA_TYPE, DOUBLE_TYPE_NAME, data);
 }
 
-int ChimeraUnion::Set(unsigned char &data) {
+int ChimeraUnion::Set(char32_t &data) {
     return SetTo(CHAR_DATA_TYPE, CHAR_TYPE_NAME, data);
 }
 
@@ -80,7 +81,7 @@ int ChimeraUnion::Set(string &data) {
     return SetTo(STRING_DATA_TYPE, STRING_TYPE_NAME, data);
 }
 
-int ChimeraUnion::Get(int &data) {
+int ChimeraUnion::Get(int64 &data) {
     return GetFrom(data);
 }
 
@@ -92,7 +93,7 @@ int ChimeraUnion::Get(long double &data) {
     return GetFrom(data);
 }
 
-int ChimeraUnion::Get(unsigned char &data) {
+int ChimeraUnion::Get(char32_t &data) {
     return GetFrom(data);
 }
 
@@ -111,7 +112,7 @@ string ChimeraUnion::ToStr() {
     return m_var->ToStr();
 }
 
-int ChimeraUnion::ToInt() {
+int64 ChimeraUnion::ToInt() {
     if (m_var == nullptr) {
         return 0;
     }
@@ -132,7 +133,7 @@ long double ChimeraUnion::ToDouble() {
     return m_var->ToDouble();
 }
 
-unsigned char ChimeraUnion::ToChar() {
+char32_t ChimeraUnion::ToChar() {
     if (m_var == nullptr) {
         return '\0';
     }

@@ -8,10 +8,10 @@ public:
     Double();
     Double(double data);
 
-    int Set(int &data);
+    int Set(int64 &data);
     int Set(float &data);
     int Set(long double &data);
-    int Set(unsigned char &data);
+    int Set(char32_t &data);
 
     int Get(long double &data);
 
@@ -24,8 +24,8 @@ public:
     ChimeraObject* Clone();
 
     string ToStr();
-    unsigned char ToChar();
-    int ToInt();
+    char32_t ToChar();
+    int64 ToInt();
     float ToFloat();
     long double ToDouble();
     bool ToBool();

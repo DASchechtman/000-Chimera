@@ -36,7 +36,7 @@ string Bool::ToStr() {
     }
 }
 
-unsigned char Bool::ToChar() {
+char32_t Bool::ToChar() {
     if (m_data.boolean) {
         return 't';
     }
@@ -45,7 +45,7 @@ unsigned char Bool::ToChar() {
     }
 }
 
-int Bool::ToInt() {
+int64 Bool::ToInt() {
     return m_data.boolean;
 }
 

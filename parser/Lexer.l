@@ -15,7 +15,7 @@ DIGIT                   [0-9]
 DEC                     ({DIGIT}+[.]{DIGIT}+|[.]{DIGIT}+|{DIGIT}+d)
 FLOAT                   ({DEC}f|{DIGIT}+f)
 CHAR                    (\\.|[^\\"])
-SINGLE_CHAR_TOKS        [=:()+\-*/|^]
+SINGLE_CHAR_TOKS        [=:()+\-*/|^&\[\]<>]
 NEWLINE_TOKS            [\n;]
 SEPERATOR               [ \t]{2,}
 SINGLE_SEP              [ ]
@@ -25,6 +25,7 @@ MULTI_LN_COMMENT        $[^$]*$\n?
 %%
 {COMMENT}                       { ; }
 {MULTI_LN_COMMENT}              { ; }
+
 int                             { yylval.types = yytext; return INT; }
 float                           { yylval.types = yytext; return FLOAT; }
 double                          { yylval.types = yytext; return DOUBLE; }
@@ -32,6 +33,7 @@ bool                            { yylval.types = yytext; return BOOL; }
 char                            { yylval.types = yytext; return CHAR; }
 string                          { yylval.types = yytext; return STRING; }
 unknown                         { yylval.types = yytext; return UNKNOWN; }
+ref                             { return REF; }
 
 cast                            { return CAST; }
 less                            { return LESS; }
@@ -45,13 +47,18 @@ and                             { return AND; }
 or                              { return OR; }
 not                             { return NOT; }
 exit                            { return EXIT; }
+(\+|add)                        { return ADD; }
+(\-|sub)                        { return SUB; }
+(\*|mul)                        { return MUL; }
+(\\|div)                        { return DIV; }
+(\^|pow)                        { return POW; }
 
 true                            { yylval.bol_val = true; return BOOL_VAL; }
 false                           { yylval.bol_val = false; return BOOL_VAL; }
 {ID}                            { yylval.id = yytext; return ID; }
-{DEC}                           { yylval.dou_val = strtod(yytext, nullptr); return DOUBLE_VAL; }
-{FLOAT}                         { yylval.flo_val = atof(yytext); return FLOAT_VAL; }
-{DIGIT}+                        { yylval.int_val = atoi(yytext); return INT_VAL; }
+-?{DEC}                         { yylval.dou_val = strtod(yytext, nullptr); return DOUBLE_VAL; }
+-?{FLOAT}                       { yylval.flo_val = strtod(yytext, nullptr); return FLOAT_VAL; }
+-?{DIGIT}+                      { yylval.int_val = strtod(yytext, nullptr); return INT_VAL; }
 \"{CHAR}*\"                     { yylval.str_val.SetWithOmittedEnds(TextVal(yytext).c_str()); return STRING_VAL; }
 \'{CHAR}\'                      { yylval.char_val = CharVal(yytext); return CHAR_VAL; }
 

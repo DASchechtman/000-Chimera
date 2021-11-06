@@ -32,7 +32,7 @@ int String::Set(string &data) {
     return SUCCEED;
 }
 
-int String::Set(unsigned char &data) {
+int String::Set(char32_t &data) {
     char *c_str = new char[2];
     c_str[0] = data;
     c_str[1] = '\0';
@@ -74,15 +74,15 @@ string String::ToStr() {
     return *m_data.str;
 }
 
-unsigned char String::ToChar() {
+char32_t String::ToChar() {
     return m_data.str->at(0);
 }
 
-int String::ToInt() {
+int64 String::ToInt() {
     int to_num = atoi(m_data.str->c_str());
 
     if (to_num == 0) {
-        to_num = (int)Hash();
+        to_num = (int64)Hash();
     }
 
     return to_num;

@@ -9,7 +9,7 @@ long double Number::GetOtherNumber(Number &other) {
     long double data = 0;
 
     if (other.GetType() == INT_DATA_TYPE) {
-        int tmp_data = 0;
+        int64 tmp_data = 0;
         other.Get(tmp_data);
         data = tmp_data;
     }
@@ -22,7 +22,7 @@ long double Number::GetOtherNumber(Number &other) {
         other.Get(data);
     }
     else if (other.GetType() == CHAR_DATA_TYPE) {
-        unsigned char tmp_data = 0;
+        char32_t tmp_data = 0;
         other.Get(tmp_data);
         data = tmp_data;
     }
@@ -63,6 +63,10 @@ long double Number::DivideByZeroGuard(Number &other) {
 // PROTECTED METHODS ABOVE -----------------------------------------------------------------------------------------------------------------------------------------
 
 // PUBLIC METHODS BELOW --------------------------------------------------------------------------------------------------------------------------------------------
+
+Number::Number() {
+    SetGeneralType(NUMBER_DATA_TYPE);
+}
 
 long double Number::GetNumber() {
    return GetOtherNumber(*this);

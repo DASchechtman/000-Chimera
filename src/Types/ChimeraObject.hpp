@@ -8,7 +8,8 @@ using namespace std;
 enum VAR_TYPES {
     OBJECT_DATA_TYPE, 
     NUMBER_DATA_TYPE, 
-    TEXT_DATA_TYPE, 
+    TEXT_DATA_TYPE,
+    UNION_DATA_TYPE, 
     INT_DATA_TYPE, 
     DOUBLE_DATA_TYPE, 
     FLOAT_DATA_TYPE, 
@@ -42,18 +43,22 @@ const string EMPTY_VAR_NAME;
 const int FAIL = 1;
 const int SUCCEED = 0;
 
+typedef long long int64;
+typedef long double dbl128;
+
 union ObjectData {
     string *str;
-    int integer;
+    int64 integer;
     float floating;
     long double decimal;
-    unsigned char character;
+    char32_t character;
     bool boolean;
 };
 
 class ChimeraObject {
 private:
     VAR_TYPES m_type = OBJECT_DATA_TYPE;
+    VAR_TYPES m_gen_type = UNDEFINED_DATA_TYPE;
     const char* m_get_err = "Error: cannot put '%s' in %s\n";
     const char* m_set_err = "Error: cannot set %s to '%s'\n";
 
@@ -65,34 +70,52 @@ private:
 protected:
     ObjectData m_data;
     virtual void SetType(VAR_TYPES new_type);
+    virtual void SetGeneralType(VAR_TYPES new_type);
 
 public:
 
-    friend ostream &operator<<(ostream &output, const ChimeraObject& obj)
+    friend ostream &operator<<(ostream &output, ChimeraObject& obj)
     {
         switch(obj.m_type) {
             case INT_DATA_TYPE: {
-                output << obj.m_data.integer;
+                int64 data = 0;
+                obj.Get(data);
+                output << data;
                 break;
             }
             case FLOAT_DATA_TYPE: {
-                output << obj.m_data.floating;
+                float data = 0;
+                obj.Get(data);
+                output << data;
                 break;
             }
             case DOUBLE_DATA_TYPE: {
-                output << obj.m_data.decimal;
+                dbl128 data = 0;
+                obj.Get(data); 
+                output << data;
                 break;
             }
             case CHAR_DATA_TYPE: {
-                output << obj.m_data.character;
+                char32_t data = '\0';
+                obj.Get(data);
+                if (data < 255) {
+                    output << (char)data;
+                }
+                else {
+                    output << data;
+                }
                 break;
             }
             case STRING_DATA_TYPE: {
-                output << obj.m_data.str->c_str();
+                string data;
+                obj.Get(data);
+                output << data;
                 break;
             }
             case BOOL_DATA_TYPE: {
-                if(obj.m_data.boolean) {
+                bool data = false;
+                obj.Get(data);
+                if(data) {
                     output << "true";
                 }
                 else {
@@ -115,18 +138,19 @@ public:
     virtual string GetTypeName();
 
     virtual VAR_TYPES GetType();
+    virtual VAR_TYPES GetGeneralType();
 
-    virtual int Set(int &data);
+    virtual int Set(int64 &data);
     virtual int Set(float &data);
     virtual int Set(long double &data);
-    virtual int Set(unsigned char &data);
+    virtual int Set(char32_t &data);
     virtual int Set(bool &data);
     virtual int Set(string &data);
 
-    virtual int Get(int &data);
+    virtual int Get(int64 &data);
     virtual int Get(float &data);
     virtual int Get(long double &data);
-    virtual int Get(unsigned char &data);
+    virtual int Get(char32_t &data);
     virtual int Get(bool &data);
     virtual int Get(string &data);
 
@@ -139,10 +163,10 @@ public:
     virtual bool Equal(ChimeraObject* other);
 
     virtual string ToStr() = 0;
-    virtual int ToInt() = 0;
+    virtual int64 ToInt() = 0;
     virtual float ToFloat() = 0;
     virtual long double ToDouble() = 0;
-    virtual unsigned char ToChar() = 0;
+    virtual char32_t ToChar() = 0;
     virtual bool ToBool() = 0; 
 
     virtual ChimeraObject* Clone() = 0;

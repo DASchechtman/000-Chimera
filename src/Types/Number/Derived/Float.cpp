@@ -14,7 +14,7 @@ Float::Float(float data) {
     SetType(FLOAT_DATA_TYPE);
 }
 
-int Float::Set(int &data) {
+int Float::Set(long long &data) {
     m_data.floating = data;
     return SUCCEED;
 }
@@ -29,7 +29,7 @@ int Float::Set(long double &data) {
     return SUCCEED;
 }
 
-int Float::Set(unsigned char &data) {
+int Float::Set(char32_t &data) {
     m_data.floating = data;
     return SUCCEED;
 }
@@ -92,7 +92,7 @@ string Float::ToStr() {
     return to_string(m_data.floating);
 }
 
-unsigned char Float::ToChar() {
+char32_t Float::ToChar() {
     char to_char = 0;
 
     if (m_data.floating < 0) {
@@ -108,8 +108,8 @@ unsigned char Float::ToChar() {
     return to_char;
 }
 
-int Float::ToInt() {
-    return (int)m_data.floating;
+int64 Float::ToInt() {
+    return (int64)m_data.floating;
 }
 
 float Float::ToFloat() {
