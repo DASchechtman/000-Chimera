@@ -13,7 +13,8 @@ string ExtractData(StrWrapper &data, int extract_limt = 1, string msg = "")
     if (extracted.empty() && data.HasPendingData())
     {
         extracted = data[0];
-        if (extract_limt > 0 && data.PendingDataSize() > extract_limt) {
+        size_t size = data.PendingDataSize();
+        if (extract_limt > 0 && size > (size_t)extract_limt) {
             cout << msg << '\n';
             return EMPTY_VAR_NAME;
         }

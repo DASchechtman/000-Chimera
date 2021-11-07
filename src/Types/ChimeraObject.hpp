@@ -171,6 +171,7 @@ public:
     virtual bool ToBool() = 0; 
 
     virtual ChimeraObject* Clone() = 0;
+    virtual ~ChimeraObject() {};
 
 };
 

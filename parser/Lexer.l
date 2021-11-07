@@ -10,6 +10,9 @@ char CharVal(const char* str);
 string TextVal(const char* str);
 %}
 
+%option nounput
+%option noinput
+
 ID                      [a-zA-Z][a-zA-Z0-9_?]*
 DIGIT                   [0-9]
 DEC                     ({DIGIT}+[.]{DIGIT}+|[.]{DIGIT}+|{DIGIT}+d)
@@ -95,7 +98,7 @@ char CharVal(const char* str) {
 string TextVal(const char* str) {
     string ret_str;
 
-    for (unsigned int i = 0; i < yyleng; i++) {
+    for (int i = 0; i < yyleng; i++) {
         char *c = nullptr;
         if (str[i] == '\\' && i+1 < yyleng) {
             c = new char[3];

@@ -234,7 +234,7 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
     }
 
     auto from = m_table.GetEntry(var_id_2);
-    auto to = new ChimeraUnion(type_list, from);
+    ChimeraObject *to = new ChimeraUnion(type_list, from);
 
     if (to->GetType() == UNDEFINED_DATA_TYPE) {
         cout << "Error: initalized union with non-allowable type\n";
@@ -247,7 +247,6 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
 
 string ChmrInterpreter::CloneToTemp(string var_id)
 {
-    int x = 0;
     if (!m_table.Has(var_id))
     {
         cout << "Error: var doesn't exist\n";
