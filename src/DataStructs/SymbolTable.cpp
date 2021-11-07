@@ -25,6 +25,7 @@ SymbolTable::SymbolTable(const SymbolTable &old) {
     while (it != old.m_table.end()) {
         AddOrUpdateRef(it->first, it->second.item);
         m_table[it->first].is_temp = it->second.is_temp;
+        m_table[it->first].is_ref = it->second.is_ref;
         it++;
     }
 }
@@ -48,6 +49,10 @@ bool SymbolTable::IsTemp(string var_id) {
         return true;
     }
     return m_table[var_id].created_from.empty();
+}
+
+bool SymbolTable::IsRef(string var_id) {
+    return Has(var_id) && m_table[var_id].is_ref;
 }
 
 void SymbolTable::SetParent(string var_id, string parent_id) {
@@ -78,6 +83,7 @@ string SymbolTable::AddEntry(string var_id, ChimeraObject *object) {
     if (!Has(var_id)) {
         m_table[var_id].item = object;
         m_table[var_id].is_temp = is_tmp;
+        m_table[var_id].is_ref = false;
         m_ref_counter[object] = 1;
     }
 
@@ -85,6 +91,10 @@ string SymbolTable::AddEntry(string var_id, ChimeraObject *object) {
 }
 
 string SymbolTable::AddOrUpdateRef(string var_id, ChimeraObject *object) {
+
+    if (Has(var_id) && !m_table[var_id].is_ref) {
+        return EMPTY_VAR_NAME;
+    }
 
     bool is_tmp = var_id.empty();
     if (is_tmp) {
@@ -100,6 +110,7 @@ string SymbolTable::AddOrUpdateRef(string var_id, ChimeraObject *object) {
 
     m_table[var_id].item = object;
     m_table[var_id].is_temp = is_tmp;
+    m_table[var_id].is_ref = true;
     m_ref_counter[object]++;
 
     return var_id;

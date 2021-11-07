@@ -8,6 +8,7 @@ using namespace std;
 struct TableItem {
     ChimeraObject* item;
     bool is_temp;
+    bool is_ref;
     string created_from;
 };
 
@@ -33,6 +34,7 @@ public:
 
     bool Has(string var_id);
     bool IsTemp(string var_id);
+    bool IsRef(string var_id);
     void SetParent(string var_id, string parent_id);
     string GetParent(string var_id);
     string AddEntry(string var_id, ChimeraObject *object);

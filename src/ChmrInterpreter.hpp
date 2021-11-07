@@ -52,7 +52,7 @@ public:
 
     string Bind(string to, string from, string type);
     string Rebind(string to, string from);
-    string RefBind(string ref_id, string var_id, string type);
+    string RefBind(string ref_id, string var_id, string type="");
 
     string MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown=false);
 

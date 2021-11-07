@@ -167,6 +167,11 @@ assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                         return 1;
                                     }
                                 }
+                                | ID opt_ws '=' opt_ws expr '<' REF '>' {
+                                    if (i.RefBind($ID, $expr).empty()) {
+                                        return 1;
+                                    }
+                                }
                                 ;
 
 

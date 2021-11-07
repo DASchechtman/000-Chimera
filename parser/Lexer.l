@@ -50,7 +50,7 @@ exit                            { return EXIT; }
 (\+|add)                        { return ADD; }
 (\-|sub)                        { return SUB; }
 (\*|mul)                        { return MUL; }
-(\\|div)                        { return DIV; }
+(\/|div)                        { return DIV; }
 (\^|pow)                        { return POW; }
 
 true                            { yylval.bol_val = true; return BOOL_VAL; }

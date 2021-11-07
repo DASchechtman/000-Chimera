@@ -175,8 +175,8 @@ string ChmrInterpreter::Rebind(string to, string from)
     }
 }
 
-string ChmrInterpreter::RefBind(string ref_id, string var_id, string type) {
-    int x = 0;
+string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type) {
+
     if (!m_table.Has(var_id)) {
         cout << "Error: cannot bind a reference to a nonexistent var\n";
         return EMPTY_VAR_NAME;
@@ -188,8 +188,16 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string type) {
 
     auto obj = m_table.GetEntry(m_table.GetParent(var_id));
 
-    if (obj->GetTypeName() != type) {
-        cout << "Error: cannot reference type '" << obj->GetTypeName() << "' as " << type << "-ref\n";
+    if(ref_type.empty() && m_table.Has(ref_id)) {
+        ref_type = m_table.GetEntry(ref_id)->GetTypeName();
+    }
+    else if (ref_type.empty() && !m_table.Has(ref_id)) {
+        cout << "Error: can't rebind a nonexistent ref\n";
+        return EMPTY_VAR_NAME;
+    }
+
+    if (obj->GetTypeName() != ref_type) {
+        cout << "Error: cannot reference type '" << obj->GetTypeName() << "' as " << ref_type << "-ref\n";
         return EMPTY_VAR_NAME;
     }
     else if (obj->GetGeneralType() == UNION_DATA_TYPE) {
@@ -244,7 +252,6 @@ string ChmrInterpreter::CloneToTemp(string var_id)
     string tmp = m_table.AddEntry(EMPTY_VAR_NAME, obj->Clone());
     m_table.SetParent(tmp, var_id);
     return MakeBind(tmp, var_id, obj->GetTypeName());
-    return "";
 }
 
 int ChmrInterpreter::Add(string var_id_1, string var_id_2)
