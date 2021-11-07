@@ -177,6 +177,8 @@ string ChmrInterpreter::Rebind(string to, string from)
 
 string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type) {
 
+    // makes sure that the variable being bound to a ref
+    // is valid
     if (!m_table.Has(var_id)) {
         cout << "Error: cannot bind a reference to a nonexistent var\n";
         return EMPTY_VAR_NAME;
@@ -188,6 +190,8 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type) {
 
     auto obj = m_table.GetEntry(m_table.GetParent(var_id));
 
+    // makes sure that the reference id is valid in cases
+    // that a reference is being rebound
     if(ref_type.empty() && m_table.Has(ref_id)) {
         ref_type = m_table.GetEntry(ref_id)->GetTypeName();
     }
@@ -196,6 +200,8 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type) {
         return EMPTY_VAR_NAME;
     }
 
+    // makes sure that the right time of variable is being bound
+    // to the same type of reference
     if (obj->GetTypeName() != ref_type) {
         cout << "Error: cannot reference type '" << obj->GetTypeName() << "' as " << ref_type << "-ref\n";
         return EMPTY_VAR_NAME;

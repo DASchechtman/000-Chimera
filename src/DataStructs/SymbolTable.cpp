@@ -98,9 +98,7 @@ string SymbolTable::AddOrUpdateRef(string var_id, ChimeraObject *object) {
 
     bool is_tmp = var_id.empty();
     if (is_tmp) {
-        while(Has(to_string(m_cur_reg))) {
-            UpdateCurReg();
-        }
+        UpdateCurReg();
         var_id = to_string(m_cur_reg);
     }
 
