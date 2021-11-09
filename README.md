@@ -7,7 +7,7 @@ The main way Chimera aims to do this is to allow for as much of the program as p
 
 
 ## Table of contents
-* [Installation](#installation)
+* [Installation](#install)
 
 
 
@@ -22,9 +22,6 @@ d
 d
 d
 d
-
-dd
-
 d
 d
 d
@@ -39,7 +36,6 @@ d
 d
 d
 d
-
 d
 d
 d
@@ -47,7 +43,6 @@ d
 d
 d
 d
-
 d
 d
 d
@@ -57,13 +52,11 @@ d
 d
 d
 d
-dd
 d
 d
 d
 d
 d
-
 d
 d
 d
@@ -79,7 +72,6 @@ d
 d
 d
 d
-
 d
 d
 d
@@ -91,7 +83,6 @@ d
 d
 d
 d
-
 d
 d
 d
@@ -101,7 +92,10 @@ d
 d
 d
 d
-
+d
+d
+d
+d
 d
 d
 d
@@ -218,4 +212,4 @@ d
 
 
 
-#installation
+# Installation
