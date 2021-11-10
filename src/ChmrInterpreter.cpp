@@ -183,7 +183,7 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type) {
         cout << "Error: cannot bind a reference to a nonexistent var\n";
         return EMPTY_VAR_NAME;
     }
-    else if(m_table.IsTemp(var_id)) {
+    else if(m_table.CameFromVar(var_id)) {
         cout << "Error: cannot bind ref to a temp value\n";
         return EMPTY_VAR_NAME;
     }

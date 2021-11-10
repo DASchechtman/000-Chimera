@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -9,8 +10,11 @@ enum VAR_TYPES {
     OBJECT_DATA_TYPE, 
     NUMBER_DATA_TYPE, 
     TEXT_DATA_TYPE,
+    COLLECTION_DATA_TYPE,
     UNION_DATA_TYPE,
-    REF_DATA_TYPE, 
+    REF_DATA_TYPE,
+    LIST_DATA_TYPE,
+    MAP_DATA_TYPE, 
     INT_DATA_TYPE, 
     DOUBLE_DATA_TYPE, 
     FLOAT_DATA_TYPE, 
@@ -77,6 +81,7 @@ public:
 
     friend ostream &operator<<(ostream &output, ChimeraObject& obj)
     {
+
         switch(obj.m_type) {
             case INT_DATA_TYPE: {
                 int64 data = 0;
@@ -87,12 +92,20 @@ public:
             case FLOAT_DATA_TYPE: {
                 float data = 0;
                 obj.Get(data);
+                if ((data - floor(data)) != 0) {
+                    output.precision(8);
+                    output << fixed;
+                }
                 output << data;
                 break;
             }
             case DOUBLE_DATA_TYPE: {
                 dbl128 data = 0;
                 obj.Get(data); 
+                if (data - floor(data) != 0) {
+                    output.precision(15);
+                    output << fixed;
+                }
                 output << data;
                 break;
             }

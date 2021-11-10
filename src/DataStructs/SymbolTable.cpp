@@ -44,11 +44,11 @@ bool SymbolTable::Has(string var_id) {
     return !var_id.empty() && m_table.find(var_id) != m_table.end();
 }
 
-bool SymbolTable::IsTemp(string var_id) {
+bool SymbolTable::CameFromVar(string var_id) {
     if (!Has(var_id)) {
         return true;
     }
-    return m_table[var_id].created_from.empty();
+    return m_table[var_id].created_from.empty() || !m_table[var_id].is_temp;
 }
 
 bool SymbolTable::IsRef(string var_id) {
