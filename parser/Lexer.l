@@ -37,6 +37,7 @@ char                            { yylval.types = yytext; return CHAR; }
 string                          { yylval.types = yytext; return STRING; }
 unknown                         { yylval.types = yytext; return UNKNOWN; }
 ref                             { return REF; }
+list                            { return LIST; }
 
 cast                            { return CAST; }
 less                            { return LESS; }
@@ -55,6 +56,9 @@ exit                            { return EXIT; }
 (\*|mul)                        { return MUL; }
 (\/|div)                        { return DIV; }
 (\^|pow)                        { return POW; }
+put                             { return PUT; }
+set                             { return SET; }
+get                             { return GET; }
 
 true                            { yylval.bol_val = true; return BOOL_VAL; }
 false                           { yylval.bol_val = false; return BOOL_VAL; }

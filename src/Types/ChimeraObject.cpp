@@ -121,6 +121,9 @@ string ChimeraObject::GetTypeName()
     {
         type_name = BOOL_TYPE_NAME;
     }
+    else if (m_type == LIST_DATA_TYPE) {
+        type_name = LIST_TYPE_NAME;
+    }
 
     return type_name;
 }

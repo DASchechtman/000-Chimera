@@ -1,28 +1,79 @@
 #include "Container.hpp"
-// #include <iostream>
+#include <stdio.h>
 
-// using namespace std;
+using namespace std;
 
-// int Container::Set(int64 index, ChimeraObject *item) {
-    
-// }
+Container::Container() {
+    SetGeneralType(COLLECTION_DATA_TYPE);
+}
 
-// int Container::Set(float index, ChimeraObject *item) {
+int Container::PutItem(ChimeraObject *item) {
+    printf("Error: 'PutItem' is not implemented yet\n");
+    return FAIL;
+}
 
-// }
+size_t Container::Size() {
+    printf("Error: 'Size' is not implemented yet\n");
+    return FAIL;
+}
 
-// int Container::Set(dbl128 index, ChimeraObject *item) {
+int Container::SetItem(int64 index, ChimeraObject *item) {
+    printf(set_err_msg.c_str(), INT_TYPE_NAME.c_str());
+    return FAIL;
+}
 
-// }
+int Container::SetItem(float index, ChimeraObject *item) {
+    printf(set_err_msg.c_str(), FLOAT_TYPE_NAME.c_str());
+    return FAIL;
+}
 
-// int Container::Set(char32_t index, ChimeraObject *item) {
+int Container::SetItem(dbl128 index, ChimeraObject *item) {
+    printf(set_err_msg.c_str(), DOUBLE_TYPE_NAME.c_str());
+    return FAIL;
+}
 
-// }
+int Container::SetItem(char32_t index, ChimeraObject *item) {
+    printf(set_err_msg.c_str(), CHAR_TYPE_NAME.c_str());
+    return FAIL;
+}
 
-// int Container::Set(string index, ChimeraObject *item) {
+int Container::SetItem(string index, ChimeraObject *item) {
+    printf(set_err_msg.c_str(), STRING_TYPE_NAME.c_str());
+    return FAIL;
+}
 
-// }
+int Container::SetItem(bool index, ChimeraObject *item) {
+    printf(set_err_msg.c_str(), BOOL_TYPE_NAME.c_str());
+    return FAIL;
+}
 
-// int Container::Set(int64 index, ChimeraObject *item) {
 
-// }
+ChimeraObject* Container::GetItem(int64 index) {
+    printf(get_err_msg.c_str(), INT_TYPE_NAME.c_str());
+    return nullptr;
+}
+
+ChimeraObject* Container::GetItem(float index) {
+    printf(get_err_msg.c_str(), FLOAT_TYPE_NAME.c_str());
+    return nullptr;
+}
+
+ChimeraObject* Container::GetItem(dbl128 index) {
+    printf(get_err_msg.c_str(), DOUBLE_TYPE_NAME.c_str());
+    return nullptr;
+}
+
+ChimeraObject* Container::GetItem(string index) {
+    printf(get_err_msg.c_str(), STRING_TYPE_NAME.c_str());
+    return nullptr;
+}
+
+ChimeraObject* Container::GetItem(char32_t index) {
+    printf(get_err_msg.c_str(), CHAR_TYPE_NAME.c_str());
+    return nullptr;
+}
+
+ChimeraObject* Container::GetItem(bool index) {
+    printf(get_err_msg.c_str(), BOOL_TYPE_NAME.c_str());
+    return nullptr;
+}

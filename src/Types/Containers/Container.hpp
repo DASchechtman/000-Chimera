@@ -1,31 +1,36 @@
-// #pragma once
+#pragma once
 
-// #include "../ChimeraObject.hpp"
-// #include <string>
+#include "../ChimeraObject.hpp"
+#include <string>
 
-// using namespace std;
+using namespace std;
 
-// class Container : public ChimeraObject {
-// private:
+class Container : public ChimeraObject {
+private:
+    string set_err_msg = "Error: cannot create item with index type of '%s'\n";
+    string get_err_msg = "Error: cannot access item with index type of '%s'\n";
 
-// protected:
+protected:
 
-// public:
+public:
 
-    
+    Container();
 
-//     virtual int Set(int64 index, ChimeraObject *data);
-//     virtual int Set(float index, ChimeraObject *data);
-//     virtual int Set(dbl128 index, ChimeraObject *data);
-//     virtual int Set(char32_t index, ChimeraObject *data);
-//     virtual int Set(string index, ChimeraObject *data);
-//     virtual int Set(bool index, ChimeraObject *data);
+    virtual int PutItem(ChimeraObject *data);
+    virtual size_t Size();
+    virtual void SetToNewContainer(Container *new_container) = 0;
 
-//     virtual ChimeraObject* Get(int64 index);
-//     virtual ChimeraObject* Get(float index);
-//     virtual ChimeraObject* Get(dbl128 index);
-//     virtual ChimeraObject* Get(char32_t index);
-//     virtual ChimeraObject* Get(string index);
-//     virtual ChimeraObject* Get(bool index);
+    virtual int SetItem(int64 index, ChimeraObject *data);
+    virtual int SetItem(float index, ChimeraObject *data);
+    virtual int SetItem(dbl128 index, ChimeraObject *data);
+    virtual int SetItem(char32_t index, ChimeraObject *data);
+    virtual int SetItem(string index, ChimeraObject *data);
+    virtual int SetItem(bool index, ChimeraObject *data);
 
-// };
+    virtual ChimeraObject* GetItem(int64 index);
+    virtual ChimeraObject* GetItem(float index);
+    virtual ChimeraObject* GetItem(dbl128 index);
+    virtual ChimeraObject* GetItem(char32_t index);
+    virtual ChimeraObject* GetItem(string index);
+    virtual ChimeraObject* GetItem(bool index);
+};

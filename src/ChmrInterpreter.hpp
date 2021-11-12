@@ -13,6 +13,7 @@
 #include "Types/Text/Derived/String.hpp"
 #include "Types/Number/Derived/Char.hpp"
 #include "Types/Composables/ComposableOr/ChimeraUnion.hpp"
+#include "Types/Containers/Lists/List.hpp"
 
 using namespace std;
 
@@ -34,6 +35,8 @@ private:
 
     /* used to put boilerplate code into one place for math operators */
     int DoMath(string var_id_1, string var_id_2, OPER_CODE code, int (*oper)(ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num));
+    ChimeraObject* GetListItem(Container *list, ChimeraObject *index);
+    int SetData(ChimeraObject *to, ChimeraObject *from);
 
     /* boilerplate for creating variable bindings */
     template <class T>
@@ -55,6 +58,13 @@ public:
     string RefBind(string ref_id, string var_id, string type="");
 
     string MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown=false);
+
+    
+    string MakeList(string var_id, string type);
+    string PutInList(string list_id, string item_id);
+    string GetFromList(string list_id, string index_id);
+    string SetInList(string list_id, string index_id, string new_item_id);
+    string ReassignList(string list_id_1, string list_id_2);
 
     // method used to make clones of user defined vars
     // so that if you do say (print|(+ x 1)|). the actual

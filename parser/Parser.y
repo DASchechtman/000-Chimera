@@ -24,11 +24,11 @@ extern char* yytext;
 %define parse.error verbose
 
 // variable types
-%token <types> INT FLOAT DOUBLE BOOL CHAR STRING
+%token <types> INT FLOAT DOUBLE BOOL CHAR STRING LIST
 
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
-%token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW
+%token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW PUT SET GET
 
 // data values
 %token <int_val> INT_VAL 
@@ -164,6 +164,17 @@ assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                 }
                                 | ID ':' opt_ws types '<' REF '>' opt_ws '=' opt_ws expr {
                                     if (i.RefBind($ID, $expr, $types).empty()) {
+                                        return 1;
+                                    }
+                                }
+                                | ID ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws '[' ']' {
+                                    if(i.MakeList($ID, $types).empty()) {
+                                        return 1;
+                                    }
+                                }
+                                | ID ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws expr {
+                                    string id = i.MakeList($ID, $types);
+                                    if(i.ReassignList(id, $expr).empty()) {
                                         return 1;
                                     }
                                 }
@@ -395,6 +406,27 @@ expr:                           term {
                                 }
                                 | boolExpr {
                                     $$ = $1;
+                                }
+                                | '(' PUT any_ws ID[list] any_ws expr[item] opt_ws ')' {
+                                    string tmp = i.PutInList($list, $item);
+                                    if(tmp.empty()) {
+                                        return 1;
+                                    }
+                                    $$ = tmp;
+                                }
+                                | ID[list] '[' expr[index] ']' {
+                                    string tmp = i.GetFromList($list, $index);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    $$ = tmp;
+                                }
+                                | '(' SET any_ws ID[list] any_ws expr[index] any_ws expr[new_val] opt_ws ')' {
+                                    string tmp = i.SetInList($list, $index, $new_val);
+                                    if (tmp.empty()) {
+                                        return 1;
+                                    }
+                                    $$ = tmp;
                                 }
                                 ;
 

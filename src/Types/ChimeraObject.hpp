@@ -38,6 +38,7 @@ const string DOUBLE_TYPE_NAME = "double";
 const string CHAR_TYPE_NAME = "char";
 const string STRING_TYPE_NAME = "string";
 const string BOOL_TYPE_NAME = "bool";
+const string LIST_TYPE_NAME = "list";
 const string OBJECT_TYPE_NAME = "object";
 const string UNDEFINED_TYPE_NAME = "undefined";
 const string TEXT_TYPE_NAME = "text";
@@ -82,7 +83,7 @@ public:
     friend ostream &operator<<(ostream &output, ChimeraObject& obj)
     {
 
-        switch(obj.m_type) {
+        switch(obj.GetType()) {
             case INT_DATA_TYPE: {
                 int64 data = 0;
                 obj.Get(data);
@@ -138,7 +139,7 @@ public:
                 break;
             }
             default: {
-                output << "Error: trying to output unrecognized type" << '\n';
+                output << obj.ToStr();
                 break;
             }
         }

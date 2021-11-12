@@ -64,8 +64,13 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
         var_id = CloneOrCreate(to, type, data);
         break;
     }
+    case LIST_DATA_TYPE: {
+        var_id = m_table.AddEntry(EMPTY_VAR_NAME, obj->Clone());
+        break;
+    }
     default:
     {
+        cout << "Error: cannot create var of type " << type << "\n";
     }
     }
 
@@ -140,6 +145,114 @@ int ChmrInterpreter::DoMath(string var_id_1, string var_id_2, OPER_CODE code, in
     }
 
     return err;
+}
+
+ChimeraObject* ChmrInterpreter::GetListItem(Container *list, ChimeraObject *index) {
+    ChimeraObject *item = nullptr;
+
+    switch(index->GetType()) {
+        
+        case INT_DATA_TYPE: {
+            int64 i = 0;
+            index->Get(i);
+            item = list->GetItem(i);
+            break;
+        }
+
+        case FLOAT_DATA_TYPE: {
+            float i = 0;
+            index->Get(i);
+            item = list->GetItem(i);
+            break;
+        }
+
+        case DOUBLE_DATA_TYPE: {
+            dbl128 i = 0;
+            index->Get(i);
+            item = list->GetItem(i);
+            break;
+        }
+
+        case STRING_DATA_TYPE: {
+            string i;
+            index->Get(i);
+            item = list->GetItem(i);
+            break;
+        }
+
+        case CHAR_DATA_TYPE: {
+            char32_t i = 0;
+            index->Get(i);
+            item = list->GetItem(i);
+            break;
+        }
+
+        case BOOL_DATA_TYPE: {
+            bool i = false;
+            index->Get(i);
+            item = list->GetItem(i);
+            break;
+        }
+        
+        default: {
+            cout << "Error: index is an unsupported type\n";
+        }
+    }
+
+    return item;
+}
+
+int ChmrInterpreter::SetData(ChimeraObject *to, ChimeraObject *from) {
+
+    switch(from->GetType()) {
+        
+        case INT_DATA_TYPE: {
+            int64 i = 0;
+            from->Get(i);
+            return to->Set(i);
+            break;
+        }
+
+        case FLOAT_DATA_TYPE: {
+            float i = 0;
+            from->Get(i);
+            return to->Set(i);
+            break;
+        }
+
+        case DOUBLE_DATA_TYPE: {
+            dbl128 i = 0;
+            from->Get(i);
+            return to->Set(i);
+            break;
+        }
+
+        case STRING_DATA_TYPE: {
+            string i;
+            from->Get(i);
+            return to->Set(i);
+            break;
+        }
+
+        case CHAR_DATA_TYPE: {
+            char32_t i = 0;
+            from->Get(i);
+            return to->Set(i);
+            break;
+        }
+
+        case BOOL_DATA_TYPE: {
+            bool i = false;
+            from->Get(i);
+            return to->Set(i);
+            break;
+        }
+        
+        default: {
+            cout << "Error: index is an unsupported type\n";
+        }
+    }
+    return FAIL;
 }
 
 // PRIVATE METHODS ABOVE ---------------------------------------------------------------------------
@@ -245,6 +358,136 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
     return m_table.AddEntry(var_id, to);
 }
 
+string ChmrInterpreter::MakeList(string var_id, string type) {
+    VAR_TYPES list_type = UNDEFINED_DATA_TYPE;
+    
+    if (type == INT_TYPE_NAME) {
+        list_type = INT_DATA_TYPE;
+    }
+    else if (type == FLOAT_TYPE_NAME) {
+        list_type = FLOAT_DATA_TYPE;
+    }
+    else if (type == DOUBLE_TYPE_NAME) {
+        list_type = DOUBLE_DATA_TYPE;
+    }
+    else if (type == STRING_TYPE_NAME) {
+        list_type = STRING_DATA_TYPE;
+    }
+    else if (type == CHAR_TYPE_NAME) {
+        list_type = CHAR_DATA_TYPE;
+    }
+    else if (type == BOOL_TYPE_NAME) {
+        list_type = BOOL_DATA_TYPE;
+    }
+    
+    List *list = new List(list_type);
+
+    return m_table.AddEntry(var_id, list);
+}
+
+string ChmrInterpreter::PutInList(string list_id, string item_id) {
+    if (!m_table.Has(list_id) || !m_table.Has(item_id)) {
+        cout << "Error: cannot add because one of the items don't exist\n";
+        return EMPTY_VAR_NAME;
+    }
+
+    auto list = m_table.GetEntry(list_id);
+
+    if (list->GetGeneralType() == COLLECTION_DATA_TYPE) {
+        auto item = m_table.GetEntry(item_id);
+        if(((Container*)list)->PutItem(item) == FAIL) {
+            return EMPTY_VAR_NAME;
+        }
+        return item_id;
+    }
+    else {
+        cout << "Error: cannot put item into non-container type\n";
+        return EMPTY_VAR_NAME;
+    }
+}
+
+string ChmrInterpreter::GetFromList(string list_id, string index_id) {
+    if (!m_table.Has(list_id) || !m_table.Has(index_id)) {
+        cout << "Error: cannot get a value with non-existent parts\n";
+        return EMPTY_VAR_NAME;
+    }
+
+    auto obj = m_table.GetEntry(list_id);
+
+    if (obj->GetGeneralType() == COLLECTION_DATA_TYPE) {
+        auto index = m_table.GetEntry(index_id);
+        Container *list = (Container*)obj;
+
+        ChimeraObject *item = GetListItem(list, index);
+
+
+        if (item == nullptr) {
+            return EMPTY_VAR_NAME;
+        }
+        else {
+            return m_table.AddEntry(EMPTY_VAR_NAME, item->Clone());
+        }
+
+    }
+    else {
+        cout << "Error: cannot get index from non-containter type\n";
+        return EMPTY_VAR_NAME;
+    }
+}
+
+string ChmrInterpreter::SetInList(string list_id, string index_id, string new_item_id){
+    if (!m_table.Has(list_id) || !m_table.Has(index_id) || !m_table.Has(new_item_id)) {
+        cout << "Error: cannot set item in list cuz one of the args don't exist\n";
+        return EMPTY_VAR_NAME;
+    }
+    auto obj_1 = m_table.GetEntry(list_id);
+    auto index = m_table.GetEntry(index_id);
+
+    if (obj_1->GetGeneralType() == COLLECTION_DATA_TYPE) {
+        auto item = GetListItem((Container*)obj_1, index);
+        auto new_item = m_table.GetEntry(new_item_id);
+
+        if (item == nullptr) {
+            cout << "Error: item does not exist in list\n";
+            return EMPTY_VAR_NAME;
+        }
+        else if (SetData(item, new_item) == FAIL) {
+            return EMPTY_VAR_NAME;
+        }
+
+        return m_table.AddEntry(EMPTY_VAR_NAME, item->Clone());
+    }
+    else {
+        cout << "Error: cannot access element of non-list type\n";
+        return EMPTY_VAR_NAME;
+    }
+}
+
+string ChmrInterpreter::ReassignList(string list_id_1, string list_id_2) {
+    if (!m_table.Has(list_id_1) || !m_table.Has(list_id_2)) {
+        cout << "Error: cannot assign to list because one of the args don't exist\n";
+        return EMPTY_VAR_NAME;
+    }
+
+    auto list_1 = m_table.GetEntry(list_id_1);
+    auto list_2 = m_table.GetEntry(list_id_2);
+
+    if (list_1->GetGeneralType() == COLLECTION_DATA_TYPE && list_2->GetGeneralType() == COLLECTION_DATA_TYPE) {
+        if (list_1->GetType() == list_2->GetType()) {
+            ((Container*)list_1)->SetToNewContainer((Container*)list_2);
+            return list_id_1;
+        } 
+        else {
+            cout << "Error: cannot assign " << list_1->GetTypeName() << " to " << list_2->GetTypeName() << '\n';
+            return EMPTY_VAR_NAME;
+        }
+    }
+    else {
+        cout << "Error: cannot perform operation 'reassign' on a list on non-list type\n";
+        return EMPTY_VAR_NAME;
+    }
+}
+
 string ChmrInterpreter::CloneToTemp(string var_id)
 {
     if (!m_table.Has(var_id))
@@ -254,7 +497,8 @@ string ChmrInterpreter::CloneToTemp(string var_id)
     }
 
     auto obj = m_table.GetEntry(var_id);
-    string tmp = m_table.AddEntry(EMPTY_VAR_NAME, obj->Clone());
+    auto c = obj->Clone();
+    string tmp = m_table.AddEntry(EMPTY_VAR_NAME, c);
     m_table.SetParent(tmp, var_id);
     return MakeBind(tmp, var_id, obj->GetTypeName());
 }
