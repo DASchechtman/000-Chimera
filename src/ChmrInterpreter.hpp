@@ -52,19 +52,18 @@ private:
 public:
 
     // methods used to create bindings to user variables 
-
     string Bind(string to, string from, string type);
     string Rebind(string to, string from);
     string RefBind(string ref_id, string var_id, string type="");
 
     string MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown=false);
-
     
     string MakeList(string var_id, string type);
-    string PutInList(string list_id, string item_id);
-    string GetFromList(string list_id, string index_id);
-    string SetInList(string list_id, string index_id, string new_item_id);
-    string ReassignList(string list_id_1, string list_id_2);
+    
+    string PutInContainer(string list_id, string item_id);
+    string GetFromContainer(string list_id, string index_id);
+    string SetInContainer(string list_id, string index_id, string new_item_id);
+    string ReassignContainer(string list_id_1, string list_id_2);
 
     // method used to make clones of user defined vars
     // so that if you do say (print|(+ x 1)|). the actual

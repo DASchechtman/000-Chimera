@@ -173,8 +173,7 @@ assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                     }
                                 }
                                 | ID ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws expr {
-                                    string id = i.MakeList($ID, $types);
-                                    if(i.ReassignList(id, $expr).empty()) {
+                                    if(ReassignContainer($ID, $types, $expr, i).empty()) {
                                         return 1;
                                     }
                                 }
@@ -408,28 +407,25 @@ expr:                           term {
                                     $$ = $1;
                                 }
                                 | '(' PUT any_ws ID[list] any_ws exprList[item] opt_ws ')' {
-                                    for(size_t index = 0; index < $item.PendingDataSize(); index++) {
-                                        i.PutInList($list, $item[index]);
-                                    }
-                                    string tmp = "h";
-                                    if(tmp.empty()) {
+                                    string list_id = PutInContainer($list, $item, i);
+                                    if (list_id.empty()) {
                                         return 1;
                                     }
-                                    $$ = tmp;
+                                    $$ = list_id;
                                 }
                                 | ID[list] '[' expr[index] ']' {
-                                    string tmp = i.GetFromList($list, $index);
-                                    if (tmp.empty()) {
+                                    string list_id = GetFromContainer($list, $index, i);
+                                    if (list_id.empty()) {
                                         return 1;
                                     }
-                                    $$ = tmp;
+                                    $$ = list_id;
                                 }
                                 | '(' SET any_ws ID[list] any_ws expr[index] any_ws expr[new_val] opt_ws ')' {
-                                    string tmp = i.SetInList($list, $index, $new_val);
-                                    if (tmp.empty()) {
+                                    string list_id = SetInContainer($list, $index, $new_val, i);
+                                    if (list_id.empty()) {
                                         return 1;
                                     }
-                                    $$ = tmp;
+                                    $$ = list_id;
                                 }
                                 ;
 

@@ -16,11 +16,17 @@ print|x[0] x[1] x[2]|
 
 #Expected output: [hello]
 y: list<string> = []
+b: list<string> = []
 (put y "hello" "sun")
 print|y|
 
 z: list<string> = y
 print|z|
+
+b = y
+print|b|
+
+
 
 #Expected output: should crash
 #(put y "world" "and" 'c')

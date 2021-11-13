@@ -317,4 +317,28 @@ string Cast(StrWrapper &store, StrWrapper var_id, StrWrapper type, ChmrInterpret
     return casted_var_id;
 }
 
+string PutInContainer(StrWrapper list_id, StrWrapper item_id, ChmrInterpreter &i) {
+    string list = list_id;
+    for(size_t index = 0; index < item_id.PendingDataSize(); index++) {
+        if(i.PutInContainer(list_id, item_id[index]).empty()) {
+            list = "";
+            break;
+        }
+    }
+    return list;
+}
+
+string GetFromContainer(StrWrapper list_id, StrWrapper index_id, ChmrInterpreter &i) {
+    return i.GetFromContainer(list_id, index_id);
+}
+
+string SetInContainer(StrWrapper list_id, StrWrapper index_id, StrWrapper new_item_id, ChmrInterpreter &i) {
+    return i.SetInContainer(list_id, index_id, new_item_id);
+}
+
+string ReassignContainer(StrWrapper list_id_1, StrWrapper types, StrWrapper list_id_2, ChmrInterpreter &i) {
+    string created_id = i.MakeList(list_id_1, types);
+    return i.ReassignContainer(created_id, list_id_2);
+}
+
 // IMPORTABLE FUNCTIONS ABOVE -----------------------------------------------------------------------

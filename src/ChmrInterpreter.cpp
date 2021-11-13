@@ -276,7 +276,7 @@ string ChmrInterpreter::Bind(string to, string from, string type)
 }
 
 string ChmrInterpreter::Rebind(string to, string from)
-{
+{   
     if (!m_table.Has(to))
     {
         cout << "Error: couldn't clone var\n";
@@ -284,6 +284,10 @@ string ChmrInterpreter::Rebind(string to, string from)
     }
     else
     {
+        auto obj = m_table.GetEntry(to);
+        if (obj->GetGeneralType() == COLLECTION_DATA_TYPE) {
+            return ReassignContainer(to, from);
+        }
         return MakeBind(to, from, m_table.GetEntry(to)->GetTypeName());
     }
 }
@@ -385,7 +389,7 @@ string ChmrInterpreter::MakeList(string var_id, string type) {
     return m_table.AddEntry(var_id, list);
 }
 
-string ChmrInterpreter::PutInList(string list_id, string item_id) {
+string ChmrInterpreter::PutInContainer(string list_id, string item_id) {
     if (!m_table.Has(list_id) || !m_table.Has(item_id)) {
         cout << "Error: cannot add because one of the items don't exist\n";
         return EMPTY_VAR_NAME;
@@ -406,7 +410,7 @@ string ChmrInterpreter::PutInList(string list_id, string item_id) {
     }
 }
 
-string ChmrInterpreter::GetFromList(string list_id, string index_id) {
+string ChmrInterpreter::GetFromContainer(string list_id, string index_id) {
     if (!m_table.Has(list_id) || !m_table.Has(index_id)) {
         cout << "Error: cannot get a value with non-existent parts\n";
         return EMPTY_VAR_NAME;
@@ -435,7 +439,7 @@ string ChmrInterpreter::GetFromList(string list_id, string index_id) {
     }
 }
 
-string ChmrInterpreter::SetInList(string list_id, string index_id, string new_item_id){
+string ChmrInterpreter::SetInContainer(string list_id, string index_id, string new_item_id){
     if (!m_table.Has(list_id) || !m_table.Has(index_id) || !m_table.Has(new_item_id)) {
         cout << "Error: cannot set item in list cuz one of the args don't exist\n";
         return EMPTY_VAR_NAME;
@@ -463,7 +467,7 @@ string ChmrInterpreter::SetInList(string list_id, string index_id, string new_it
     }
 }
 
-string ChmrInterpreter::ReassignList(string list_id_1, string list_id_2) {
+string ChmrInterpreter::ReassignContainer(string list_id_1, string list_id_2) {
     if (!m_table.Has(list_id_1) || !m_table.Has(list_id_2)) {
         cout << "Error: cannot assign to list because one of the args don't exist\n";
         return EMPTY_VAR_NAME;

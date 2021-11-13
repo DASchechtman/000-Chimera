@@ -1,4 +1,4 @@
-# Chimera Programming Langauge
+auto obj = m_table.GetEntry(to);# Chimera Programming Langauge
 
 Chimera the programming language aims to help developers create and maintain software by allowing them to build the smallest parts of the program in software, and combining them to form the full solution to whatever problem facing the developer. Please note that this language is still in development.
 
@@ -33,7 +33,7 @@ sudo apt-get install flex bison
 
 
 ### Steps for Mac Only
-1. will update later when I can figure out how to install on make on mac
+1. will update later when I can figure out how to install on make, flex, and bison on mac
 
 Now download the project to some place you can easily access it. For the sake of this
 guide I will assume it's place in a folder on your desktop.
@@ -108,6 +108,7 @@ exit||
 1. char: holds a single letter
 1. string: holds many letters
 1. bool: holds a true or false value
+1. list&lt;any type above&gt;
 
 a character is a single letter surrounded by single quotes, whereas a string is one or more letters surrounded by double quotes
 
@@ -186,6 +187,36 @@ y = z<ref>
 
 print|x y|
 #Output 10 11
+```
+
+### Containers
+chimera supports one type of container type currently. A list. A list can contain one or more peices of data of the same type
+
+```
+# init list
+int_list: list<int> = []
+# add item to list
+(put int_list 1 2 3 4 5)
+print|int_list|
+#Output: [1, 2, 3, 4, 5]
+```
+
+Note: lists currently only support a single type at this point in time. So you can't set a list to store a Union type
+
+```
+# Get item and set item example
+int_list: list<int> = []
+
+(put int_list 1 2 3 4 5)
+
+# Get item from list
+print|x[0]|
+#Output: 1
+
+# list name, index, new val
+(set int_list 0 77)
+print|x[0]|
+#Output: 77
 ```
 
 <h2 id="opers">Operations</h2>
