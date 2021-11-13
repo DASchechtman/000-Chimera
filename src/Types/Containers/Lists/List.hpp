@@ -9,6 +9,7 @@ class List : public Container {
 private:
     vector<ChimeraObject*> m_list;
     VAR_TYPES m_list_type;
+    string m_list_type_name;
 protected:
 public:
 

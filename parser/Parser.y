@@ -407,8 +407,11 @@ expr:                           term {
                                 | boolExpr {
                                     $$ = $1;
                                 }
-                                | '(' PUT any_ws ID[list] any_ws expr[item] opt_ws ')' {
-                                    string tmp = i.PutInList($list, $item);
+                                | '(' PUT any_ws ID[list] any_ws exprList[item] opt_ws ')' {
+                                    for(size_t index = 0; index < $item.PendingDataSize(); index++) {
+                                        i.PutInList($list, $item[index]);
+                                    }
+                                    string tmp = "h";
                                     if(tmp.empty()) {
                                         return 1;
                                     }
@@ -461,9 +464,13 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         FILE *file = fopen(argv[1], "r");
         
-        if (file) {
+        if (file != nullptr) {
             yyin = file;
             in_file_mode = true;
+        }
+        else {
+            cout << "Error: file doesn't exist\n";
+            return 1;
         }
     }
     int x = yyparse();

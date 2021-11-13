@@ -5,6 +5,8 @@ using namespace std;
 
 List::List(VAR_TYPES type) {
     m_list_type = type;
+    SetType(type);
+    m_list_type_name = GetTypeName();
     SetType(LIST_DATA_TYPE);
 }
 
@@ -16,7 +18,7 @@ List::~List() {
 
 int List::PutItem(ChimeraObject *item) {
     if(item->GetType() != m_list_type) {
-        cout << "Error: cannot add '" << item->GetTypeName() << "' to " << m_list_type << " list\n";
+        cout << "Error: cannot add '" << item->GetTypeName() << "' to list<" << m_list_type_name << ">\n";
         return FAIL;
     }
     m_list.push_back(item->Clone());
@@ -25,7 +27,7 @@ int List::PutItem(ChimeraObject *item) {
 
 int List::SetItem(int64 index, ChimeraObject *item) {
     if(item->GetType() != m_list_type) {
-        cout << "Error: cannot store '" << item->GetTypeName() << "' in " << m_list_type << " list\n";
+        cout << "Error: cannot add '" << item->GetTypeName() << "' to list<" << m_list_type_name << ">\n";
         return FAIL;
     }
     else if (index < 0 || (size_t)index >= m_list.size()) {
