@@ -14,7 +14,8 @@ enum VAR_TYPES {
     UNION_DATA_TYPE,
     REF_DATA_TYPE,
     LIST_DATA_TYPE,
-    MAP_DATA_TYPE, 
+    MAP_DATA_TYPE,
+    FUNC_DATA_TYPE, 
     INT_DATA_TYPE, 
     DOUBLE_DATA_TYPE, 
     FLOAT_DATA_TYPE, 
@@ -43,6 +44,7 @@ const string OBJECT_TYPE_NAME = "object";
 const string UNDEFINED_TYPE_NAME = "undefined";
 const string TEXT_TYPE_NAME = "text";
 const string NUMBER_TYPE_NAME = "number";
+const string MAP_TYPE_NAME = "map";
 
 const string EMPTY_VAR_NAME;
 

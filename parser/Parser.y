@@ -24,11 +24,11 @@ extern char* yytext;
 %define parse.error verbose
 
 // variable types
-%token <types> INT FLOAT DOUBLE BOOL CHAR STRING LIST
+%token <types> INT FLOAT DOUBLE BOOL CHAR STRING LIST MAP
 
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
-%token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW PUT SET GET
+%token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW ADD_LIST ADD_MAP SET GET POINTS_TO
 
 // data values
 %token <int_val> INT_VAL 
@@ -169,6 +169,11 @@ assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                 }
                                 | ID ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws '[' ']' {
                                     if(i.MakeList($ID, $types).empty()) {
+                                        return 1;
+                                    }
+                                }
+                                | ID ':' opt_ws MAP '<' types[key] opt_ws POINTS_TO opt_ws types[val] '>' opt_ws '=' opt_ws '{' '}' {
+                                    if (i.MakeMap($ID, $key, $val).empty()) {
                                         return 1;
                                     }
                                 }
@@ -406,12 +411,19 @@ expr:                           term {
                                 | boolExpr {
                                     $$ = $1;
                                 }
-                                | '(' PUT any_ws ID[list] any_ws exprList[item] opt_ws ')' {
+                                | ID[list] '.' ADD_LIST '|' exprList[item] '|' {
                                     string list_id = PutInContainer($list, $item, i);
                                     if (list_id.empty()) {
                                         return 1;
                                     }
                                     $$ = list_id;
+                                }
+                                | ID[list] '.' ADD_MAP '|' expr[key] any_ws expr[val] '|' {
+                                    string id = i.PutInMap($list, $key, $val);
+                                    if (id.empty()) {
+                                        return 1;
+                                    }
+                                    $$ = id;
                                 }
                                 | ID[list] '[' expr[index] ']' {
                                     string list_id = GetFromContainer($list, $index, i);
@@ -420,7 +432,7 @@ expr:                           term {
                                     }
                                     $$ = list_id;
                                 }
-                                | '(' SET any_ws ID[list] any_ws expr[index] any_ws expr[new_val] opt_ws ')' {
+                                | ID[list] '.' SET '|' opt_ws expr[index] any_ws expr[new_val] opt_ws '|' {
                                     string list_id = SetInContainer($list, $index, $new_val, i);
                                     if (list_id.empty()) {
                                         return 1;
@@ -451,12 +463,40 @@ void PrintLineNo() {
 
 void yyerror(const char* err) {
     cout << err << '\n';
-    cout << yytext << '\n';
+    //cout << yytext << '\n';
+}
+
+#include <vector>
+using namespace std;
+
+template<class R, class ... cparams,  class ... params>
+void Test(R(*f)(cparams...), params ... p) {
+    vector<string> cor_p = {typeid(cparams).name()...};
+    vector<string> passed_p = {typeid(p).name()...};
+
+    bool input = false;
+    if (passed_p.size() == cor_p.size()) {
+        input = true;
+        for(size_t i = 0; i < passed_p.size(); i++) {
+            if (passed_p[i] != cor_p[i]) {
+                input = false;
+                break;
+            }
+        }
+    }
+
+    if (!input) {
+        cout << "Error: couldn't run func\n";
+    }
+    else {
+        //(*f)(p...);
+    }
 }
 
 int main(int argc, char *argv[]) {
     bool in_file_mode = false;
     FILE *file = nullptr;
+    
     if (argc > 1) {
         FILE *file = fopen(argv[1], "r");
         

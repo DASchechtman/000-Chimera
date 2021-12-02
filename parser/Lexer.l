@@ -18,7 +18,7 @@ DIGIT                   [0-9]
 DEC                     ({DIGIT}+[.]{DIGIT}+|[.]{DIGIT}+|{DIGIT}+d)
 FLOAT                   ({DEC}f|{DIGIT}+f)
 CHAR                    (\\.|[^\\"])
-SINGLE_CHAR_TOKS        [=:()+\-*/|^&\[\]<>]
+SINGLE_CHAR_TOKS        [=:()+\-*/|^&\[\]<>.{}]
 NEWLINE_TOKS            [\n;]
 SEPERATOR               [ \t]{2,}
 SINGLE_SEP              [ ]
@@ -38,6 +38,7 @@ string                          { yylval.types = yytext; return STRING; }
 unknown                         { yylval.types = yytext; return UNKNOWN; }
 ref                             { return REF; }
 list                            { return LIST; }
+map                             { return MAP; }
 
 cast                            { return CAST; }
 less                            { return LESS; }
@@ -56,9 +57,11 @@ exit                            { return EXIT; }
 (\*|mul)                        { return MUL; }
 (\/|div)                        { return DIV; }
 (\^|pow)                        { return POW; }
-put                             { return PUT; }
+addTo                           { return ADD_LIST; }
+put                             { return ADD_MAP; }
 set                             { return SET; }
 get                             { return GET; }
+->                              { return POINTS_TO; }
 
 true                            { yylval.bol_val = true; return BOOL_VAL; }
 false                           { yylval.bol_val = false; return BOOL_VAL; }

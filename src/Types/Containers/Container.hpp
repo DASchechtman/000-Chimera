@@ -2,6 +2,7 @@
 
 #include "../ChimeraObject.hpp"
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -12,6 +13,7 @@ private:
 
 protected:
 
+
 public:
 
     Container();
@@ -19,6 +21,7 @@ public:
     virtual int PutItem(ChimeraObject *data);
     virtual size_t Size();
     virtual void SetToNewContainer(Container *new_container) = 0;
+
 
     virtual int SetItem(int64 index, ChimeraObject *data);
     virtual int SetItem(float index, ChimeraObject *data);

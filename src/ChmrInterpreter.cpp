@@ -68,6 +68,10 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
         var_id = m_table.AddEntry(EMPTY_VAR_NAME, obj->Clone());
         break;
     }
+    case MAP_DATA_TYPE: {
+        var_id = m_table.AddEntry(EMPTY_VAR_NAME, obj->Clone());
+        break;
+    }
     default:
     {
         cout << "Error: cannot create var of type " << type << "\n";
@@ -255,6 +259,31 @@ int ChmrInterpreter::SetData(ChimeraObject *to, ChimeraObject *from) {
     return FAIL;
 }
 
+VAR_TYPES ChmrInterpreter::TypeNameToNum(string type_name) {
+    VAR_TYPES list_type = UNDEFINED_DATA_TYPE;
+    
+    if (type_name == INT_TYPE_NAME) {
+        list_type = INT_DATA_TYPE;
+    }
+    else if (type_name == FLOAT_TYPE_NAME) {
+        list_type = FLOAT_DATA_TYPE;
+    }
+    else if (type_name == DOUBLE_TYPE_NAME) {
+        list_type = DOUBLE_DATA_TYPE;
+    }
+    else if (type_name == STRING_TYPE_NAME) {
+        list_type = STRING_DATA_TYPE;
+    }
+    else if (type_name == CHAR_TYPE_NAME) {
+        list_type = CHAR_DATA_TYPE;
+    }
+    else if (type_name == BOOL_TYPE_NAME) {
+        list_type = BOOL_DATA_TYPE;
+    }
+
+    return list_type;
+}
+
 // PRIVATE METHODS ABOVE ---------------------------------------------------------------------------
 
 // PROTECTED METHODS BELOW -------------------------------------------------------------------------
@@ -363,30 +392,13 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
 }
 
 string ChmrInterpreter::MakeList(string var_id, string type) {
-    VAR_TYPES list_type = UNDEFINED_DATA_TYPE;
-    
-    if (type == INT_TYPE_NAME) {
-        list_type = INT_DATA_TYPE;
-    }
-    else if (type == FLOAT_TYPE_NAME) {
-        list_type = FLOAT_DATA_TYPE;
-    }
-    else if (type == DOUBLE_TYPE_NAME) {
-        list_type = DOUBLE_DATA_TYPE;
-    }
-    else if (type == STRING_TYPE_NAME) {
-        list_type = STRING_DATA_TYPE;
-    }
-    else if (type == CHAR_TYPE_NAME) {
-        list_type = CHAR_DATA_TYPE;
-    }
-    else if (type == BOOL_TYPE_NAME) {
-        list_type = BOOL_DATA_TYPE;
-    }
-    
-    List *list = new List(list_type);
-
+    List *list = new List(TypeNameToNum(type));
     return m_table.AddEntry(var_id, list);
+}
+
+string ChmrInterpreter::MakeMap(string var_id, string key_type, string val_type) {
+    Map* map = new Map(TypeNameToNum(key_type), TypeNameToNum(val_type));
+    return m_table.AddEntry(var_id, map);
 }
 
 string ChmrInterpreter::PutInContainer(string list_id, string item_id) {
@@ -397,9 +409,9 @@ string ChmrInterpreter::PutInContainer(string list_id, string item_id) {
 
     auto list = m_table.GetEntry(list_id);
 
-    if (list->GetGeneralType() == COLLECTION_DATA_TYPE) {
+    if (list->GetType() == LIST_DATA_TYPE) {
         auto item = m_table.GetEntry(item_id);
-        if(((Container*)list)->PutItem(item) == FAIL) {
+        if(((List*)list)->PutItem(item) == FAIL) {
             return EMPTY_VAR_NAME;
         }
         return item_id;
@@ -408,6 +420,69 @@ string ChmrInterpreter::PutInContainer(string list_id, string item_id) {
         cout << "Error: cannot put item into non-container type\n";
         return EMPTY_VAR_NAME;
     }
+}
+
+string ChmrInterpreter::PutInMap(string map_id, string key_id, string val_id) {
+    if (!m_table.Has(map_id) || !m_table.Has(key_id) || !m_table.Has(val_id)) {
+        cout << "Error: cannot put into map\n";
+        return EMPTY_VAR_NAME;
+    }
+
+    auto container = m_table.GetEntry(map_id);
+    auto key = m_table.GetEntry(key_id);
+    auto val = m_table.GetEntry(val_id);
+
+    if (container->GetType() == MAP_DATA_TYPE) {
+        Map *map = (Map*)container;
+        switch (key->GetType()) {
+            case INT_DATA_TYPE: {
+                int64 data;
+                key->Get(data);
+                map->SetItem(data, val);
+                break;
+            }
+            case FLOAT_DATA_TYPE: {
+                float data;
+                key->Get(data);
+                map->SetItem(data, val);
+                break;
+            }
+            case DOUBLE_DATA_TYPE: {
+                dbl128 data;
+                key->Get(data);
+                map->SetItem(data, val);
+                break;
+            }
+            case CHAR_DATA_TYPE: {
+                char32_t data;
+                key->Get(data);
+                map->SetItem(data, val);
+                break;
+            }
+            case STRING_DATA_TYPE: {
+                string data;
+                key->Get(data);
+                map->SetItem(data, val);
+                break;
+            }
+            case BOOL_DATA_TYPE: {
+                bool data;
+                key->Get(data);
+                map->SetItem(data, val);
+                break;
+            }
+            default: {
+                cout << "Error: can't use unsupported type on map\n";
+                return EMPTY_VAR_NAME;
+            }
+        }
+    }
+    else {
+        cout << "Error: cannot put keyed values into non-map item\n";
+        return EMPTY_VAR_NAME;
+    }
+
+    return map_id;
 }
 
 string ChmrInterpreter::GetFromContainer(string list_id, string index_id) {

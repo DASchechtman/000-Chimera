@@ -14,6 +14,7 @@
 #include "Types/Number/Derived/Char.hpp"
 #include "Types/Composables/ComposableOr/ChimeraUnion.hpp"
 #include "Types/Containers/Lists/List.hpp"
+#include "Types/Containers/Maps/Map.hpp"
 
 using namespace std;
 
@@ -37,6 +38,7 @@ private:
     int DoMath(string var_id_1, string var_id_2, OPER_CODE code, int (*oper)(ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num));
     ChimeraObject* GetListItem(Container *list, ChimeraObject *index);
     int SetData(ChimeraObject *to, ChimeraObject *from);
+    VAR_TYPES TypeNameToNum(string type_name);
 
     /* boilerplate for creating variable bindings */
     template <class T>
@@ -59,8 +61,10 @@ public:
     string MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown=false);
     
     string MakeList(string var_id, string type);
+    string MakeMap(string var_id, string key_type, string val_type);
     
     string PutInContainer(string list_id, string item_id);
+    string PutInMap(string map_id, string key_id, string val_id);
     string GetFromContainer(string list_id, string index_id);
     string SetInContainer(string list_id, string index_id, string new_item_id);
     string ReassignContainer(string list_id_1, string list_id_2);

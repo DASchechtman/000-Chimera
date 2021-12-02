@@ -43,6 +43,7 @@ string NotEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i);
 string Cast(StrWrapper &store, StrWrapper var_id, StrWrapper type, ChmrInterpreter &i);
 
 string PutInContainer(StrWrapper list_id, StrWrapper item_id, ChmrInterpreter &i);
+string PutInMap(StrWrapper map_id, StrWrapper key_id, StrWrapper item_id, ChmrInterpreter &i);
 string GetFromContainer(StrWrapper list_id, StrWrapper index_id, ChmrInterpreter &i);
 string SetInContainer(StrWrapper list_id, StrWrapper index_id, StrWrapper new_item_id, ChmrInterpreter &i);
 string ReassignContainer(StrWrapper list_id_1, StrWrapper types, StrWrapper list_id_2, ChmrInterpreter &i);

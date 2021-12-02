@@ -124,6 +124,9 @@ string ChimeraObject::GetTypeName()
     else if (m_type == LIST_DATA_TYPE) {
         type_name = LIST_TYPE_NAME;
     }
+    else if (m_type == MAP_DATA_TYPE) {
+        type_name = MAP_TYPE_NAME;
+    }
 
     return type_name;
 }

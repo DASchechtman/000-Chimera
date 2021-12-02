@@ -328,6 +328,10 @@ string PutInContainer(StrWrapper list_id, StrWrapper item_id, ChmrInterpreter &i
     return list;
 }
 
+string PutInMap(StrWrapper map_id, StrWrapper key_id, StrWrapper item_id, ChmrInterpreter &i) {
+    return "";
+}
+
 string GetFromContainer(StrWrapper list_id, StrWrapper index_id, ChmrInterpreter &i) {
     return i.GetFromContainer(list_id, index_id);
 }
