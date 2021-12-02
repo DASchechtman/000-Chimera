@@ -6,7 +6,7 @@ using namespace std;
 
 Map::Map(VAR_TYPES key_type, VAR_TYPES val_type) : m_key_type(key_type),
                                                    m_val_type(val_type),
-                                                   free_hash_indexes(100)
+                                                   free_hash_indexes(10)
 {
     SetType(MAP_DATA_TYPE);
     SetGeneralType(COLLECTION_DATA_TYPE);
@@ -95,15 +95,35 @@ int Map::MapData(size_t hash, VAR_TYPES key_type, ChimeraObject *data, MapItem i
 
     if (MatchingDataTypes(key_type, data->GetType()))
     {
+        
+        if (free_hash_indexes <= m_map.size() / 4)
+        {
+            RehashIndexes();
+
+            if (key_type == INT_DATA_TYPE) {
+                hash = NonStrHash(item.key.i);
+            }
+            else if (key_type == FLOAT_DATA_TYPE) {
+                hash = NonStrHash(item.key.f);
+            }
+            else if (key_type == DOUBLE_DATA_TYPE) {
+                hash = NonStrHash(item.key.d);
+            }
+            else if (key_type == CHAR_DATA_TYPE) {
+                hash = NonStrHash(item.key.c);
+            }
+            else if (key_type == STRING_DATA_TYPE) {
+                hash = StrHash(item.key.s);
+            }
+            else if (key_type == BOOL_DATA_TYPE) {
+                hash = NonStrHash(item.key.b);
+            }
+        }
+
         if (m_map[hash] == nullptr)
         {
             m_map[hash] = new list<MapItem>();
             free_hash_indexes--;
-        }
-
-        if (free_hash_indexes <= m_map.size() / 4)
-        {
-            RehashIndexes();
         }
 
         bool matching_key = false;
@@ -165,7 +185,10 @@ void Map::RehashIndexes()
     {
         if (i < m_map.size())
         {
-            m_map[i] = nullptr;
+            if (m_map[i] != nullptr) {
+                //FreeHashIndex(m_map[i]);
+                m_map[i] = nullptr;
+            }
         }
         else
         {
@@ -182,33 +205,33 @@ void Map::RehashIndexes()
             auto end = item->end();
             size_t cur_index = 0;
 
+            if (m_key_type == INT_DATA_TYPE)
+            {
+                cur_index = NonStrHash(start->key.i);
+            }
+            else if (m_key_type == FLOAT_DATA_TYPE)
+            {
+                cur_index = NonStrHash(start->key.f);
+            }
+            else if (m_key_type == DOUBLE_DATA_TYPE)
+            {
+                cur_index = NonStrHash(start->key.d);
+            }
+            else if (m_key_type == CHAR_DATA_TYPE)
+            {
+                cur_index = NonStrHash(start->key.c);
+            }
+            else if (m_key_type == STRING_DATA_TYPE)
+            {
+                cur_index = StrHash(start->key.s);
+            }
+            else if (m_key_type == BOOL_DATA_TYPE)
+            {
+                cur_index = NonStrHash(start->key.b);
+            }
+
             while (start != end)
             {
-
-                if (m_key_type == INT_DATA_TYPE)
-                {
-                    cur_index = NonStrHash(start->key.i);
-                }
-                else if (m_key_type == FLOAT_DATA_TYPE)
-                {
-                    cur_index = NonStrHash(start->key.f);
-                }
-                else if (m_key_type == DOUBLE_DATA_TYPE)
-                {
-                    cur_index = NonStrHash(start->key.d);
-                }
-                else if (m_key_type == CHAR_DATA_TYPE)
-                {
-                    cur_index = NonStrHash(start->key.c);
-                }
-                else if (m_key_type == STRING_DATA_TYPE)
-                {
-                    cur_index = StrHash(start->key.s);
-                }
-                else if (m_key_type == BOOL_DATA_TYPE)
-                {
-                    cur_index = NonStrHash(start->key.b);
-                }
 
                 if (m_map[cur_index] == nullptr)
                 {
@@ -375,13 +398,9 @@ void Map::Clear()
     {
         if (list != nullptr)
         {
-            auto start = list->begin();
-            auto end = list->end();
-            while (start != end)
-            {
-                delete start->val;
-                start++;
-            }
+           for(auto start = list->begin(); start != list->end(); start++) {
+               delete start->val;
+           }
         }
     }
 

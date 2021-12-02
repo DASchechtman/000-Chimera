@@ -109,6 +109,7 @@ exit||
 1. string: holds many letters
 1. bool: holds a true or false value
 1. list&lt;any type above&gt;
+1. map &lt;any type above -> any type above&gt;
 
 a character is a single letter surrounded by single quotes, whereas a string is one or more letters surrounded by double quotes
 
@@ -190,13 +191,15 @@ print|x y|
 ```
 
 ### Containers
-chimera supports one type of container type currently. A list. A list can contain one or more peices of data of the same type
+#### ***List***
+
+chimera supports two types of container type currently. A list and a map. A list can contain one or more peices of data of the same type
 
 ```
 # init list
 int_list: list<int> = []
 # add item to list
-(put int_list 1 2 3 4 5)
+int_list.put|1 2 3 4 5|
 print|int_list|
 #Output: [1, 2, 3, 4, 5]
 ```
@@ -207,17 +210,47 @@ Note: lists currently only support a single type at this point in time. So you c
 # Get item and set item example
 int_list: list<int> = []
 
-(put int_list 1 2 3 4 5)
+int_list.put|1 2 3 4 5|
 
 # Get item from list
-print|x[0]|
+print|int_list[0]|
 #Output: 1
 
 # list name, index, new val
-(set int_list 0 77)
-print|x[0]|
+$ 
+note that the below ways is the only built in way of setting a value in a container currently. doing something like "int_list[0] = 77" won't workd
+
+also this is a multiline comment
+$
+
+int_list.set|0 77|
+print|int_list[0]|
 #Output: 77
 ```
+#### ***Map***
+Maps associate one type of data with another. for example a string value can be associated with a int value
+
+```
+test_map: map<string -> int> = {}
+
+test_map.put|"hello ten" 10|
+test_map.put|"hello 20" 20|
+
+# expected output: 10 20
+print| test_map["hello ten"] test_map["hello 20"] |
+```
+
+note maps currently only support non-union types as key and value types
+so you can't set `string|int` as either a string or value type
+
+#### ***Container Operations***
+currently can 
+1. add values to a container (to the end in a list, and as a key in a map)
+1. get values using an index
+1. setting values using the index and a new value
+
+
+
 
 <h2 id="opers">Operations</h2>
 
