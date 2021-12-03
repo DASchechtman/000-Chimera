@@ -21,9 +21,8 @@ run:
 	./$(EXE_NAME)
 
 backup-and-push:
-	mount -t drvfs E: /mnt/e/
 	rsync --exclude desktop.ini --exclude *.gdoc -r --delete ./ "/mnt/c/Users/dsche/OneDrive - carthage.edu/Chimera PL/"
-	rsync --exclude desktop.ini --exclude *.gdoc -r --delete ./ /mnt/e/Machine/Lenovo_legion_5/Thesis/
+	mount -t drvfs E: /mnt/e/ && rsync --exclude desktop.ini --exclude *.gdoc -r --delete ./ /mnt/e/Machine/Lenovo_legion_5/Thesis/
 	git push
 
 test:
