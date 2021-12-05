@@ -4,7 +4,10 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <stack>
 #include "DataStructs/SymbolTable.hpp"
+#include "DataStructs/Scope.hpp"
+#include "DataStructs/ScopeStack.hpp"
 #include "./ChmrInterpreter.hpp"
 #include "Types/Number/Derived/Int.hpp"
 #include "Types/Number/Derived/Float.hpp"
@@ -27,7 +30,7 @@ note: in the interpreter, if a string returning method returns an empty string. 
 class ChmrInterpreter
 {
 private:
-    SymbolTable m_table;
+    ScopeStack scopes;
 
     /* used to put a lot of boilerplate into one place for the assign/reassign actions */
     string MakeBind(string to, string from, string type);
@@ -39,6 +42,8 @@ private:
     ChimeraObject* GetListItem(Container *list, ChimeraObject *index);
     int SetData(ChimeraObject *to, ChimeraObject *from);
     VAR_TYPES TypeNameToNum(string type_name);
+    SymbolTable* Table();
+    bool NonRunnableScope();
 
     /* boilerplate for creating variable bindings */
     template <class T>
@@ -94,7 +99,9 @@ public:
     string Equal(string var_id_1, string var_id_2);
 
     void GarbageCollect();
-    bool HasVar(string var_id);
+    void CreateScope();
+    void DestroyScope();
+    int SetNextScopeRunState(string expr_id);
     int PrintVar(string var_id, char end);
 
     template <class T>
@@ -109,32 +116,32 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
 
     if (type == INT_TYPE_NAME)
     {
-        new_var_name = m_table.AddEntry(var_id, new Int());
+        new_var_name = Table()->AddEntry(var_id, new Int());
     }
     else if (type == FLOAT_TYPE_NAME)
     {
-        new_var_name = m_table.AddEntry(var_id, new Float());
+        new_var_name = Table()->AddEntry(var_id, new Float());
     }
     else if (type == DOUBLE_TYPE_NAME)
     {
-        new_var_name = m_table.AddEntry(var_id, new Double());
+        new_var_name = Table()->AddEntry(var_id, new Double());
     }
     else if (type == CHAR_TYPE_NAME)
     {
-        new_var_name = m_table.AddEntry(var_id, new Char());
+        new_var_name = Table()->AddEntry(var_id, new Char());
     }
     else if (type == STRING_TYPE_NAME)
     {
-        new_var_name = m_table.AddEntry(var_id, new String());
+        new_var_name = Table()->AddEntry(var_id, new String());
     }
     else if (type == BOOL_TYPE_NAME)
     {
-        new_var_name = m_table.AddEntry(var_id, new Bool());
+        new_var_name = Table()->AddEntry(var_id, new Bool());
     }
 
     T *new_data = new T(data);
 
-    if (new_var_name.empty() || m_table.GetEntry(new_var_name)->Set(*new_data) == 1)
+    if (new_var_name.empty() || Table()->GetEntry(new_var_name)->Set(*new_data) == 1)
     {
         if (new_var_name.empty())
         {
@@ -143,7 +150,7 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
         else
         {
             // no error message here because if Set fails it will print something
-            m_table.RemoveEntry(new_var_name);
+            Table()->RemoveEntry(new_var_name);
         }
         new_var_name = EMPTY_VAR_NAME;
     }
@@ -156,13 +163,13 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
 template <class T>
 string ChmrInterpreter::CloneOrCreate(string to, string type, T data)
 {
-    if (!m_table.Has(to))
+    if (!Table()->Has(to))
     {
         return Create(to, type, data);
     }
     else
     {
-        auto obj = m_table.GetEntry(to);
+        auto obj = Table()->GetEntry(to);
         if (obj->GetTypeName() != type)
         {
             return EMPTY_VAR_NAME;
@@ -178,7 +185,10 @@ string ChmrInterpreter::CloneOrCreate(string to, string type, T data)
 template <class T>
 string ChmrInterpreter::CreateTmpVar(T data)
 {
-    if (is_same<T, int64>::value)
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+    else if (is_same<T, int64>::value)
     {
         return Create(EMPTY_VAR_NAME, INT_TYPE_NAME, data);
     }

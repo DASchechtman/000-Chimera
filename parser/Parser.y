@@ -29,6 +29,7 @@ extern char* yytext;
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
 %token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW ADD_LIST ADD_MAP SET GET POINTS_TO
+%token DO END IF
 
 // data values
 %token <int_val> INT_VAL 
@@ -52,6 +53,26 @@ extern char* yytext;
 %start line
 
 %%
+
+do:                             DO {
+                                    i.CreateScope();
+                                };
+
+end:                            END {
+                                    i.DestroyScope();
+                                };
+
+firstScopeStmt:                 NEWLINE | any_ws;
+
+newScope:                       do firstScopeStmt line end;
+
+ifMod:                        IF any_ws expr any_ws {
+                                    if (i.SetNextScopeRunState($expr) == 1) {
+                                        return 1;
+                                    }
+                                };
+
+if:                             ifMod newScope;
 
 newline:                        NEWLINE | SEMICOLON;
 
@@ -223,7 +244,7 @@ exprList:                      opt_ws expr {
                                 }
                                 ;
 
-opt_newline:                    opt_ws NEWLINE opt_ws;
+opt_newline:                 opt_ws NEWLINE opt_ws;
 opt_ws_or_nl:                opt_ws | opt_newline;
 ws_or_nl:                    any_ws | opt_newline;
 
@@ -235,7 +256,7 @@ statement:                      assign
                                         cout << "Error: print error\n";
                                         return 1;
                                     }
-                                    else if ($exprList.PendingDataSize() > 0) {
+                                    else if ($exprList.PendingDataSize() > 0 && err == SUCCEED) {
                                         cout << '\n';
                                     }
                                 }
@@ -445,7 +466,9 @@ prog:                           expr newline
                                 | expr EOPU
                                 | statement newline
                                 | statement EOPU
-                                | newline 
+                                | newScope
+                                | newline
+                                | if
                                 | EOPU { 
                                     return 0 ;
                                 }

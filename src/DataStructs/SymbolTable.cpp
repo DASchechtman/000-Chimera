@@ -10,23 +10,21 @@ void SymbolTable::UpdateCurReg() {
 }
 
 void SymbolTable::DecreaseRefCount(ChimeraObject *object) {
+
     m_ref_counter[object]--;
     if (m_ref_counter[object] == 0) {
         delete object;
+        m_ref_counter.erase(object);
     }
 }
 
 SymbolTable::SymbolTable() {}
 
-SymbolTable::SymbolTable(const SymbolTable &old) {
-    auto it = old.m_table.begin();
-    m_ref_counter = old.m_ref_counter;
+SymbolTable::SymbolTable(SymbolTable *old) {
+    m_table = old->m_table;
 
-    while (it != old.m_table.end()) {
-        AddOrUpdateRef(it->first, it->second.item);
-        m_table[it->first].is_temp = it->second.is_temp;
-        m_table[it->first].is_ref = it->second.is_ref;
-        it++;
+    for(auto start = m_table.begin(); start != m_table.end(); start++) {
+        m_ref_counter[start->second.item] = old->m_ref_counter[start->second.item] + 1;
     }
 }
 
@@ -38,6 +36,7 @@ SymbolTable::~SymbolTable() {
         DecreaseRefCount(it->second.item);
         it++;
     }
+    m_is_being_copied = false;
 }
 
 bool SymbolTable::Has(string var_id) {
@@ -61,6 +60,10 @@ void SymbolTable::SetParent(string var_id, string parent_id) {
     }
 }
 
+void SymbolTable::SetCopyStat(bool is_copying) {
+    m_is_being_copied = is_copying;
+}
+
 string SymbolTable::GetParent(string var_id) {
     if (!Has(var_id)) {
         return "";
@@ -71,7 +74,6 @@ string SymbolTable::GetParent(string var_id) {
 
 string SymbolTable::AddEntry(string var_id, ChimeraObject *object) {
     bool is_tmp = false;
-
 
     if (var_id.length() == 0) {
         UpdateCurReg();

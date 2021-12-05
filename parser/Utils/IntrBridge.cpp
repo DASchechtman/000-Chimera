@@ -159,7 +159,7 @@ int Print(StrWrapper var_id, char end, ChmrInterpreter &i)
     for (unsigned int index = 0; index < var_id.PendingDataSize(); index++)
     {
         err = i.PrintVar(var_id[index], end);
-        if (err == 1)
+        if (err == FAIL)
         {
             break;
         }

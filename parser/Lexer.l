@@ -62,6 +62,9 @@ put                             { return ADD_MAP; }
 set                             { return SET; }
 get                             { return GET; }
 ->                              { return POINTS_TO; }
+start                           { return DO; }
+end                             { return END; }
+if                              { return IF; }
 
 true                            { yylval.bol_val = true; return BOOL_VAL; }
 false                           { yylval.bol_val = false; return BOOL_VAL; }

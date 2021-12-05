@@ -9,6 +9,7 @@ protected:
 public:
     Int();
     Int(int data);
+    ~Int();
 
     int Set(int64 &data);
     int Set(float &data);

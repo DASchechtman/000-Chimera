@@ -10,15 +10,15 @@ using namespace std;
 
 string ChmrInterpreter::MakeBind(string to, string from, string type)
 {
-    if (!m_table.Has(from))
+    if (!Table()->Has(from))
     {
         cout << "Error: can't bind data to nonexistant symbol\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto obj = m_table.GetEntry(from);
+    auto obj = Table()->GetEntry(from);
     string var_id = EMPTY_VAR_NAME;
-    string p = m_table.GetParent(to);
+    string p = Table()->GetParent(to);
 
     switch (obj->GetType())
     {
@@ -65,11 +65,11 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
         break;
     }
     case LIST_DATA_TYPE: {
-        var_id = m_table.AddEntry(EMPTY_VAR_NAME, obj->Clone());
+        var_id = Table()->AddEntry(EMPTY_VAR_NAME, obj->Clone());
         break;
     }
     case MAP_DATA_TYPE: {
-        var_id = m_table.AddEntry(EMPTY_VAR_NAME, obj->Clone());
+        var_id = Table()->AddEntry(EMPTY_VAR_NAME, obj->Clone());
         break;
     }
     default:
@@ -83,20 +83,20 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
 
 string ChmrInterpreter::DoLogicOper(string var_id_1, string var_id_2, bool (*oper)(bool, bool))
 {
-    if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
+    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
     {
         cout << "Error: can't and a nonexistent value\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto var_1 = m_table.GetEntry(var_id_1);
-    auto var_2 = m_table.GetEntry(var_id_2);
+    auto var_1 = Table()->GetEntry(var_id_1);
+    auto var_2 = Table()->GetEntry(var_id_2);
 
-    string temp_bool_1 = m_table.AddEntry("", var_1->ConvertTo(BOOL_TYPE_NAME));
-    string temp_bool_2 = m_table.AddEntry("", var_2->ConvertTo(BOOL_TYPE_NAME));
+    string temp_bool_1 = Table()->AddEntry("", var_1->ConvertTo(BOOL_TYPE_NAME));
+    string temp_bool_2 = Table()->AddEntry("", var_2->ConvertTo(BOOL_TYPE_NAME));
 
-    ChimeraObject *bool_1 = m_table.GetEntry(temp_bool_1);
-    ChimeraObject *bool_2 = m_table.GetEntry(temp_bool_2);
+    ChimeraObject *bool_1 = Table()->GetEntry(temp_bool_1);
+    ChimeraObject *bool_2 = Table()->GetEntry(temp_bool_2);
 
     bool res_1 = false;
     bool res_2 = false;
@@ -108,14 +108,14 @@ string ChmrInterpreter::DoLogicOper(string var_id_1, string var_id_2, bool (*ope
 
 int ChmrInterpreter::DoMath(string var_id_1, string var_id_2, OPER_CODE code, int (*oper)(ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num))
 {
-    if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
+    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
     {
         cout << "Error: trying to do math operation on a non-numerical value\n";
         return FAIL;
     }
 
-    auto var_1 = m_table.GetEntry(var_id_1);
-    auto var_2 = m_table.GetEntry(var_id_2);
+    auto var_1 = Table()->GetEntry(var_id_1);
+    auto var_2 = Table()->GetEntry(var_id_2);
 
     int err = 1;
 
@@ -284,6 +284,14 @@ VAR_TYPES ChmrInterpreter::TypeNameToNum(string type_name) {
     return list_type;
 }
 
+SymbolTable* ChmrInterpreter::Table() {
+    return scopes.GetTable();
+}
+
+bool ChmrInterpreter::NonRunnableScope() {
+    return scopes.IsntRunnable();
+}
+
 // PRIVATE METHODS ABOVE ---------------------------------------------------------------------------
 
 // PROTECTED METHODS BELOW -------------------------------------------------------------------------
@@ -293,7 +301,11 @@ VAR_TYPES ChmrInterpreter::TypeNameToNum(string type_name) {
 
 string ChmrInterpreter::Bind(string to, string from, string type)
 {
-    if (m_table.Has(to))
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (Table()->Has(to))
     {
         cout << "Error: var " << to << " already exists\n";
         return EMPTY_VAR_NAME;
@@ -306,42 +318,50 @@ string ChmrInterpreter::Bind(string to, string from, string type)
 
 string ChmrInterpreter::Rebind(string to, string from)
 {   
-    if (!m_table.Has(to))
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(to))
     {
         cout << "Error: couldn't clone var\n";
         return EMPTY_VAR_NAME;
     }
     else
     {
-        auto obj = m_table.GetEntry(to);
+        auto obj = Table()->GetEntry(to);
         if (obj->GetGeneralType() == COLLECTION_DATA_TYPE) {
             return ReassignContainer(to, from);
         }
-        return MakeBind(to, from, m_table.GetEntry(to)->GetTypeName());
+        return MakeBind(to, from, Table()->GetEntry(to)->GetTypeName());
     }
 }
 
 string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type) {
 
+    if(NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
     // makes sure that the variable being bound to a ref
     // is valid
-    if (!m_table.Has(var_id)) {
+    if (!Table()->Has(var_id)) {
         cout << "Error: cannot bind a reference to a nonexistent var\n";
         return EMPTY_VAR_NAME;
     }
-    else if(m_table.CameFromVar(var_id)) {
+    else if(Table()->CameFromVar(var_id)) {
         cout << "Error: cannot bind ref to a temp value\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto obj = m_table.GetEntry(m_table.GetParent(var_id));
+    auto obj = Table()->GetEntry(Table()->GetParent(var_id));
 
     // makes sure that the reference id is valid in cases
     // that a reference is being rebound
-    if(ref_type.empty() && m_table.Has(ref_id)) {
-        ref_type = m_table.GetEntry(ref_id)->GetTypeName();
+    if(ref_type.empty() && Table()->Has(ref_id)) {
+        ref_type = Table()->GetEntry(ref_id)->GetTypeName();
     }
-    else if (ref_type.empty() && !m_table.Has(ref_id)) {
+    else if (ref_type.empty() && !Table()->Has(ref_id)) {
         cout << "Error: can't rebind a nonexistent ref\n";
         return EMPTY_VAR_NAME;
     }
@@ -357,11 +377,16 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type) {
         return EMPTY_VAR_NAME;
     }
 
-    return m_table.AddOrUpdateRef(ref_id, obj);
+    return Table()->AddOrUpdateRef(ref_id, obj);
 }
 
 string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown) {
-    if (!m_table.Has(var_id_2)) {
+    
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+    
+    if (!Table()->Has(var_id_2)) {
         cout << "Error: cannot make a union type, var " << var_id_2 << " doesn't exist\n";
         return EMPTY_VAR_NAME;
     }
@@ -379,7 +404,7 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
         };
     }
 
-    auto from = m_table.GetEntry(var_id_2);
+    auto from = Table()->GetEntry(var_id_2);
     ChimeraObject *to = new ChimeraUnion(type_list, from);
 
     if (to->GetType() == UNDEFINED_DATA_TYPE) {
@@ -388,29 +413,34 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
         return EMPTY_VAR_NAME;
     }
 
-    return m_table.AddEntry(var_id, to);
+    return Table()->AddEntry(var_id, to);
 }
 
 string ChmrInterpreter::MakeList(string var_id, string type) {
     List *list = new List(TypeNameToNum(type));
-    return m_table.AddEntry(var_id, list);
+    return NonRunnableScope() ? PLACE_HOLDER_NAME : Table()->AddEntry(var_id, list);
 }
 
 string ChmrInterpreter::MakeMap(string var_id, string key_type, string val_type) {
     Map* map = new Map(TypeNameToNum(key_type), TypeNameToNum(val_type));
-    return m_table.AddEntry(var_id, map);
+    return NonRunnableScope() ? PLACE_HOLDER_NAME : Table()->AddEntry(var_id, map);
 }
 
 string ChmrInterpreter::PutInContainer(string list_id, string item_id) {
-    if (!m_table.Has(list_id) || !m_table.Has(item_id)) {
+    
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+    
+    if (!Table()->Has(list_id) || !Table()->Has(item_id)) {
         cout << "Error: cannot add because one of the items don't exist\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto list = m_table.GetEntry(list_id);
+    auto list = Table()->GetEntry(list_id);
 
     if (list->GetType() == LIST_DATA_TYPE) {
-        auto item = m_table.GetEntry(item_id);
+        auto item = Table()->GetEntry(item_id);
         if(((List*)list)->PutItem(item) == FAIL) {
             return EMPTY_VAR_NAME;
         }
@@ -423,14 +453,19 @@ string ChmrInterpreter::PutInContainer(string list_id, string item_id) {
 }
 
 string ChmrInterpreter::PutInMap(string map_id, string key_id, string val_id) {
-    if (!m_table.Has(map_id) || !m_table.Has(key_id) || !m_table.Has(val_id)) {
+
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(map_id) || !Table()->Has(key_id) || !Table()->Has(val_id)) {
         cout << "Error: cannot put into map\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto container = m_table.GetEntry(map_id);
-    auto key = m_table.GetEntry(key_id);
-    auto val = m_table.GetEntry(val_id);
+    auto container = Table()->GetEntry(map_id);
+    auto key = Table()->GetEntry(key_id);
+    auto val = Table()->GetEntry(val_id);
 
     if (container->GetType() == MAP_DATA_TYPE) {
         Map *map = (Map*)container;
@@ -486,15 +521,20 @@ string ChmrInterpreter::PutInMap(string map_id, string key_id, string val_id) {
 }
 
 string ChmrInterpreter::GetFromContainer(string list_id, string index_id) {
-    if (!m_table.Has(list_id) || !m_table.Has(index_id)) {
+
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(list_id) || !Table()->Has(index_id)) {
         cout << "Error: cannot get a value with non-existent parts\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto obj = m_table.GetEntry(list_id);
+    auto obj = Table()->GetEntry(list_id);
 
     if (obj->GetGeneralType() == COLLECTION_DATA_TYPE) {
-        auto index = m_table.GetEntry(index_id);
+        auto index = Table()->GetEntry(index_id);
         Container *list = (Container*)obj;
 
         ChimeraObject *item = GetListItem(list, index);
@@ -504,7 +544,7 @@ string ChmrInterpreter::GetFromContainer(string list_id, string index_id) {
             return EMPTY_VAR_NAME;
         }
         else {
-            return m_table.AddEntry(EMPTY_VAR_NAME, item->Clone());
+            return Table()->AddEntry(EMPTY_VAR_NAME, item->Clone());
         }
 
     }
@@ -515,16 +555,21 @@ string ChmrInterpreter::GetFromContainer(string list_id, string index_id) {
 }
 
 string ChmrInterpreter::SetInContainer(string list_id, string index_id, string new_item_id){
-    if (!m_table.Has(list_id) || !m_table.Has(index_id) || !m_table.Has(new_item_id)) {
+
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(list_id) || !Table()->Has(index_id) || !Table()->Has(new_item_id)) {
         cout << "Error: cannot set item in list cuz one of the args don't exist\n";
         return EMPTY_VAR_NAME;
     }
-    auto obj_1 = m_table.GetEntry(list_id);
-    auto index = m_table.GetEntry(index_id);
+    auto obj_1 = Table()->GetEntry(list_id);
+    auto index = Table()->GetEntry(index_id);
 
     if (obj_1->GetGeneralType() == COLLECTION_DATA_TYPE) {
         auto item = GetListItem((Container*)obj_1, index);
-        auto new_item = m_table.GetEntry(new_item_id);
+        auto new_item = Table()->GetEntry(new_item_id);
 
         if (item == nullptr) {
             cout << "Error: item does not exist in list\n";
@@ -534,7 +579,7 @@ string ChmrInterpreter::SetInContainer(string list_id, string index_id, string n
             return EMPTY_VAR_NAME;
         }
 
-        return m_table.AddEntry(EMPTY_VAR_NAME, item->Clone());
+        return Table()->AddEntry(EMPTY_VAR_NAME, item->Clone());
     }
     else {
         cout << "Error: cannot access element of non-list type\n";
@@ -543,13 +588,18 @@ string ChmrInterpreter::SetInContainer(string list_id, string index_id, string n
 }
 
 string ChmrInterpreter::ReassignContainer(string list_id_1, string list_id_2) {
-    if (!m_table.Has(list_id_1) || !m_table.Has(list_id_2)) {
+
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(list_id_1) || !Table()->Has(list_id_2)) {
         cout << "Error: cannot assign to list because one of the args don't exist\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto list_1 = m_table.GetEntry(list_id_1);
-    auto list_2 = m_table.GetEntry(list_id_2);
+    auto list_1 = Table()->GetEntry(list_id_1);
+    auto list_2 = Table()->GetEntry(list_id_2);
 
     if (list_1->GetGeneralType() == COLLECTION_DATA_TYPE && list_2->GetGeneralType() == COLLECTION_DATA_TYPE) {
         if (list_1->GetType() == list_2->GetType()) {
@@ -569,21 +619,30 @@ string ChmrInterpreter::ReassignContainer(string list_id_1, string list_id_2) {
 
 string ChmrInterpreter::CloneToTemp(string var_id)
 {
-    if (!m_table.Has(var_id))
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(var_id))
     {
         cout << "Error: var doesn't exist\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto obj = m_table.GetEntry(var_id);
+    auto obj = Table()->GetEntry(var_id);
     auto c = obj->Clone();
-    string tmp = m_table.AddEntry(EMPTY_VAR_NAME, c);
-    m_table.SetParent(tmp, var_id);
+    string tmp = Table()->AddEntry(EMPTY_VAR_NAME, c);
+    Table()->SetParent(tmp, var_id);
     return MakeBind(tmp, var_id, obj->GetTypeName());
 }
 
 int ChmrInterpreter::Add(string var_id_1, string var_id_2)
 {
+
+    if (NonRunnableScope()) {
+        return NON_RUNNABLE;
+    }
+
     auto callback = [](ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num)
     {
         int err = 1;
@@ -604,6 +663,11 @@ int ChmrInterpreter::Add(string var_id_1, string var_id_2)
 
 int ChmrInterpreter::Subtract(string var_id_1, string var_id_2)
 {
+
+    if (NonRunnableScope()) {
+        return NON_RUNNABLE;
+    }
+
     auto callback = [](ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num)
     {
         int err = 1;
@@ -624,6 +688,11 @@ int ChmrInterpreter::Subtract(string var_id_1, string var_id_2)
 
 int ChmrInterpreter::Multiply(string var_id_1, string var_id_2)
 {
+
+    if (NonRunnableScope()) {
+        return NON_RUNNABLE;
+    }
+
     auto callback = [](ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num)
     {
         if (!is_num)
@@ -639,6 +708,11 @@ int ChmrInterpreter::Multiply(string var_id_1, string var_id_2)
 
 int ChmrInterpreter::Divide(string var_id_1, string var_id_2)
 {
+
+    if (NonRunnableScope()) {
+        return NON_RUNNABLE;
+    }
+
     auto callback = [](ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num)
     {
         if (!is_num)
@@ -654,6 +728,11 @@ int ChmrInterpreter::Divide(string var_id_1, string var_id_2)
 
 int ChmrInterpreter::Pow(string base_id, string exp_id)
 {
+
+    if (NonRunnableScope()) {
+        return NON_RUNNABLE;
+    }
+
     auto callback = [](ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num)
     {
         if (!is_num)
@@ -669,13 +748,18 @@ int ChmrInterpreter::Pow(string base_id, string exp_id)
 
 string ChmrInterpreter::Cast(string var_id, string type)
 {
-    if (!m_table.Has(var_id))
+
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(var_id))
     {
         cout << "Error: var " << var_id << " doesn't exist\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto var = m_table.GetEntry(var_id)->ConvertTo(type);
+    auto var = Table()->GetEntry(var_id)->ConvertTo(type);
 
     if (var == nullptr)
     {
@@ -683,30 +767,41 @@ string ChmrInterpreter::Cast(string var_id, string type)
         return EMPTY_VAR_NAME;
     }
 
-    return m_table.AddEntry("", var);
+    return Table()->AddEntry("", var);
 }
 
 string ChmrInterpreter::And(string var_id_1, string var_id_2)
 {
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
     return DoLogicOper(var_id_1, var_id_2, [](bool b1, bool b2) { return b1 && b2; });
 }
 
 string ChmrInterpreter::Or(string var_id_1, string var_id_2)
 {
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
     return DoLogicOper(var_id_1, var_id_2, [](bool b1, bool b2) { return b1 || b2; });
 }
 
 string ChmrInterpreter::Not(string var_id_1)
 {
-    if (!m_table.Has(var_id_1))
+
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(var_id_1))
     {
         cout << "Error: cannot perform logical oper on nonexistent\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto var = m_table.GetEntry(var_id_1);
-    auto bool_var_name = m_table.AddEntry("", var->ConvertTo(BOOL_TYPE_NAME));
-    auto bool_var = m_table.GetEntry(bool_var_name);
+    auto var = Table()->GetEntry(var_id_1);
+    auto bool_var_name = Table()->AddEntry("", var->ConvertTo(BOOL_TYPE_NAME));
+    auto bool_var = Table()->GetEntry(bool_var_name);
 
     bool res = false;
     bool_var->Get(res);
@@ -716,93 +811,135 @@ string ChmrInterpreter::Not(string var_id_1)
 
 string ChmrInterpreter::Less(string var_id_1, string var_id_2)
 {
-    if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
     {
         cout << "Error: cannot compare nonexistent values\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto var_1 = m_table.GetEntry(var_id_1);
-    auto var_2 = m_table.GetEntry(var_id_2);
+    auto var_1 = Table()->GetEntry(var_id_1);
+    auto var_2 = Table()->GetEntry(var_id_2);
 
     return CreateTmpVar(var_1->Less(var_2));
 }
 
 string ChmrInterpreter::LessEqual(string var_id_1, string var_id_2)
 {
-    if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
     {
         cout << "Error: cannot compare nonexistent values\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto var_1 = m_table.GetEntry(var_id_1);
-    auto var_2 = m_table.GetEntry(var_id_2);
+    auto var_1 = Table()->GetEntry(var_id_1);
+    auto var_2 = Table()->GetEntry(var_id_2);
 
     return CreateTmpVar(var_1->LessEqual(var_2));
 }
 
 string ChmrInterpreter::Greater(string var_id_1, string var_id_2)
 {
-    if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
     {
         cout << "Error: cannot compare nonexistent values\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto var_1 = m_table.GetEntry(var_id_1);
-    auto var_2 = m_table.GetEntry(var_id_2);
+    auto var_1 = Table()->GetEntry(var_id_1);
+    auto var_2 = Table()->GetEntry(var_id_2);
 
     return CreateTmpVar(var_1->Greater(var_2));
 }
 
 string ChmrInterpreter::GreaterEqual(string var_id_1, string var_id_2)
 {
-    if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
+
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
     {
         cout << "Error: cannot compare nonexistent values\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto var_1 = m_table.GetEntry(var_id_1);
-    auto var_2 = m_table.GetEntry(var_id_2);
+    auto var_1 = Table()->GetEntry(var_id_1);
+    auto var_2 = Table()->GetEntry(var_id_2);
 
     return CreateTmpVar(var_1->GreaterEqual(var_2));
 }
 
 string ChmrInterpreter::Equal(string var_id_1, string var_id_2)
 {
-    if (!m_table.Has(var_id_1) || !m_table.Has(var_id_2))
+    if (NonRunnableScope()) {
+        return PLACE_HOLDER_NAME;
+    }
+
+    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
     {
         cout << "Error: cannot compare nonexistent values\n";
         return EMPTY_VAR_NAME;
     }
 
-    auto var_1 = m_table.GetEntry(var_id_1);
-    auto var_2 = m_table.GetEntry(var_id_2);
+    auto var_1 = Table()->GetEntry(var_id_1);
+    auto var_2 = Table()->GetEntry(var_id_2);
 
     return CreateTmpVar(var_1->Equal(var_2));
 }
 
 void ChmrInterpreter::GarbageCollect()
 {
-    m_table.FreeTempItems();
+    Table()->FreeTempItems();
 }
 
-bool ChmrInterpreter::HasVar(string var_id)
-{
-    return m_table.Has(var_id);
+void ChmrInterpreter::CreateScope() {
+    scopes.CreateScope();
+}
+
+void ChmrInterpreter::DestroyScope() {
+    scopes.DestroyScope();
+}
+
+int ChmrInterpreter::SetNextScopeRunState(string expr_id) {
+    if (NonRunnableScope()) {
+        return NON_RUNNABLE;
+    }
+
+    if (!Table()->Has(expr_id)) {
+        cout << "Error: can't evaluate a nonexistent expression\n";
+        return FAIL;
+    }
+
+    scopes.SetNextScopeRunStat(Table()->GetEntry(expr_id)->ToBool());
+    return SUCCEED;
 }
 
 int ChmrInterpreter::PrintVar(string var_id, char end)
 {
-    if (!m_table.Has(var_id))
+    if (NonRunnableScope()) {
+        return NON_RUNNABLE;
+    }
+
+    if (!Table()->Has(var_id))
     {
         cout << "Error: cannot print var " << var_id << '\n';
         return FAIL;
     }
 
-    auto obj = m_table.GetEntry(var_id);
+    auto obj = Table()->GetEntry(var_id);
     cout << *obj << end;
 
     return SUCCEED;

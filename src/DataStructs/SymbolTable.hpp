@@ -1,7 +1,8 @@
+#pragma once
+
 #include <map>
 #include <string>
 #include "../Types/ChimeraObject.hpp"
-
 
 using namespace std;
 
@@ -10,6 +11,15 @@ struct TableItem {
     bool is_temp;
     bool is_ref;
     string created_from;
+
+    TableItem() {};
+
+    TableItem(const TableItem &old) {
+        item = old.item;
+        is_temp = old.is_temp;
+        is_ref = old.is_ref;
+        created_from = old.created_from;
+    }
 };
 
 const string REF_SIGNLE = "a-ref";
@@ -20,6 +30,7 @@ private:
     map<ChimeraObject*, uint32_t> m_ref_counter;
     unsigned long long m_cur_reg = 0;
     unsigned long long m_reg = 0;
+    bool m_is_being_copied = false;
 
     void UpdateCurReg();
     void DecreaseRefCount(ChimeraObject *object);
@@ -29,13 +40,14 @@ protected:
 public:
 
     SymbolTable();
-    SymbolTable (const SymbolTable &old);
+    SymbolTable (SymbolTable *old);
     ~SymbolTable();
 
     bool Has(string var_id);
     bool CameFromVar(string var_id);
     bool IsRef(string var_id);
     void SetParent(string var_id, string parent_id);
+    void SetCopyStat(bool is_copying);
     string GetParent(string var_id);
     string AddEntry(string var_id, ChimeraObject *object);
     string AddOrUpdateRef(string var_id, ChimeraObject *object);

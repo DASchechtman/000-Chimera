@@ -14,6 +14,10 @@ Int::Int(int data) {
     SetType(INT_DATA_TYPE);
 }
 
+Int::~Int() {
+    SetType(UNDEFINED_DATA_TYPE);
+}
+
 int Int::Set(int64 &data) {
     m_data.integer = data;
     return SUCCEED;

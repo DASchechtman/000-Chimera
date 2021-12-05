@@ -50,6 +50,7 @@ const string EMPTY_VAR_NAME;
 
 const int FAIL = 1;
 const int SUCCEED = 0;
+const int NON_RUNNABLE = 2;
 
 typedef long long int64;
 typedef long double dbl128;

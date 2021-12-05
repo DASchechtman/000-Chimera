@@ -83,16 +83,19 @@ extern int yydebug;
     SET = 289,
     GET = 290,
     POINTS_TO = 291,
-    INT_VAL = 292,
-    DOUBLE_VAL = 293,
-    STRING_VAL = 294,
-    CHAR_VAL = 295,
-    BOOL_VAL = 296,
-    FLOAT_VAL = 297,
-    MULTI_WS = 298,
-    SINGLE_WS = 299,
-    ID = 300,
-    UNKNOWN = 301
+    DO = 292,
+    END = 293,
+    IF = 294,
+    INT_VAL = 295,
+    DOUBLE_VAL = 296,
+    STRING_VAL = 297,
+    CHAR_VAL = 298,
+    BOOL_VAL = 299,
+    FLOAT_VAL = 300,
+    MULTI_WS = 301,
+    SINGLE_WS = 302,
+    ID = 303,
+    UNKNOWN = 304
   };
 #endif
 
