@@ -29,7 +29,7 @@ extern char* yytext;
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
 %token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW ADD_LIST ADD_MAP SET GET POINTS_TO
-%token DO END IF
+%token DO END IF ELSE
 
 // data values
 %token <int_val> INT_VAL 
@@ -66,11 +66,14 @@ firstScopeStmt:                 NEWLINE | any_ws;
 
 newScope:                       do firstScopeStmt line end;
 
-ifMod:                        IF any_ws expr any_ws {
+
+
+ifMod:                          IF any_ws expr any_ws {
                                     if (i.SetNextScopeRunState($expr) == 1) {
                                         return 1;
                                     }
-                                };
+                                }; 
+                                
 
 if:                             ifMod newScope;
 
