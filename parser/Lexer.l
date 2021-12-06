@@ -65,6 +65,7 @@ get                             { return GET; }
 start                           { return DO; }
 end                             { return END; }
 if                              { return IF; }
+else-if                         { return ELSE_IF; }
 else                            { return ELSE; }
 
 true                            { yylval.bol_val = true; return BOOL_VAL; }

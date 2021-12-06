@@ -29,7 +29,7 @@ extern char* yytext;
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
 %token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW ADD_LIST ADD_MAP SET GET POINTS_TO
-%token DO END IF ELSE
+%token DO END IF ELSE_IF ELSE
 
 // data values
 %token <int_val> INT_VAL 
@@ -62,7 +62,7 @@ end:                            END {
                                     DestroyScope(i);
                                 };
                                 
-scope:                          do newline line | do any_ws line;
+scope:                          do newline line | do any_ws line | do newline | do any_ws;
 
 newScope:                       scope end;
 
@@ -81,9 +81,26 @@ elseMod:                        ELSE {
                                     SetNextScopeRunState(expr, i);
                                     CreateScope(i);
                                 };
-                                
 
-if:                             ifMod newScope | ifMod scope elseMod any_ws scope end;
+elifMod:                        ELSE_IF any_ws expr any_ws {
+                                    StrWrapper part_1;
+                                    StrWrapper res;
+                                    bool runnable = i.NonRunnableScope();
+
+                                    DestroyScope(i);
+                                    part_1 = CreateTempVar(runnable, i);
+                                    res = And(part_1, $expr, i);
+                                    SetNextScopeRunState(res, i);
+                                    CreateScope(i);
+                                };
+
+elifChain:                      elifMod scope | elifChain elifMod scope;                        
+
+if:                             ifMod newScope 
+                                | ifMod scope elseMod any_ws scope end
+                                | ifMod scope elifMod scope end
+                                | ifMod scope elifChain elseMod any_ws scope end
+                                ;
 
 newline:                        NEWLINE | SEMICOLON;
 

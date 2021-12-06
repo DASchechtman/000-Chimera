@@ -4,8 +4,8 @@ print|"starting"|
 
 if true start
     print|"hello false"|
-else start
-    print|"hello true"|
+else-if (equal x 17) start
+    
 end
 
 
