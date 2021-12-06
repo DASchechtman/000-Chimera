@@ -1,17 +1,16 @@
 
 
 print| "before comment" |
+ 
 $
-    x: InT = "hooooooooOOOOOOOOooooo' = 9
-    1-y: CHAR_LIST = null
-    print| x 1-y |
-    $ hello: string = "hello"
-$
-$
-print| "after comment" hello |
+    int x = 0;
+    for(size_t i = 0; i < x; i++) {
+        cout << "hello world\n";
+    } $ hello: string = "hello world"
 
-# this is another comment
+print|"after comment" hello|
 
-# $ hello world
- print|"this should print"|
+$
+    # nested comment
+    print|"shouldn't run"|
 $

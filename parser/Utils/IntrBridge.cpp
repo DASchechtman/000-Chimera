@@ -62,7 +62,12 @@ string PerformOper(
     // with multiple data given i.d. (+ "hello" (cast ' ' 5 string))
     // so is making sure that all the data is computed
 
-    if ((i->*oper)(var_id_1, var_id_2[0]) == 1)
+    string id_2 = var_id_2;
+    if (var_id_2.HasPendingData()) {
+        id_2 = var_id_2[0];
+    }
+
+    if ((i->*oper)(var_id_1, id_2) == 1)
     {
         // failed to perform operation
         // no error massage because the oper will
@@ -229,7 +234,7 @@ string Divide(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
 }
 
 string Pow(StrWrapper id_1, StrWrapper id_2, ChmrInterpreter &i) {
-    return PerformOper(id_1, id_1, &ChmrInterpreter::Pow, &i);
+    return PerformOper(id_1, id_2, &ChmrInterpreter::Pow, &i);
 }
 
 // two arg opers ----------------------------------------------------------
