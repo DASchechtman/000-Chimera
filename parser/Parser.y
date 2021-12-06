@@ -61,21 +61,29 @@ do:                             DO {
 end:                            END {
                                     DestroyScope(i);
                                 };
+                                
+scope:                          do newline line | do any_ws line;
 
-firstScopeStmt:                 NEWLINE | any_ws;
-
-newScope:                       do firstScopeStmt line end;
-
-
+newScope:                       scope end;
 
 ifMod:                          IF any_ws expr any_ws {
                                     if (SetNextScopeRunState($expr, i) == 1) {
                                         return 1;
                                     }
                                 }; 
+
+elseMod:                        ELSE {
+                                    // will only be true when the previous if statement couldn't run
+                                    bool next_run_stat = i.NonRunnableScope();
+                                    DestroyScope(i);
+                                    StrWrapper expr;
+                                    expr = CreateTempVar(next_run_stat, i);
+                                    SetNextScopeRunState(expr, i);
+                                    CreateScope(i);
+                                };
                                 
 
-if:                             ifMod newScope;
+if:                             ifMod newScope | ifMod scope elseMod any_ws scope end;
 
 newline:                        NEWLINE | SEMICOLON;
 

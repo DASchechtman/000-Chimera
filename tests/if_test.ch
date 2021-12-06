@@ -1,5 +1,15 @@
 x: int = 17
 
+print|"starting"|
+
+if true start
+    print|"hello false"|
+else start
+    print|"hello true"|
+end
+
+
+$
 if (not-equal x (add x 1)) start
     if true start
         print|"nested if"|
@@ -32,3 +42,4 @@ end
 start 
     print|"done"|
 end
+$

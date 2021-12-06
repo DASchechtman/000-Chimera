@@ -43,7 +43,6 @@ private:
     int SetData(ChimeraObject *to, ChimeraObject *from);
     VAR_TYPES TypeNameToNum(string type_name);
     SymbolTable* Table();
-    bool NonRunnableScope();
 
     /* boilerplate for creating variable bindings */
     template <class T>
@@ -57,6 +56,8 @@ private:
     string CloneOrCreate(string to, string type, T data);
 
 public:
+
+    bool NonRunnableScope();
 
     // methods used to create bindings to user variables 
     string Bind(string to, string from, string type);
