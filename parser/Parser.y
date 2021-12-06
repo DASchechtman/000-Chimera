@@ -55,11 +55,11 @@ extern char* yytext;
 %%
 
 do:                             DO {
-                                    i.CreateScope();
+                                    CreateScope(i);
                                 };
 
 end:                            END {
-                                    i.DestroyScope();
+                                    DestroyScope(i);
                                 };
 
 firstScopeStmt:                 NEWLINE | any_ws;
@@ -69,7 +69,7 @@ newScope:                       do firstScopeStmt line end;
 
 
 ifMod:                          IF any_ws expr any_ws {
-                                    if (i.SetNextScopeRunState($expr) == 1) {
+                                    if (SetNextScopeRunState($expr, i) == 1) {
                                         return 1;
                                     }
                                 }; 
@@ -187,17 +187,17 @@ assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                     }
                                 }
                                 | ID ':' opt_ws types '<' REF '>' opt_ws '=' opt_ws expr {
-                                    if (i.RefBind($ID, $expr, $types).empty()) {
+                                    if (RefBind($ID, $expr, $types, i).empty()) {
                                         return 1;
                                     }
                                 }
                                 | ID ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws '[' ']' {
-                                    if(i.MakeList($ID, $types).empty()) {
+                                    if(MakeList($ID, $types, i).empty()) {
                                         return 1;
                                     }
                                 }
                                 | ID ':' opt_ws MAP '<' types[key] opt_ws POINTS_TO opt_ws types[val] '>' opt_ws '=' opt_ws '{' '}' {
-                                    if (i.MakeMap($ID, $key, $val).empty()) {
+                                    if (MakeMap($ID, $key, $val, i).empty()) {
                                         return 1;
                                     }
                                 }
@@ -207,7 +207,7 @@ assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
                                     }
                                 }
                                 | ID opt_ws '=' opt_ws expr '<' REF '>' {
-                                    if (i.RefBind($ID, $expr).empty()) {
+                                    if (RefBind($ID, $expr, i).empty()) {
                                         return 1;
                                     }
                                 }
@@ -324,22 +324,12 @@ math_expr:                      '(' ADD any_ws expr[left] any_ws exprList[right]
                                     }
                                     $$ = tmp;
                                 }
-                                | '(' POW any_ws expr any_ws expr opt_ws ')' {
-                                    string var_1 = $4;
-                                    string var_2 = $6;
-
-                                    if (var_1.empty()) {
-                                        var_1 = $4[0];
-                                    }
-                                    if (var_2.empty()) {
-                                        var_2 = $6[0];
-                                    }
-                                    
-                                    if (i.Pow(var_1, var_2) == 1) {
+                                | '(' POW any_ws expr[arg_1] any_ws expr[arg_2] opt_ws ')' {
+                                    auto res = Pow($arg_1, $arg_2, i);
+                                    if (res.empty()) {
                                         return 1;
                                     }
-                                    $4.ClearPending();
-                                    $$ = var_1;
+                                    $$ = res;
                                 }
                                 ;
 //MATH OPER ABOVE ------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -443,7 +433,7 @@ expr:                           term {
                                     $$ = list_id;
                                 }
                                 | ID[list] '.' ADD_MAP '|' expr[key] any_ws expr[val] '|' {
-                                    string id = i.PutInMap($list, $key, $val);
+                                    string id = PutInMap($list, $key, $val, i);
                                     if (id.empty()) {
                                         return 1;
                                     }
@@ -476,9 +466,9 @@ prog:                           expr newline
                                     return 0 ;
                                 }
                                 | any_ws  
-                                | error { i.GarbageCollect(); return 1; };
+                                | error { GarbageCollect(i); return 1; };
 
-line:                           prog {i.GarbageCollect();} | line prog {i.GarbageCollect();};
+line:                           prog { GarbageCollect(i); } | line prog { GarbageCollect(i); };
 %%
 
 

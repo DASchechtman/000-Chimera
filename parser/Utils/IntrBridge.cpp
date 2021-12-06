@@ -135,6 +135,14 @@ string Assign(StrWrapper new_var, StrWrapper data_var, StrWrapper type, ChmrInte
     return i.Bind(new_var, data, type);
 }
 
+string RefBind(StrWrapper id, StrWrapper expr, StrWrapper types, ChmrInterpreter &i) {
+    return i.RefBind(id, expr, types);
+}
+
+string RefBind(StrWrapper id, StrWrapper expr, ChmrInterpreter &i) {
+    return i.RefBind(id, expr);
+}
+
 string Reassign(StrWrapper var_name, StrWrapper data_var, ChmrInterpreter &i)
 {
     string data = ExtractData(data_var, 1, "Error: can only reassign with one value");
@@ -192,6 +200,14 @@ string MakeUnknown(StrWrapper id, StrWrapper data, ChmrInterpreter &i)
     return i.MakeUnion(id, none, value, true);
 }
 
+string MakeList(StrWrapper id, StrWrapper types, ChmrInterpreter &i) {
+    return i.MakeList(id, types);
+}
+
+string MakeMap(StrWrapper id, StrWrapper key_type, StrWrapper val_types, ChmrInterpreter &i) {
+    return i.MakeMap(id, key_type, val_types);
+}
+
 string Add(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
 {
     return PerformOper(var_id_1, var_id_2, &ChmrInterpreter::Add, &i);
@@ -210,6 +226,10 @@ string Multiply(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
 string Divide(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
 {
     return PerformOper(var_id_1, var_id_2, &ChmrInterpreter::Divide, &i);
+}
+
+string Pow(StrWrapper id_1, StrWrapper id_2, ChmrInterpreter &i) {
+    return PerformOper(id_1, id_1, &ChmrInterpreter::Pow, &i);
 }
 
 // two arg opers ----------------------------------------------------------
@@ -328,8 +348,8 @@ string PutInContainer(StrWrapper list_id, StrWrapper item_id, ChmrInterpreter &i
     return list;
 }
 
-string PutInMap(StrWrapper map_id, StrWrapper key_id, StrWrapper item_id, ChmrInterpreter &i) {
-    return "";
+string PutInMap(StrWrapper map_id, StrWrapper key, StrWrapper val, ChmrInterpreter &i) {
+    return i.PutInMap(map_id, key, val);
 }
 
 string GetFromContainer(StrWrapper list_id, StrWrapper index_id, ChmrInterpreter &i) {
@@ -343,6 +363,22 @@ string SetInContainer(StrWrapper list_id, StrWrapper index_id, StrWrapper new_it
 string ReassignContainer(StrWrapper list_id_1, StrWrapper types, StrWrapper list_id_2, ChmrInterpreter &i) {
     string created_id = i.MakeList(list_id_1, types);
     return i.ReassignContainer(created_id, list_id_2);
+}
+
+void CreateScope(ChmrInterpreter &i) {
+    i.CreateScope();
+}
+
+void DestroyScope(ChmrInterpreter &i) {
+    i.DestroyScope();
+}
+
+void GarbageCollect(ChmrInterpreter &i) {
+    i.GarbageCollect();
+}
+
+int SetNextScopeRunState(StrWrapper expr_id, ChmrInterpreter &i) {
+    return i.SetNextScopeRunState(expr_id);
 }
 
 // IMPORTABLE FUNCTIONS ABOVE -----------------------------------------------------------------------
