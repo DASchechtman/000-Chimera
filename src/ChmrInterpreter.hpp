@@ -5,8 +5,6 @@
 #include <iostream>
 #include <vector>
 #include <stack>
-#include "DataStructs/SymbolTable.hpp"
-#include "DataStructs/Scope.hpp"
 #include "DataStructs/ScopeStack.hpp"
 #include "./ChmrInterpreter.hpp"
 #include "Types/Number/Derived/Int.hpp"
@@ -100,7 +98,7 @@ public:
     string Equal(string var_id_1, string var_id_2);
 
     void GarbageCollect();
-    void CreateScope();
+    void CreateScope(string scope_type);
     void DestroyScope();
     int SetNextScopeRunState(string expr_id);
     int PrintVar(string var_id, char end);
@@ -114,6 +112,7 @@ template <class T>
 string ChmrInterpreter::Create(string var_id, string type, T data)
 {
     string new_var_name;
+    auto tbl = Table();
 
     if (type == INT_TYPE_NAME)
     {
@@ -141,8 +140,9 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
     }
 
     T *new_data = new T(data);
+    auto entry = tbl->GetEntry(new_var_name);
 
-    if (new_var_name.empty() || Table()->GetEntry(new_var_name)->Set(*new_data) == 1)
+    if (new_var_name.empty() || entry->Set(*new_data) == 1)
     {
         if (new_var_name.empty())
         {

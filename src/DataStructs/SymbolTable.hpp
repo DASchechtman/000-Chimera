@@ -54,4 +54,5 @@ public:
     ChimeraObject* GetEntry(string var_id);
     void RemoveEntry(string var_id);
     void FreeTempItems();
+    void CopyTable(SymbolTable *old);
 };

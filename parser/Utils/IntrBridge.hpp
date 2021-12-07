@@ -53,7 +53,7 @@ string GetFromContainer(StrWrapper list_id, StrWrapper index_id, ChmrInterpreter
 string SetInContainer(StrWrapper list_id, StrWrapper index_id, StrWrapper new_item_id, ChmrInterpreter &i);
 string ReassignContainer(StrWrapper list_id_1, StrWrapper types, StrWrapper list_id_2, ChmrInterpreter &i);
 
-void CreateScope(ChmrInterpreter &i);
+void CreateScope(string type, ChmrInterpreter &i);
 void DestroyScope(ChmrInterpreter &i);
 void GarbageCollect(ChmrInterpreter &i);
 int SetNextScopeRunState(StrWrapper expr_id, ChmrInterpreter &i);

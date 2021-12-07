@@ -12,6 +12,7 @@ using namespace std;
 
 int lineno = 0;
 ChmrInterpreter i;
+string scope_type;
 
 void PrintLineNo();
 void yyerror(const char* err);
@@ -29,14 +30,14 @@ extern char* yytext;
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
 %token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW ADD_LIST ADD_MAP SET GET POINTS_TO
-%token DO END IF ELSE_IF ELSE
+%token DO END IF ELSE
 
 // data values
 %token <int_val> INT_VAL 
 %token <dou_val> DOUBLE_VAL 
 %token <str_val> STRING_VAL
 %token <char_val> CHAR_VAL 
-%token <bol_val> BOOL_VAL 
+%token <bol_val> BOOL_VAL ELSE_IF
 %token <flo_val> FLOAT_VAL
 
 // whitespaces
@@ -47,6 +48,7 @@ extern char* yytext;
 
 %type <types> types
 %type <tmp_id> term expr exprList math_expr compare_expr boolExpr unionTypes
+%type <bol_val> elseif
 
 %token UNKNOWN
 
@@ -55,7 +57,11 @@ extern char* yytext;
 %%
 
 do:                             DO {
-                                    CreateScope(i);
+                                    if (scope_type.empty()) {
+                                        scope_type = GEN_SCOPE;
+                                    }
+                                    CreateScope(scope_type, i);
+                                    scope_type = "";
                                 };
 
 end:                            END {
@@ -67,38 +73,44 @@ scope:                          do newline line | do any_ws line | do newline | 
 newScope:                       scope end;
 
 ifMod:                          IF any_ws expr any_ws {
+                                    scope_type = IF_SCOPE;
                                     if (SetNextScopeRunState($expr, i) == 1) {
                                         return 1;
                                     }
                                 }; 
 
+elseif:                         ELSE_IF { 
+                                            scope_type = ELIF_SCOPE;
+                                            $$ = i.NonRunnableScope();
+                                            DestroyScope(i);
+
+                                        };
+
 elseMod:                        ELSE {
+                                    scope_type = ELSE_SCOPE;
                                     // will only be true when the previous if statement couldn't run
                                     bool next_run_stat = i.NonRunnableScope();
                                     DestroyScope(i);
                                     StrWrapper expr;
                                     expr = CreateTempVar(next_run_stat, i);
                                     SetNextScopeRunState(expr, i);
-                                    CreateScope(i);
                                 };
 
-elifMod:                        ELSE_IF any_ws expr any_ws {
+elifMod:                        elseif any_ws expr any_ws {
                                     StrWrapper part_1;
                                     StrWrapper res;
-                                    bool runnable = i.NonRunnableScope();
+                                    bool runnable = $elseif;
 
-                                    DestroyScope(i);
                                     part_1 = CreateTempVar(runnable, i);
                                     res = And(part_1, $expr, i);
                                     SetNextScopeRunState(res, i);
-                                    CreateScope(i);
                                 };
 
 elifChain:                      elifMod scope | elifChain elifMod scope;                        
 
 if:                             ifMod newScope 
                                 | ifMod scope elseMod any_ws scope end
-                                | ifMod scope elifMod scope end
+                                | ifMod scope elifChain end
                                 | ifMod scope elifChain elseMod any_ws scope end
                                 ;
 

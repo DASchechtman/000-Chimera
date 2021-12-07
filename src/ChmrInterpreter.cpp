@@ -905,8 +905,8 @@ void ChmrInterpreter::GarbageCollect()
     Table()->FreeTempItems();
 }
 
-void ChmrInterpreter::CreateScope() {
-    scopes.CreateScope();
+void ChmrInterpreter::CreateScope(string type) {
+    scopes.CreateScope(type);
 }
 
 void ChmrInterpreter::DestroyScope() {

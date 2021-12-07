@@ -21,11 +21,7 @@ void SymbolTable::DecreaseRefCount(ChimeraObject *object) {
 SymbolTable::SymbolTable() {}
 
 SymbolTable::SymbolTable(SymbolTable *old) {
-    m_table = old->m_table;
-
-    for(auto start = m_table.begin(); start != m_table.end(); start++) {
-        m_ref_counter[start->second.item] = old->m_ref_counter[start->second.item] + 1;
-    }
+    CopyTable(old);
 }
 
 SymbolTable::~SymbolTable() {
@@ -146,5 +142,24 @@ void SymbolTable::FreeTempItems() {
 
     for (const string &name : item_names) {
         RemoveEntry(name);
+    }
+}
+
+void SymbolTable::CopyTable(SymbolTable *old) {
+    for(auto start = old->m_table.begin(); start != old->m_table.end(); start++) {
+        if (start->second.is_temp) {
+            continue;
+        }
+
+        TableItem item;
+        item.item = start->second.item;
+        item.is_temp = false;
+        item.is_ref = false;
+
+        m_table[start->first] = item;
+    }
+
+    for(auto start = m_table.begin(); start != m_table.end(); start++) {
+        m_ref_counter[start->second.item] = old->m_ref_counter[start->second.item] + 1;
     }
 }

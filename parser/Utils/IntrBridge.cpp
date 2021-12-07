@@ -370,8 +370,8 @@ string ReassignContainer(StrWrapper list_id_1, StrWrapper types, StrWrapper list
     return i.ReassignContainer(created_id, list_id_2);
 }
 
-void CreateScope(ChmrInterpreter &i) {
-    i.CreateScope();
+void CreateScope(string type, ChmrInterpreter &i) {
+    i.CreateScope(type);
 }
 
 void DestroyScope(ChmrInterpreter &i) {

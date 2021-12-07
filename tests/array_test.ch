@@ -1,11 +1,12 @@
 
 #Expected output: [10, 20, 30, 40]
 x: list<int> = []
-(put x 10 20 30 40)
+x.addTo|10 20 30 40|
+print|"hello world"|
 print|x|
 
 #Expected output: [10, 60, 30, 40]
-(set x 1 60)
+x.set|1 60|
 print|x|
 
 #Expected output: x[3] * 4 = 160
@@ -17,7 +18,7 @@ print|x[0] x[1] x[2]|
 #Expected output: [hello]
 y: list<string> = []
 b: list<string> = []
-(put y "hello" "sun")
+y.addTo|"hello" "sun"|
 print|y|
 
 z: list<string> = y
@@ -34,4 +35,4 @@ print|b|
 #(put y "world" "and" 1f)
 #(put y "world" "and" 1d)
 #(put y "world" "and" "mars")
-(put y "world" "and" true)
+y.addTo|"world" "and" true|

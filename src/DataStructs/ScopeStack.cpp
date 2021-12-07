@@ -1,7 +1,7 @@
 #include "ScopeStack.hpp"
 
 ScopeStack::ScopeStack() {
-    m_stack.push(new Scope());
+    m_stack.push(new GenScope());
 }
 
 ScopeStack::~ScopeStack() {
@@ -11,8 +11,19 @@ ScopeStack::~ScopeStack() {
     }
 }
 
-void ScopeStack::CreateScope() {
-    auto n_scope = new Scope(GetTable());
+void ScopeStack::CreateScope(string type) {
+    Scope *n_scope = nullptr;
+
+    if (type == IF_SCOPE || type == ELIF_SCOPE || type == ELSE_SCOPE) {
+        n_scope = new IfScope(type, GetTable());
+    }
+    else if (type == GEN_SCOPE) {
+        if(m_stack.size() == 1) {
+            IfScope::ClearGroups();
+        }
+        n_scope = new GenScope(GetTable());
+    }
+
     n_scope->SetRunnableState(m_next_scope_runnable);
     m_stack.push(n_scope);
     m_next_scope_runnable = !m_stack.top()->IsntRunnable();
@@ -36,4 +47,8 @@ SymbolTable* ScopeStack::GetTable() {
 
 bool ScopeStack::IsntRunnable() {
     return m_stack.top()->IsntRunnable();
+}
+
+string ScopeStack::GetScopeType() {
+    return m_stack.top()->GetType();
 }
