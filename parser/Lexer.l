@@ -62,7 +62,7 @@ put                             { return ADD_MAP; }
 set                             { return SET; }
 get                             { return GET; }
 ->                              { return POINTS_TO; }
-start                           { return DO; }
+start                           { return START; }
 end                             { return END; }
 if                              { return IF; }
 else-if                         { return ELSE_IF; }

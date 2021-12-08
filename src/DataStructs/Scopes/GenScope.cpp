@@ -4,10 +4,11 @@ GenScope::GenScope() {
     m_type = GEN_SCOPE;
 }
 
-GenScope::GenScope(SymbolTable *table):
+GenScope::GenScope(SymbolTable *table, Scope *parent):
 m_table(table) 
 {
     m_type = GEN_SCOPE;
+    m_parent = parent;
 }
 
 GenScope::~GenScope() {}
@@ -17,7 +18,14 @@ SymbolTable* GenScope::GetTable() {
 }
 
 bool GenScope::IsntRunnable() {
-    return !m_runnable_scope;
+    return false;
+}
+
+bool GenScope::ParentIsntRunnable() {
+    if (m_parent != nullptr) {
+        return m_parent->IsntRunnable();
+    }
+    return false;
 }
 
 void GenScope::SetRunnableState(bool is_runnable) {
@@ -26,4 +34,8 @@ void GenScope::SetRunnableState(bool is_runnable) {
 
 string GenScope::GetType() {
     return GEN_SCOPE;
+}
+
+size_t GenScope::NumOfScopeMembers() {
+    return 1;
 }

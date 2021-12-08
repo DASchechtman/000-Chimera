@@ -6,6 +6,10 @@
 
 using namespace std;
 
+/*
+base class for any type that is a collection of other, more primative types
+*/
+
 class Container : public ChimeraObject {
 private:
     string set_err_msg = "Error: cannot create item with index type of '%s'\n";
@@ -21,7 +25,6 @@ public:
     virtual int PutItem(ChimeraObject *data);
     virtual size_t Size();
     virtual void SetToNewContainer(Container *new_container) = 0;
-
 
     virtual int SetItem(int64 index, ChimeraObject *data);
     virtual int SetItem(float index, ChimeraObject *data);

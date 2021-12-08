@@ -288,16 +288,24 @@ SymbolTable* ChmrInterpreter::Table() {
     return scopes.GetTable();
 }
 
-bool ChmrInterpreter::NonRunnableScope() {
-    return scopes.IsntRunnable();
-}
-
 // PRIVATE METHODS ABOVE ---------------------------------------------------------------------------
 
 // PROTECTED METHODS BELOW -------------------------------------------------------------------------
 // PROTECTED METHODS ABOVE -------------------------------------------------------------------------
 
 // PUBLIC METHODS BELOW -----------------------------------------------------------------------------
+
+bool ChmrInterpreter::NonRunnableScope() {
+    return scopes.IsntRunnable();
+}
+
+bool ChmrInterpreter::ParentNonRunnableScope() {
+    return scopes.ParentIsntRunnable();
+}
+
+void ChmrInterpreter::OverrideRunnable() {
+    scopes.MakeRunnable();
+}
 
 string ChmrInterpreter::Bind(string to, string from, string type)
 {
@@ -884,11 +892,13 @@ string ChmrInterpreter::GreaterEqual(string var_id_1, string var_id_2)
 
 string ChmrInterpreter::Equal(string var_id_1, string var_id_2)
 {
+    bool exists_1 = Table()->Has(var_id_1);
+    bool exists_2 = Table()->Has(var_id_2);
     if (NonRunnableScope()) {
         return PLACE_HOLDER_NAME;
     }
 
-    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
+    if (!exists_1 || !exists_2)
     {
         cout << "Error: cannot compare nonexistent values\n";
         return EMPTY_VAR_NAME;

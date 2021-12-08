@@ -50,6 +50,8 @@ const string EMPTY_VAR_NAME;
 
 const int FAIL = 1;
 const int SUCCEED = 0;
+
+// used for when a scope isn't runnable as a placeholder return value
 const int NON_RUNNABLE = 2;
 
 typedef long long int64;

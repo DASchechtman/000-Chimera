@@ -55,7 +55,10 @@ private:
 
 public:
 
+    // interface to control some scopestack functionality outside of the interpreter
     bool NonRunnableScope();
+    bool ParentNonRunnableScope();
+    void OverrideRunnable();
 
     // methods used to create bindings to user variables 
     string Bind(string to, string from, string type);

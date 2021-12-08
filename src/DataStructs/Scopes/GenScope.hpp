@@ -6,19 +6,28 @@
 
 using namespace std;
 
+/*
+A general purpose type that doesn't have any functionality beyond being a placeholder scope when no other scope
+is a suitable tool to use
+*/
+
 class GenScope : public Scope {
 private:
     SymbolTable m_table;
     bool m_runnable_scope = true;
+    Scope *m_parent = nullptr;
+
 protected:
 public:
 
     GenScope();
-    GenScope(SymbolTable *table);
+    GenScope(SymbolTable *table, Scope *parent);
     ~GenScope();
 
     SymbolTable* GetTable();
     bool IsntRunnable();
+    bool ParentIsntRunnable();
     void SetRunnableState(bool is_runnable);
     string GetType();
+    size_t NumOfScopeMembers();
 };

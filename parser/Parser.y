@@ -30,7 +30,7 @@ extern char* yytext;
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
 %token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW ADD_LIST ADD_MAP SET GET POINTS_TO
-%token DO END IF ELSE
+%token START END IF ELSE
 
 // data values
 %token <int_val> INT_VAL 
@@ -56,7 +56,7 @@ extern char* yytext;
 
 %%
 
-do:                             DO {
+start:                          START {
                                     if (scope_type.empty()) {
                                         scope_type = GEN_SCOPE;
                                     }
@@ -68,7 +68,7 @@ end:                            END {
                                     DestroyScope(i);
                                 };
                                 
-scope:                          do newline line | do any_ws line | do newline | do any_ws;
+scope:                          start newline line | start any_ws line | start newline | start any_ws;
 
 newScope:                       scope end;
 
@@ -81,16 +81,22 @@ ifMod:                          IF any_ws expr any_ws {
 
 elseif:                         ELSE_IF { 
                                             scope_type = ELIF_SCOPE;
-                                            $$ = i.NonRunnableScope();
-                                            DestroyScope(i);
 
+                                            // will only be true when the previous if statement couldn't run
+                                            $$ = i.NonRunnableScope();
+                                            if (!i.ParentNonRunnableScope()) {
+                                                i.OverrideRunnable();
+                                            }
                                         };
 
 elseMod:                        ELSE {
                                     scope_type = ELSE_SCOPE;
+
                                     // will only be true when the previous if statement couldn't run
                                     bool next_run_stat = i.NonRunnableScope();
-                                    DestroyScope(i);
+                                    if (!i.ParentNonRunnableScope()) {
+                                        i.OverrideRunnable();
+                                    }
                                     StrWrapper expr;
                                     expr = CreateTempVar(next_run_stat, i);
                                     SetNextScopeRunState(expr, i);

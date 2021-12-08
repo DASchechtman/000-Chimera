@@ -1,17 +1,33 @@
-x: int = 18
+x: int = 10
 
 print|"starting"|
 
 if false start
     print|"hello false"|
-else-if (equal x 18) start
+else-if (equal x (mul 18 10)) start
     print|"x =" x|
+    c: char = 'a'
+
+    if (equal c 'a') start
+        print|"c is a"|
+    else-if (equal c 'b') start
+        print|"c is b"|
+    else-if (equal c 'c') start
+        print|"c is c"|
+    else-if (equal c 'd') start
+        print|"c is d"|
+    end
+
 else-if (less x 18) start
     print|"x is under 18"|
 else-if (less x 19) start 
     print|"x is under 19"|
 else start 
     print|"default"|
+end
+
+if true start
+    print|"first if-statement on stack"|
 end
 
 if false start
