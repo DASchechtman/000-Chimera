@@ -155,7 +155,8 @@ void SymbolTable::CopyTable(SymbolTable *old) {
         item.item = start->second.item;
         item.is_temp = false;
         item.is_ref = false;
-
+        item.created_from = start->second.created_from;
+        
         m_table[start->first] = item;
     }
 
