@@ -15,6 +15,8 @@ int lineno = 0;
 ChmrInterpreter i;
 string scope_type;
 AstNode *root = nullptr;
+AstNode *loop_id = nullptr;
+bool for_loop_made = false;
 
 void PrintLineNo();
 void yyerror(const char* err);
@@ -32,7 +34,7 @@ extern char* yytext;
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
 %token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW ADD_LIST ADD_MAP SET GET POINTS_TO
-%token START END IF ELSE WHILE SIZE
+%token START END IF ELSE WHILE SIZE REPEAT WITH
 
 // data values
 %token <int_val> INT_VAL 
@@ -48,7 +50,7 @@ extern char* yytext;
 // user defined names
 %token <id> ID
 
-%type <tmp_id> term expr math_expr compare_expr boolExpr unionTypes statement assign types id exprList
+%type <tmp_id> term expr math_expr compare_expr boolExpr unionTypes statement assign types id exprList forloopHead
 
 %token UNKNOWN
 
@@ -56,19 +58,9 @@ extern char* yytext;
 
 %%
 
-start:                          START {
-                                    if (scope_type.empty()) {
-                                        scope_type = GEN_SCOPE;
-                                    }
-                                    CreateScope(scope_type, i);
-                                    scope_type = "";
-                                };
-
 end:                            END {
                                     i.EatAst(MakeNode(END_BLOCK_CMD));
                                 };
-                                
-scope:                          start newline line | start any_ws line | start newline | start any_ws;
 
 ifHead:                         IF any_ws expr any_ws START {
                                     auto control_block = MakeNode(CTRL_BLOCK_CMD);
@@ -104,12 +96,55 @@ whileHead:                      WHILE any_ws expr any_ws START {
                                     i.EatAst(control_block);
                                 };
 
+forloopHead:                    REPEAT any_ws expr any_ws WITH any_ws id any_ws START {
+                                    i.EatAst(MakeNode(START_BLOCK_CMD));
+                                    auto make_var = MakeNode(BIND_CMD);
+                                    auto type = MakeNode(RAW_DATA_CMD, string("int"), VAR_TYPE_NODE_TYPE);
+                                    auto val = MakeNode(RAW_DATA_CMD, 0, INT_NODE_TYPE);
+                                    
+                                    make_var->SetLeft($id);
+                                    make_var->SetMiddle(type);
+                                    make_var->SetRight(val);
+                                    i.EatAst(make_var);
+                                    root = nullptr;
+
+                                    
+                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
+                                    auto while_block = MakeNode(WHILE_BLOCK_CMD);
+                                    auto less_block = MakeNode(LESS_CMD);
+                                    less_block->SetLeft($id->Copy());
+                                    less_block->SetRight($expr);
+                                    while_block->SetLeft(less_block);
+                                    control_block->SetLeft(while_block);
+                                    
+                                    i.EatAst(control_block);
+                                    
+                                    root = nullptr;
+                                    
+                                    $$ = $id->Copy();
+                                };
+
 ifBody:                         ifHead line;
 elseIfBody:                     elseIfHead line;
 elseBody:                       elseHead line;
 elseIfChain:                    elseIfBody | elseIfChain elseIfBody;
 
 whileStatement:                 whileHead line end;
+forloopStatement:               forloopHead line END {
+                                   
+                                    auto rebind = MakeNode(REBIND_CMD);
+                                    rebind->SetLeft($forloopHead);
+                                    auto add = MakeNode(ADDITION_CMD);
+                                    auto val = MakeNode(RAW_DATA_CMD, 1, INT_NODE_TYPE);
+                                    add->SetLeft($forloopHead->Copy());
+                                    add->SetRight(val);
+                                    rebind->SetRight(add);
+                                    i.EatAst(rebind);
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                    i.EatAst(MakeNode(END_SCOPE_CMD));
+                                       
+                                    
+                                };
 ifStatement:                    ifBody end 
                                 | ifBody elseIfChain end 
                                 | ifBody elseIfChain elseBody end 
@@ -431,6 +466,7 @@ prog:                           expr newline
                                 | newline
                                 | ifStatement
                                 | whileStatement
+                                | forloopStatement
                                 | EOPU { 
                                     i.EatAst(root);
                                     return 0 ;

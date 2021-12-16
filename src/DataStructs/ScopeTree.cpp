@@ -1,8 +1,6 @@
 #include "ScopeTree.hpp"
 
-ScopeTree::ScopeTree() {
-    indexes.resize(1);
-}
+ScopeTree::ScopeTree() {}
 
 ScopeTree::~ScopeTree() {
     Clear();
@@ -14,8 +12,6 @@ void ScopeTree::MoveToLevel(size_t level) {
             if (cur_block->children.empty()) {
                 break;
             }
-            m_cur_node_stack.push(m_cur_node);
-            m_cur_node = 0;
             auto size = cur_block->children.size();
             cur_block = cur_block->children[cur_block->cur_child % size];
         }
@@ -23,9 +19,6 @@ void ScopeTree::MoveToLevel(size_t level) {
             if (!cur_block->parent) {
                 break;
             }
-
-            m_cur_node = m_cur_node_stack.top();
-            m_cur_node_stack.pop();
             cur_block = cur_block->parent;
         }
     }
@@ -45,7 +38,7 @@ void ScopeTree::RemoveParent(shared_ptr<ScopeBlock> child) {
     child->parent.reset();
 }
 
-void ScopeTree::CreateNewBlock(bool is_if_link, bool is_else_link) {
+void ScopeTree::CreateNewBlock(bool is_if_link) {
     if (!cur_block) {
         root = make_shared<ScopeBlock>(ScopeBlock());
         cur_block = root;
@@ -68,10 +61,6 @@ void ScopeTree::CloseBlock() {
     if (cur_block->parent) {
         cur_block = cur_block->parent;
     }
-}
-
-void ScopeTree::SetEndMark(bool mark) {
-    cur_block->is_else_link = mark;
 }
 
 void ScopeTree::MoveToLastNode(size_t level) {
@@ -97,20 +86,14 @@ void ScopeTree::Clear() {
 }
 
 CircularList* ScopeTree::operator[](size_t index) {
-    if (indexes.size() <= index) {
-        indexes.resize(index+1);
-    }
-
+    
     MoveToLevel(index);
 
     auto ret = &cur_block->jump_points;
-    bool is_else = cur_block->is_else_link;
     if (cur_block->jump_points.IsLastElement() && cur_block->parent) {
         MoveToNextNode(index);
         if (cur_block->is_if_link) {
-            if(!is_else) {
-                ret->Next();
-            }
+            ret->Next();
             ret = &cur_block->jump_points;
         }
     }

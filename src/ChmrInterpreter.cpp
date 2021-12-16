@@ -967,7 +967,6 @@ void ChmrInterpreter::EatAst(AstNode *root) {
 
     if (!found_control_block) {
         if (jump_points_process.size() > 0) {
-            size_t last_point = 0;
             for(auto point : jump_points_process) {
                 auto point_type = trees[point.jump_point];
 
@@ -991,16 +990,8 @@ void ChmrInterpreter::EatAst(AstNode *root) {
                 }
                 else if (point_type->Type() == END_BLOCK_CMD) {
                     jump_points.AddJpToBlock(point.jump_point);
-                    auto node_type = trees[last_point]->Type();
-                    if (node_type == CTRL_BLOCK_CMD) {
-                        node_type = trees[last_point]->GetLeft()->Type();
-                        if (node_type == IF_BLOCK_CMD || node_type == ELIF_BLOCK_CMD) {
-                            jump_points.SetEndMark(true);
-                        }
-                    }
                     jump_points.CloseBlock();
                 }
-                last_point = point.jump_point;
             }
         }
 
@@ -1246,7 +1237,7 @@ string ChmrInterpreter::RunAst(AstNode *root) {
                 auto can_run = Table()->GetEntry(RunAst(root->GetLeft()))->ToBool();
 
                 if (can_run) {
-                    scopes.CreateScope(GEN_SCOPE);
+                    CreateScope(GEN_SCOPE);
                 }
                 else {
                     GoTo(next);
@@ -1312,6 +1303,10 @@ string ChmrInterpreter::RunAst(AstNode *root) {
 
             cur_stack_level.pop();
 
+            break;
+        }
+        case END_SCOPE_CMD: {
+            DestroyScope();
             break;
         }
         default: {}

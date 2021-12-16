@@ -69,6 +69,8 @@ else-if                         { return ELSE_IF; }
 else                            { return ELSE; }
 while                           { return WHILE; }
 size                            { return SIZE; }
+repeat                          { return REPEAT; }
+with                            { return WITH; }
 
 true                            { yylval.bol_val = true; return BOOL_VAL; }
 false                           { yylval.bol_val = false; return BOOL_VAL; }

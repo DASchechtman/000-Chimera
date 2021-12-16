@@ -89,17 +89,19 @@ extern int yydebug;
     ELSE = 295,
     WHILE = 296,
     SIZE = 297,
-    INT_VAL = 298,
-    DOUBLE_VAL = 299,
-    STRING_VAL = 300,
-    CHAR_VAL = 301,
-    BOOL_VAL = 302,
-    ELSE_IF = 303,
-    FLOAT_VAL = 304,
-    MULTI_WS = 305,
-    SINGLE_WS = 306,
-    ID = 307,
-    UNKNOWN = 308
+    REPEAT = 298,
+    WITH = 299,
+    INT_VAL = 300,
+    DOUBLE_VAL = 301,
+    STRING_VAL = 302,
+    CHAR_VAL = 303,
+    BOOL_VAL = 304,
+    ELSE_IF = 305,
+    FLOAT_VAL = 306,
+    MULTI_WS = 307,
+    SINGLE_WS = 308,
+    ID = 309,
+    UNKNOWN = 310
   };
 #endif
 

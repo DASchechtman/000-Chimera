@@ -33,9 +33,6 @@ class ScopeTree {
 private:
     shared_ptr<ScopeBlock> root;
     shared_ptr<ScopeBlock> cur_block;
-    size_t m_cur_node = 0;
-    stack<size_t> m_cur_node_stack;
-    vector<size_t> indexes;
 
     void MoveToLevel(size_t level);
     void MoveToNextNode(size_t index);
@@ -46,10 +43,9 @@ public:
 
     ScopeTree();
     ~ScopeTree();
-    void CreateNewBlock(bool is_if_link = false, bool is_else_link = false);
+    void CreateNewBlock(bool is_if_link = false);
     void AddJpToBlock(size_t jump_point);
     void CloseBlock();
-    void SetEndMark(bool mark);
     void MoveToLastNode(size_t level);
     void Clear();
 

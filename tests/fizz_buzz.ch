@@ -1,16 +1,14 @@
-iters: int = 1
-
-while true start
+repeat 100 with i start
     fizz: int = 3
     buzz: int = 5
-    fizz_cpy: float = iters
-    buzz_cpy: float = iters
+    fizz_cpy: float = i
+    buzz_cpy: float = i
 
-    while (greater-equal fizz_cpy fizz) start
+    while (greater-equal fizz_cpy fizz) with j start
         fizz_cpy = (sub fizz_cpy fizz)
     end
 
-    while (greater-equal buzz_cpy buzz) start
+    while (greater-equal buzz_cpy buzz) with j start
         buzz_cpy = (sub buzz_cpy buzz)
     end
 
@@ -28,11 +26,10 @@ while true start
             output = (add output "buzz")
         end
     else-if true start
-        output = (cast iters string)
+        output = (cast i string)
     end
 
     print|output|
-    iters = (add iters 1)
 end
 
 print|"program done"|
