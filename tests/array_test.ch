@@ -1,7 +1,10 @@
-
+print|"starting"|
 #Expected output: [10, 20, 30, 40]
 x: list<int> = []
-x.addTo|10 20 30 40|
+x.addTo|10|
+x.addTo|20|
+x.addTo|30|
+x.addTo|40|
 print|"hello world"|
 print|x|
 
@@ -10,15 +13,18 @@ x.set|1 60|
 print|x|
 
 #Expected output: x[3] * 4 = 160
-print|"x[3] * 4 =" (mul x[3] 4)|
+print|(add "x[3] * 4 =" (cast (mul x[3] 4) string))|
 
 #Expected output: 10 60 30
-print|x[0] x[1] x[2]|
+ten: string = (add (cast x[0] string) " ")
+sixty: string = (add (cast x[1] string) " ")
+thirty: string = (cast x[2] string)
+print|(add ten (add sixty thirty))|
 
 #Expected output: [hello]
 y: list<string> = []
 b: list<string> = []
-y.addTo|"hello" "sun"|
+y.addTo|"hello"|
 print|y|
 
 z: list<string> = y
@@ -35,4 +41,4 @@ print|b|
 #(put y "world" "and" 1f)
 #(put y "world" "and" 1d)
 #(put y "world" "and" "mars")
-y.addTo|"world" "and" true|
+#y.addTo|"world" "and" true|

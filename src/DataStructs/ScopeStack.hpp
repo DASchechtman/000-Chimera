@@ -44,5 +44,6 @@ public:
     bool IsntRunnable();
     bool ParentIsntRunnable();
     string GetScopeType();
+    size_t Size();
 
 };

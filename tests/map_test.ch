@@ -11,5 +11,9 @@ test_map.put|8 'i'|
 test_map.put|9 'j'|
 test_map.put|10 'k'|
 
+test_map.set|6 'z'|
+
+print|test_map|
 print| test_map[0] test_map[1] test_map[2] test_map[3] test_map[4] test_map[5] test_map[6] test_map[7]
 test_map[8] test_map[9] test_map[10]|
+                                    print|"done"|

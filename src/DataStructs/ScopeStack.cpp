@@ -21,6 +21,9 @@ void ScopeStack::CreateScope(string type) {
     else if (type == GEN_SCOPE) {
         n_scope = new GenScope(GetTable(), m_stack.top());
     }
+    else if (type == WHILE_LOOP_SCOPE) {
+        n_scope = new GenScope(WHILE_LOOP_SCOPE, GetTable(), m_stack.top());
+    }
 
     n_scope->SetRunnableState(m_next_scope_runnable);
     m_stack.push(n_scope);
@@ -60,4 +63,8 @@ bool ScopeStack::ParentIsntRunnable() {
 
 string ScopeStack::GetScopeType() {
     return m_stack.top()->GetType();
+}
+
+size_t ScopeStack::Size() {
+    return m_stack.size();
 }
