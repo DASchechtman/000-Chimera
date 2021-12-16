@@ -4,11 +4,17 @@ GenScope::GenScope() {
     m_type = GEN_SCOPE;
 }
 
-GenScope::GenScope(SymbolTable *table, Scope *parent):
-m_table(table) 
+GenScope::GenScope(SymbolTable *table, Scope *parent)
 {
-    m_type = GEN_SCOPE;
+    scope_type = GEN_SCOPE;
     m_parent = parent;
+    m_table.CopyTable(table);
+}
+
+GenScope::GenScope(string type, SymbolTable *table, Scope *parent) {
+    m_parent = parent;
+    m_table.CopyTable(table, true);
+    scope_type = type;
 }
 
 GenScope::~GenScope() {}
@@ -33,7 +39,7 @@ void GenScope::SetRunnableState(bool is_runnable) {
 }
 
 string GenScope::GetType() {
-    return GEN_SCOPE;
+    return scope_type;
 }
 
 size_t GenScope::NumOfScopeMembers() {

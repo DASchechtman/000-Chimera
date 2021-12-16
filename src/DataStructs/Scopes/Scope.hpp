@@ -15,7 +15,7 @@
 const string IF_SCOPE = "if scope";
 const string ELIF_SCOPE = "else if scope";
 const string ELSE_SCOPE = "else scope";
-const string LOOP_SCOPE = "loop scope";
+const string WHILE_LOOP_SCOPE = "loop scope";
 const string GEN_SCOPE = "gen scope";
 
 class Scope {

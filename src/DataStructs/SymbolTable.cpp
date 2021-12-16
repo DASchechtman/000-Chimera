@@ -9,13 +9,15 @@ void SymbolTable::UpdateCurReg() {
     m_reg++;
 }
 
-void SymbolTable::DecreaseRefCount(ChimeraObject *object) {
+bool SymbolTable::DecreaseRefCount(ChimeraObject *object) {
 
     m_ref_counter[object]--;
     if (m_ref_counter[object] == 0) {
         delete object;
         m_ref_counter.erase(object);
+        return true;
     }
+    return false;
 }
 
 SymbolTable::SymbolTable() {}
@@ -43,7 +45,7 @@ bool SymbolTable::CameFromVar(string var_id) {
     if (!Has(var_id)) {
         return true;
     }
-    return m_table[var_id].created_from.empty() || !m_table[var_id].is_temp;
+    return !m_table[var_id].created_from.empty() || !m_table[var_id].is_temp;
 }
 
 bool SymbolTable::IsRef(string var_id) {
@@ -71,7 +73,7 @@ string SymbolTable::GetParent(string var_id) {
 string SymbolTable::AddEntry(string var_id, ChimeraObject *object) {
     bool is_tmp = false;
 
-    if (var_id.length() == 0) {
+    if (var_id.empty()) {
         UpdateCurReg();
         var_id = to_string(m_cur_reg).c_str();
         is_tmp = true;
@@ -124,8 +126,9 @@ ChimeraObject* SymbolTable::GetEntry(string var_id) {
 void SymbolTable::RemoveEntry(string var_id) {
     if (Has(var_id)) {
         ChimeraObject *old = m_table[var_id].item;
-        m_table.erase(var_id);
-        DecreaseRefCount(old);
+        if (DecreaseRefCount(old)) {
+            m_table.erase(var_id);
+        }
     }
 }
 
@@ -145,9 +148,9 @@ void SymbolTable::FreeTempItems() {
     }
 }
 
-void SymbolTable::CopyTable(SymbolTable *old) {
+void SymbolTable::CopyTable(SymbolTable *old, bool full_copy) {
     for(auto start = old->m_table.begin(); start != old->m_table.end(); start++) {
-        if (start->second.is_temp) {
+        if (start->second.is_temp && !full_copy) {
             continue;
         }
 

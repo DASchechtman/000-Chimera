@@ -67,6 +67,10 @@ end                             { return END; }
 if                              { return IF; }
 else-if                         { return ELSE_IF; }
 else                            { return ELSE; }
+while                           { return WHILE; }
+size                            { return SIZE; }
+repeat                          { return REPEAT; }
+with                            { return WITH; }
 
 true                            { yylval.bol_val = true; return BOOL_VAL; }
 false                           { yylval.bol_val = false; return BOOL_VAL; }
@@ -80,7 +84,9 @@ false                           { yylval.bol_val = false; return BOOL_VAL; }
 {SINGLE_CHAR_TOKS}              { return yytext[0]; }
 \n                              { return NEWLINE; }
 ;                               { return SEMICOLON; }
-{SEPERATOR}                     { return MULTI_WS; }
+
+[\t]+                           { return MULTI_WS; }
+[ \t]{2,}                     { return MULTI_WS; }
 {SINGLE_SEP}                    { return SINGLE_WS; }
 
 <<EOF>>                         { return EOPU; }

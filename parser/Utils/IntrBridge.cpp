@@ -4,386 +4,51 @@
 
 using namespace std;
 
-// FILE ONLY FUNCTIONS BELOW -----------------------------------------------------------------------
-
-string ExtractData(StrWrapper &data, int extract_limt = 1, string msg = "")
+void Perform(AstNode *&root, AstNode *node, COMMANDS type)
 {
-    string extracted = data.GetFinalResult();
+    root = MakeNode(type);
+    root->SetLeft(node);
 
-    if (extracted.empty() && data.HasPendingData())
-    {
-        extracted = data[0];
-        size_t size = data.PendingDataSize();
-        if (extract_limt > 0 && size > (size_t)extract_limt) {
-            cout << msg << '\n';
-            return EMPTY_VAR_NAME;
+    if(node->Extras() == 0) {
+        if (type == ADDITION_CMD || type == SUBTRACTION_CMD) {
+            node->PutInAdditional(MakeNode(RAW_DATA_CMD, 0, INT_NODE_TYPE));
+        }
+        else {
+            node->PutInAdditional(MakeNode(RAW_DATA_CMD, 1, INT_NODE_TYPE));
         }
     }
 
-    return extracted;
-}
-
-/*
-used to reuse a lot of the boilerplate code that is needed to perform an operation
-this overload used to perform operations when given 2 arguments (an operation could revieve one or 2 arguments
-because some operations like cast don't return a single value, but operate on multiple values and return a list)
-note: if this function fails it will return an empty string
-*/
-string PerformOper(
-    StrWrapper var_id_1,
-    StrWrapper var_id_2,
-    int (ChmrInterpreter::*oper)(string, string),
-    ChmrInterpreter *i)
-{
-    // checks for if there was multiple return values given
-    // and does the passed in operator on all the given values
-    if (var_id_1.GetFinalResult().empty() && var_id_1.HasPendingData())
+    if (node->Extras() < 2)
     {
-        auto oper_cumulative = var_id_1[0];
-        auto size = var_id_1.PendingDataSize();
-
-        for (unsigned int index = 1; index < size; index++)
+        root->SetRight(node->GetAdditional());
+    }
+    else if (node->Extras() == 2)
+    {
+        auto oper = MakeNode(type);
+        oper->SetLeft(node->GetAdditional());
+        oper->SetRight(node->GetAdditional(1));
+        root->SetRight(oper);
+    }
+    else
+    {
+        auto oper = MakeNode(type);
+        auto oper_ptr = oper;
+        size_t index = 0;
+        for (; index < node->Extras() - 2; index++)
         {
-            if ((i->*oper)(oper_cumulative, var_id_1[index]) == 1)
-            {
-                // failed to perform operation
-                // no error massage because the oper will
-                // print one when it fails
-                return EMPTY_VAR_NAME;
-            }
+            auto tmp = MakeNode(type);
+            oper->SetLeft(node->GetAdditional(index));
+            oper->SetRight(tmp);
+            oper = tmp;
+            node->NullAdditional(index);
         }
-        
-        var_id_1 = oper_cumulative;
+
+        oper->SetLeft(node->GetAdditional(index));
+        oper->SetRight(node->GetAdditional(index + 1));
+        root->SetRight(oper_ptr);
     }
 
-    // note start: applies to code between here and 'note end'
-    // performs operation on the extra data in var_id_2
-    // because an expression can be composed of something
-    // with multiple data given i.d. (+ "hello" (cast ' ' 5 string))
-    // so is making sure that all the data is computed
-
-    string id_2 = var_id_2;
-    if (var_id_2.HasPendingData()) {
-        id_2 = var_id_2[0];
+    for(size_t i = 0; i < node->Extras(); i++) {
+        node->NullAdditional(i);
     }
-
-    if ((i->*oper)(var_id_1, id_2) == 1)
-    {
-        // failed to perform operation
-        // no error massage because the oper will
-        // print one when it fails
-        return EMPTY_VAR_NAME;
-    }
-
-    for (unsigned int index = 1; index < var_id_2.PendingDataSize(); index++)
-    {
-        if ((i->*oper)(var_id_1, var_id_2[index]) == 1)
-        {
-            // failed to perform operation
-            // no error massage because the oper will
-            // print one when it fails
-            return EMPTY_VAR_NAME;
-        }
-    }
-
-    // note end
-
-    return var_id_1;
 }
-
-/*
-used to reuse a lot of the boilerplate code that is needed to perform an operation
-this overload used to perform operations when given 1 argument (an operation could revieve 1 or 2 arguments
-because some operations like cast don't return a single value, but operate on multiple values and return a list)
-note: if this function fails it will return an empty string
-*/
-string PerformOper(
-    StrWrapper var_id,
-    int (ChmrInterpreter::*oper)(string, string),
-    ChmrInterpreter *i)
-{
-    // gaurd to ensure there is data to operate on
-    if (!var_id.HasPendingData())
-    {
-        cout << "Error: cannot expand expression\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    string accumulate = var_id[0];
-    for (unsigned int index = 1; index < var_id.PendingDataSize(); index++)
-    {
-        if ((i->*oper)(accumulate, var_id[index]) == 1)
-        {
-            // failed oper
-            // no error message because the oper will print one on fail
-            return EMPTY_VAR_NAME;
-        };
-    }
-
-    return accumulate;
-}
-
-// FILE ONLY FUNCTIONS ABOVE -----------------------------------------------------------------------
-
-// IMPORTABLE FUNCTIONS BELOW ----------------------------------------------------------------------
-
-// assignment funcs ----------------------------------------------------------
-
-string Assign(StrWrapper new_var, StrWrapper data_var, StrWrapper type, ChmrInterpreter &i)
-{
-    string data = ExtractData(data_var, 1, "Error: can ony assign var to one value");
-
-    if (data.empty()) {
-        return EMPTY_VAR_NAME;
-    }
-
-    return i.Bind(new_var, data, type);
-}
-
-string RefBind(StrWrapper id, StrWrapper expr, StrWrapper types, ChmrInterpreter &i) {
-    return i.RefBind(id, expr, types);
-}
-
-string RefBind(StrWrapper id, StrWrapper expr, ChmrInterpreter &i) {
-    return i.RefBind(id, expr);
-}
-
-string Reassign(StrWrapper var_name, StrWrapper data_var, ChmrInterpreter &i)
-{
-    string data = ExtractData(data_var, 1, "Error: can only reassign with one value");
-
-    if (data.empty()) {
-        return EMPTY_VAR_NAME;
-    }
-
-    return i.Rebind(var_name, data);
-}
-
-// assignment funcs -----------------------------------------------------------
-
-string CloneToTemp(StrWrapper id, ChmrInterpreter &i)
-{
-    return i.CloneToTemp(id);
-}
-
-int Print(StrWrapper var_id, char end, ChmrInterpreter &i)
-{
-    int err = 2;
-    for (unsigned int index = 0; index < var_id.PendingDataSize(); index++)
-    {
-        err = i.PrintVar(var_id[index], end);
-        if (err == FAIL)
-        {
-            break;
-        }
-    }
-    return err;
-}
-
-// two arg opers ---------------------------------------------------------
-
-string MakeUnion(StrWrapper id, vector<string> types, StrWrapper data, ChmrInterpreter &i)
-{
-    string value = ExtractData(data, 1, "Error: can only assign one type to union");
-
-    if (value.empty()) {
-        return EMPTY_VAR_NAME;
-    }
-
-    return i.MakeUnion(id, types, value);
-}
-
-string MakeUnknown(StrWrapper id, StrWrapper data, ChmrInterpreter &i)
-{
-    vector<string> none;
-    string value = ExtractData(data, 1, "Error: can only assign one type to union");
-
-    if (value.empty()) {
-        return EMPTY_VAR_NAME;
-    }
-
-    return i.MakeUnion(id, none, value, true);
-}
-
-string MakeList(StrWrapper id, StrWrapper types, ChmrInterpreter &i) {
-    return i.MakeList(id, types);
-}
-
-string MakeMap(StrWrapper id, StrWrapper key_type, StrWrapper val_types, ChmrInterpreter &i) {
-    return i.MakeMap(id, key_type, val_types);
-}
-
-string Add(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return PerformOper(var_id_1, var_id_2, &ChmrInterpreter::Add, &i);
-}
-
-string Subtract(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return PerformOper(var_id_1, var_id_2, &ChmrInterpreter::Subtract, &i);
-}
-
-string Multiply(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return PerformOper(var_id_1, var_id_2, &ChmrInterpreter::Multiply, &i);
-}
-
-string Divide(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return PerformOper(var_id_1, var_id_2, &ChmrInterpreter::Divide, &i);
-}
-
-string Pow(StrWrapper id_1, StrWrapper id_2, ChmrInterpreter &i) {
-    return PerformOper(id_1, id_2, &ChmrInterpreter::Pow, &i);
-}
-
-// two arg opers ----------------------------------------------------------
-
-// one arg opers ----------------------------------------------------------
-
-string Add(StrWrapper var_id, ChmrInterpreter &i)
-{
-    return PerformOper(var_id, &ChmrInterpreter::Add, &i);
-}
-
-string Subtract(StrWrapper var_id, ChmrInterpreter &i)
-{
-    return PerformOper(var_id, &ChmrInterpreter::Subtract, &i);
-}
-
-string Multiply(StrWrapper var_id, ChmrInterpreter &i)
-{
-    return PerformOper(var_id, &ChmrInterpreter::Multiply, &i);
-}
-
-string Divide(StrWrapper var_id, ChmrInterpreter &i)
-{
-    return PerformOper(var_id, &ChmrInterpreter::Divide, &i);
-}
-
-// one arg opers ------------------------------------------------------------
-
-// logical opers ------------------------------------------------------------
-
-string And(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return i.And(var_id_1, var_id_2);
-}
-
-string Or(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return i.Or(var_id_1, var_id_2);
-}
-
-string Not(StrWrapper var_id_1, ChmrInterpreter &i)
-{
-    return i.Not(var_id_1);
-}
-
-// logical opers ------------------------------------------------------------
-
-// compare opers ------------------------------------------------------------
-
-string Less(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return i.Less(var_id_1, var_id_2);
-}
-
-string LessEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return i.LessEqual(var_id_1, var_id_2);
-}
-
-string Greater(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return i.Greater(var_id_1, var_id_2);
-}
-
-string GreaterEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return i.GreaterEqual(var_id_1, var_id_2);
-}
-
-string Equal(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    return i.Equal(var_id_1, var_id_2);
-}
-
-string NotEqual(StrWrapper var_id_1, StrWrapper var_id_2, ChmrInterpreter &i)
-{
-    string res_var_name = i.Equal(var_id_1, var_id_2);
-    if (res_var_name.empty())
-    {
-        return EMPTY_VAR_NAME;
-    }
-    return i.Not(res_var_name);
-}
-
-// compare opers ---------------------------------------------------------------------
-
-/*
-will cast one or more peices of data to a single type
-note: when fails to perform operation on any of the peices of data
-will return an empty string
-*/
-string Cast(StrWrapper &store, StrWrapper var_id, StrWrapper type, ChmrInterpreter &i)
-{
-    string casted_var_id;
-    for (unsigned int index = 0; index < var_id.PendingDataSize(); index++)
-    {
-        casted_var_id = i.Cast(var_id[index], type);
-        if (casted_var_id.empty())
-        {
-            // cast operation failed to be performed for some reason
-            return EMPTY_VAR_NAME;
-        }
-        store.AddPending(casted_var_id);
-    }
-    return casted_var_id;
-}
-
-string PutInContainer(StrWrapper list_id, StrWrapper item_id, ChmrInterpreter &i) {
-    string list = list_id;
-    for(size_t index = 0; index < item_id.PendingDataSize(); index++) {
-        if(i.PutInContainer(list_id, item_id[index]).empty()) {
-            list = "";
-            break;
-        }
-    }
-    return list;
-}
-
-string PutInMap(StrWrapper map_id, StrWrapper key, StrWrapper val, ChmrInterpreter &i) {
-    return i.PutInMap(map_id, key, val);
-}
-
-string GetFromContainer(StrWrapper list_id, StrWrapper index_id, ChmrInterpreter &i) {
-    return i.GetFromContainer(list_id, index_id);
-}
-
-string SetInContainer(StrWrapper list_id, StrWrapper index_id, StrWrapper new_item_id, ChmrInterpreter &i) {
-    return i.SetInContainer(list_id, index_id, new_item_id);
-}
-
-string ReassignContainer(StrWrapper list_id_1, StrWrapper types, StrWrapper list_id_2, ChmrInterpreter &i) {
-    string created_id = i.MakeList(list_id_1, types);
-    return i.ReassignContainer(created_id, list_id_2);
-}
-
-void CreateScope(string type, ChmrInterpreter &i) {
-    i.CreateScope(type);
-}
-
-void DestroyScope(ChmrInterpreter &i) {
-    i.DestroyScope();
-}
-
-void GarbageCollect(ChmrInterpreter &i) {
-    i.GarbageCollect();
-}
-
-int SetNextScopeRunState(StrWrapper expr_id, ChmrInterpreter &i) {
-    return i.SetNextScopeRunState(expr_id);
-}
-
-// IMPORTABLE FUNCTIONS ABOVE -----------------------------------------------------------------------

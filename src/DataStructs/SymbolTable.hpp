@@ -33,7 +33,7 @@ private:
     bool m_is_being_copied = false;
 
     void UpdateCurReg();
-    void DecreaseRefCount(ChimeraObject *object);
+    bool DecreaseRefCount(ChimeraObject *object);
 protected:
 
 
@@ -54,5 +54,5 @@ public:
     ChimeraObject* GetEntry(string var_id);
     void RemoveEntry(string var_id);
     void FreeTempItems();
-    void CopyTable(SymbolTable *old);
+    void CopyTable(SymbolTable *old, bool full_copy = false);
 };
