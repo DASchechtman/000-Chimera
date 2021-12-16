@@ -11,6 +11,7 @@
 
 using namespace std;
 
+// a means to keep track of both the key and data values in the event of a key collision
 struct MapItem {
     ChimeraObject *val = nullptr;
     struct Key {
@@ -56,6 +57,7 @@ struct MapItem {
     }
 
     MapItem(const MapItem &old) {
+        was_cloned = true;
         val = old.val->Clone();
         key = old.key;
     };
@@ -73,12 +75,19 @@ public:
     ~Map();
 
 private:
+    // didn't use the built in std::map because I needed controll
+    // of the value in empty indexes
     vector<list<MapItem>*> m_map;
     VAR_TYPES m_key_type = UNDEFINED_DATA_TYPE;
     VAR_TYPES m_val_type = UNDEFINED_DATA_TYPE;
+
+    // used to determine when to resize the map and rehash all it's keys
     size_t free_hash_indexes;
 
     size_t Hash(ChimeraObject *item);
+
+    // makes sure that the key and val types match for what the map is set up
+    // to store
     bool MatchingDataTypes(VAR_TYPES key_type, VAR_TYPES val_type);
     void ResizeIfNeeded(size_t new_size);
     int MapData(size_t hash, VAR_TYPES key_type, ChimeraObject *data, MapItem item);

@@ -50,6 +50,7 @@ void Map::SetToNewContainer(Container *new_container)
                     if (start->val != nullptr)
                     {
                         data.val = start->val->Clone();
+                        data.was_cloned = true;
                     }
                     data.key = start->key;
                     m_map[index]->push_back(data);
@@ -243,7 +244,7 @@ void Map::RehashIndexes()
                 start++;
             }
 
-            FreeHashIndex(item);
+            delete item;
         }
     }
 }
@@ -256,6 +257,7 @@ void Map::FreeHashIndex(list<MapItem> *index)
     while (start != end)
     {
         delete start->val;
+        start->val = nullptr;
         start++;
     }
 

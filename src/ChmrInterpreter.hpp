@@ -4,8 +4,12 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <stack>
+#include "Ast.hpp"
 #include "DataStructs/ScopeStack.hpp"
+#include "DataStructs/ScopeTree.hpp"
+#include "DataStructs/CircularList.hpp"
 #include "./ChmrInterpreter.hpp"
 #include "Types/Number/Derived/Int.hpp"
 #include "Types/Number/Derived/Float.hpp"
@@ -29,6 +33,13 @@ class ChmrInterpreter
 {
 private:
     ScopeStack scopes;
+    vector<AstNode*> trees;
+    size_t found_control_block = 0;
+    size_t cur_instruction = 0;
+    vector<JumpInfo> jump_points_process;
+    ScopeTree jump_points; 
+    stack<size_t> cur_stack_level;
+    size_t cur_jump_point = 0;
 
     /* used to put a lot of boilerplate into one place for the assign/reassign actions */
     string MakeBind(string to, string from, string type);
@@ -41,6 +52,11 @@ private:
     int SetData(ChimeraObject *to, ChimeraObject *from);
     VAR_TYPES TypeNameToNum(string type_name);
     SymbolTable* Table();
+    void ProcessCtrlStructure(AstNode *node);
+
+    void GoTo(size_t jump_point);
+    size_t NextMatchingDepthPoint(vector<JumpInfo> &points, size_t init_depth);
+    size_t Index();
 
     /* boilerplate for creating variable bindings */
     template <class T>
@@ -55,7 +71,13 @@ private:
 
 public:
 
+    ~ChmrInterpreter();
+
+    // interface to control some scopestack functionality outside of the interpreter
     bool NonRunnableScope();
+    bool ParentNonRunnableScope();
+    void OverrideRunnable();
+    void SetLoopStart();
 
     // methods used to create bindings to user variables 
     string Bind(string to, string from, string type);
@@ -72,6 +94,7 @@ public:
     string GetFromContainer(string list_id, string index_id);
     string SetInContainer(string list_id, string index_id, string new_item_id);
     string ReassignContainer(string list_id_1, string list_id_2);
+    string GetContainerSize(string list_id_1);
 
     // method used to make clones of user defined vars
     // so that if you do say (print|(+ x 1)|). the actual
@@ -102,6 +125,9 @@ public:
     void DestroyScope();
     int SetNextScopeRunState(string expr_id);
     int PrintVar(string var_id, char end);
+
+    void EatAst(AstNode* root);
+    string RunAst(AstNode* root);
 
     template <class T>
     string CreateTmpVar(T data);
@@ -138,11 +164,9 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
     {
         new_var_name = Table()->AddEntry(var_id, new Bool());
     }
-
-    T *new_data = new T(data);
     auto entry = tbl->GetEntry(new_var_name);
 
-    if (new_var_name.empty() || entry->Set(*new_data) == 1)
+    if (new_var_name.empty() || entry->Set(data) == 1)
     {
         if (new_var_name.empty())
         {
@@ -155,8 +179,6 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
         }
         new_var_name = EMPTY_VAR_NAME;
     }
-
-    delete new_data;
 
     return new_var_name;
 };
@@ -186,10 +208,7 @@ string ChmrInterpreter::CloneOrCreate(string to, string type, T data)
 template <class T>
 string ChmrInterpreter::CreateTmpVar(T data)
 {
-    if (NonRunnableScope()) {
-        return PLACE_HOLDER_NAME;
-    }
-    else if (is_same<T, int64>::value)
+    if (is_same<T, int64>::value)
     {
         return Create(EMPTY_VAR_NAME, INT_TYPE_NAME, data);
     }

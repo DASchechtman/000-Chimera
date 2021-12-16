@@ -28,10 +28,10 @@ public:
     ChimeraObject* Clone();
     string GetText();
 
-    string ToStr();
+    string   ToStr();
     char32_t ToChar();
-    int64 ToInt();
-    float ToFloat();
+    int64    ToInt();
+    float    ToFloat();
     long double ToDouble();
     bool ToBool();
 
