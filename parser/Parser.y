@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "Utils/UnionStruct.hpp"
+#include "../src/Ast.hpp"
 #include "../src/ChmrInterpreter.hpp"
 #include "Utils/IntrBridge.hpp"
 
@@ -13,6 +14,7 @@ using namespace std;
 int lineno = 0;
 ChmrInterpreter i;
 string scope_type;
+AstNode *root = nullptr;
 
 void PrintLineNo();
 void yyerror(const char* err);
@@ -30,7 +32,7 @@ extern char* yytext;
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
 %token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW ADD_LIST ADD_MAP SET GET POINTS_TO
-%token START END IF ELSE
+%token START END IF ELSE WHILE SIZE
 
 // data values
 %token <int_val> INT_VAL 
@@ -46,9 +48,7 @@ extern char* yytext;
 // user defined names
 %token <id> ID
 
-%type <types> types
-%type <tmp_id> term expr exprList math_expr compare_expr boolExpr unionTypes
-%type <bol_val> elseif
+%type <tmp_id> term expr math_expr compare_expr boolExpr unionTypes statement assign types id exprList
 
 %token UNKNOWN
 
@@ -56,150 +56,104 @@ extern char* yytext;
 
 %%
 
-start:                          START {
-                                    if (scope_type.empty()) {
-                                        scope_type = GEN_SCOPE;
-                                    }
-                                    CreateScope(scope_type, i);
-                                    scope_type = "";
-                                };
-
 end:                            END {
-                                    DestroyScope(i);
-                                };
-                                
-scope:                          start newline line | start any_ws line | start newline | start any_ws;
-
-newScope:                       scope end;
-
-ifMod:                          IF any_ws expr any_ws {
-                                    scope_type = IF_SCOPE;
-                                    if (SetNextScopeRunState($expr, i) == 1) {
-                                        return 1;
-                                    }
-                                }; 
-
-elseif:                         ELSE_IF { 
-                                            scope_type = ELIF_SCOPE;
-
-                                            // will only be true when the previous if statement couldn't run
-                                            $$ = i.NonRunnableScope();
-                                            if (!i.ParentNonRunnableScope()) {
-                                                i.OverrideRunnable();
-                                            }
-                                        };
-
-elseMod:                        ELSE {
-                                    scope_type = ELSE_SCOPE;
-
-                                    // will only be true when the previous if statement couldn't run
-                                    bool next_run_stat = i.NonRunnableScope();
-                                    if (!i.ParentNonRunnableScope()) {
-                                        i.OverrideRunnable();
-                                    }
-                                    StrWrapper expr;
-                                    expr = CreateTempVar(next_run_stat, i);
-                                    SetNextScopeRunState(expr, i);
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
                                 };
 
-elifMod:                        elseif any_ws expr any_ws {
-                                    StrWrapper part_1;
-                                    StrWrapper res;
-                                    bool runnable = $elseif;
-
-                                    part_1 = CreateTempVar(runnable, i);
-                                    res = And(part_1, $expr, i);
-                                    SetNextScopeRunState(res, i);
+ifHead:                         IF any_ws expr any_ws START {
+                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
+                                    auto if_block = MakeNode(IF_BLOCK_CMD);
+                                    if_block->SetLeft($expr);
+                                    control_block->SetLeft(if_block);
+                                    root = nullptr;
+                                    i.EatAst(control_block);
                                 };
 
-elifChain:                      elifMod scope | elifChain elifMod scope;                        
+elseIfHead:                     ELSE_IF any_ws expr any_ws START {
+                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
+                                    auto if_block = MakeNode(ELIF_BLOCK_CMD);
+                                    if_block->SetLeft($expr);
+                                    control_block->SetLeft(if_block);
+                                    root = nullptr;
+                                    i.EatAst(control_block);
+                                };
 
-if:                             ifMod newScope 
-                                | ifMod scope elseMod any_ws scope end
-                                | ifMod scope elifChain end
-                                | ifMod scope elifChain elseMod any_ws scope end
-                                ;
+elseHead:                       ELSE any_ws START{
+                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
+                                    auto if_block = MakeNode(ELSE_BLOCK_CMD);
+                                    control_block->SetLeft(if_block);
+                                    i.EatAst(control_block);
+                                };
 
-newline:                        NEWLINE | SEMICOLON;
+whileHead:                      WHILE any_ws expr any_ws START {
+                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
+                                    auto while_block = MakeNode(WHILE_BLOCK_CMD);
+                                    while_block->SetLeft($expr);
+                                    control_block->SetLeft(while_block);
+                                    root = nullptr;
+                                    i.EatAst(control_block);
+                                };
+
+ifBody:                         ifHead line;
+elseIfBody:                     elseIfHead line;
+elseBody:                       elseHead line;
+elseIfChain:                    elseIfBody | elseIfChain elseIfBody;
+
+whileStatement:                 whileHead line end;
+ifStatement:                    ifBody end 
+                                | ifBody elseIfChain end 
+                                | ifBody elseIfChain elseBody end 
+                                | ifBody elseBody end;
+
+newline:                        NEWLINE {i.EatAst(root); root = nullptr;} | SEMICOLON;
 
 term:                           INT_VAL         { 
-                                                    string tmp_name = CreateTempVar($1, i);
-                                                    if (tmp_name.empty()) {
-                                                        cout << "Error: couldn't create temp var\n";
-                                                        return 1;
-                                                    }
-                                                    $$ = tmp_name;
-                                                }
-                                | DOUBLE_VAL    { 
-                                                    string tmp_name = CreateTempVar($1, i);
-                                                    if (tmp_name.empty()) {
-                                                        cout << "Error: couldn't create temp var\n";
-                                                        return 1;
-                                                    }
-                                                    $$ = tmp_name;
-                                                }
-                                | FLOAT_VAL     { 
-                                                    string tmp_name = CreateTempVar($1, i);
-                                                    if (tmp_name.empty()) {
-                                                        cout << "Error: couldn't create temp var\n";
-                                                        return 1;
-                                                    }
-                                                    $$ = tmp_name;
-                                                }
-                                | STRING_VAL    { 
-                                                    // deliberately declared data type here
-                                                    // because $1 is a StrWrapper, not a string. 
-                                                    // so implicit conversion will cause bugs that don't
-                                                    // allow for compilation
-                                                     string tmp_name = CreateTempVar<string>($1, i);
-                                                     if (tmp_name.empty()) {
-                                                         cout << "Error: couldn't create temp var\n";
-                                                         return 1;
-                                                     }
-                                                     $$ = tmp_name;
-                                                }
-                                | CHAR_VAL      { 
-                                                    string tmp_name = CreateTempVar($1, i);
-                                                    if (tmp_name.empty()) {
-                                                        cout << "Error: couldn't create temp var\n";
-                                                        return 1;
-                                                    }
-                                                    $$ = tmp_name;
-                                                }
-                                | BOOL_VAL      { 
-                                                    string tmp_name = CreateTempVar($1, i);
-                                                    if (tmp_name.empty()) {
-                                                        cout << "Error: couldn't create temp var\n";
-                                                        return 1;
-                                                    }
-                                                    $$ = tmp_name;
-                                                }
-                                | ID            { 
-                                                    string tmp = CloneToTemp($1, i);
-                                                    if (tmp.empty()) {
-                                                        return 1;
-                                                    }
-                                                    $$ = tmp;
-                                                }
-                                ;
-
-types:                          INT             { $$ = $1; }
-                                | FLOAT         { $$ = $1; }
-                                | DOUBLE        { $$ = $1; }
-                                | BOOL          { $$ = $1; }
-                                | CHAR          { $$ = $1; }
-                                | STRING        { $$ = $1; }
-                                ;
-
-
-unionTypes:                     types opt_ws '|' opt_ws types{
-                                    $1.AddPending($1);
-                                    $1.AddPending($5);
-                                    $$ = $1;
+                                       $$ = MakeNode(RAW_DATA_CMD, $1, INT_NODE_TYPE);
+                                       root = $$;             
                                 }
-                                | unionTypes opt_ws '|' opt_ws types {
-                                    $1.AddPending($5);
-                                    $$ = $1;
+                                | DOUBLE_VAL    { 
+                                        $$ = MakeNode(RAW_DATA_CMD, $1, DOUBLE_NODE_TYPE);
+                                        root = $$;          
+                                }
+                                | FLOAT_VAL     { 
+                                        $$ = MakeNode(RAW_DATA_CMD, $1, FLOAT_NODE_TYPE);
+                                        root = $$;            
+                                }
+                                | STRING_VAL    { 
+                                        $$ = MakeNode(RAW_DATA_CMD, (string)$1, STRING_NODE_TYPE);
+                                        root = $$;                    
+                                }
+                                | CHAR_VAL      { 
+                                        $$ = MakeNode(RAW_DATA_CMD, $1, CHAR_NODE_TYPE);
+                                        root = $$;
+                                }
+                                | BOOL_VAL      { 
+                                        $$ = MakeNode(RAW_DATA_CMD, $1, BOOL_NODE_TYPE);
+                                        root = $$;
+                                }
+                                | id            { 
+                                        $$ = $1;
+                                        root = $$;         
+                                }
+                                ;
+
+types:                          INT             { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
+                                | FLOAT         { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
+                                | DOUBLE        { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
+                                | BOOL          { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
+                                | CHAR          { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
+                                | STRING        { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
+                                ;
+
+unionTypes:                     types[first] opt_ws '|' opt_ws types[other] {
+                                   $$ = $first;
+                                   $$->PutInAdditional($other);
+                                   root = $$;
+                                }
+                                | unionTypes[prev] opt_ws '|' opt_ws types {
+                                    $$ = $prev;
+                                    $$->PutInAdditional($types);
+                                    root = $$;
                                 }
                                 ;
 
@@ -207,294 +161,256 @@ any_ws:                         MULTI_WS | SINGLE_WS;
 
 opt_ws:                         any_ws | %empty;
 
-assign:                         ID ':' opt_ws types opt_ws '=' opt_ws expr {
-                                    if (Assign($1, $8, $4, i).empty()) {
-                                        return 1;
-                                    }
+id:                             ID {
+                                    $$ = MakeNode(RAW_DATA_CMD, $1, ID_NODE_TYPE);
+                                    root = $$; 
+                                };
+
+assign:                         id ':' opt_ws types opt_ws '=' opt_ws expr {
+                                    $$ = MakeNode(BIND_CMD);                                    
+                                    $$->SetLeft($id);
+                                    $$->SetMiddle($types);
+                                    $$->SetRight($expr);
+                                    root = $$;
                                 }
-                                | ID ':' opt_ws UNKNOWN opt_ws '=' opt_ws expr {
-                                    bool made_union = !MakeUnknown($ID, $expr, i).empty();
-                                    if(!made_union) {
-                                        return 1;
-                                    }
+                                | id ':' opt_ws UNKNOWN opt_ws '=' opt_ws expr {
+                                    $$ = MakeNode(MAKE_UNION_CMD);
+                                    $$->SetLeft($id);
+                                    $$->SetRight($expr);
+                                    root = $$;
                                 }
-                                | ID ':' opt_ws unionTypes opt_ws '=' opt_ws expr {
-                                    auto union_name = MakeUnion($ID, $unionTypes, $expr, i);
-                                    if (union_name.empty()) {
-                                        return 1;
+                                | id ':' opt_ws unionTypes opt_ws '=' opt_ws expr {
+                                    $$ = MakeNode(MAKE_UNION_CMD);
+                                    $$->SetLeft($id);
+                                    $$->SetMiddle($unionTypes);
+                                    for(size_t index = 0; index < $unionTypes->Extras(); index++) {
+                                        $$->SetMiddle($unionTypes->GetAdditional(index));
+                                        $unionTypes->NullAdditional(index);
                                     }
+                                    $$->SetRight($expr);
+                                    root = $$;
                                 }
-                                | ID opt_ws '=' opt_ws expr {
-                                    if(Reassign($1, $5, i).empty()) {
-                                        return 1;
-                                    }
+                                | id opt_ws '=' opt_ws expr {
+                                   $$ = MakeNode(REBIND_CMD);
+                                   $$->SetLeft($id);
+                                   $$->SetRight($expr);
+                                   root = $$;
                                 }
-                                | ID ':' opt_ws types '<' REF '>' opt_ws '=' opt_ws expr {
-                                    if (RefBind($ID, $expr, $types, i).empty()) {
-                                        return 1;
-                                    }
+                                | id ':' opt_ws types '<' REF '>' opt_ws '=' opt_ws expr {
+                                    $$ = MakeNode(REFBIND_CMD);
+                                    $$->SetLeft($id);
+                                    $$->SetMiddle($types);
+                                    $$->SetRight($expr);
+                                    root = $$;
                                 }
-                                | ID ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws '[' ']' {
-                                    if(MakeList($ID, $types, i).empty()) {
-                                        return 1;
-                                    }
+                                | id ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws '[' ']' {
+                                    $$ = MakeNode(MAKE_LIST_CMD);
+                                    $$->SetLeft($id);
+                                    $$->SetRight($types);
+                                    root = $$;
                                 }
-                                | ID ':' opt_ws MAP '<' types[key] opt_ws POINTS_TO opt_ws types[val] '>' opt_ws '=' opt_ws '{' '}' {
-                                    if (MakeMap($ID, $key, $val, i).empty()) {
-                                        return 1;
-                                    }
+                                | id ':' opt_ws MAP '<' types[key] opt_ws POINTS_TO opt_ws types[val] '>' opt_ws '=' opt_ws '{' '}' {
+                                    $$ = MakeNode(MAKE_MAP_CMD);
+                                    $$->SetLeft($id);
+                                    $$->SetMiddle($key);
+                                    $$->SetRight($val);
+                                    root = $$;
                                 }
-                                | ID ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws expr {
-                                    if(ReassignContainer($ID, $types, $expr, i).empty()) {
-                                        return 1;
-                                    }
+                                | id ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws expr {
+                                    $$ = MakeNode(MAKE_LIST_CMD);
+                                    $$->SetLeft($id);
+                                    $$->SetMiddle($expr);
+                                    $$->SetRight($types);
+                                    root = $$;
+
                                 }
-                                | ID opt_ws '=' opt_ws expr '<' REF '>' {
-                                    if (RefBind($ID, $expr, i).empty()) {
-                                        return 1;
-                                    }
+                                | id opt_ws '=' opt_ws expr '<' REF '>' {
+                                    $$ = MakeNode(REFBIND_CMD);
+                                    $$->SetLeft($id);
+                                    $$->SetRight($expr);
+                                    root = $$;
                                 }
                                 ;
 
 
 exprList:                      opt_ws expr {
-                                    if(!$expr.GetFinalResult().empty()) { 
-                                        $expr.AddPending($expr); 
-                                    }
-                                    $$ = $expr; 
+                                    $$ = $expr;
                                 } 
-                                | opt_ws NEWLINE opt_ws expr {
-                                    if(!$expr.GetFinalResult().empty()) {
-                                        $expr.AddPending($expr);
-                                    }
+                                | opt_newline expr {
                                     $$ = $expr;
                                 }
                                 | exprList[prev] any_ws expr {  
-                                    if(!$prev.GetFinalResult().empty()) { 
-                                        $prev.AddPending($expr); 
-                                    }
-                                    for(unsigned int i = 0; i < $expr.PendingDataSize(); i++) {
-                                        $prev.AddPending($expr[i]);
-                                    }
+                                    $prev->PutInAdditional($expr);
                                     $$ = $prev;
                                 }
-                                | exprList[prev] opt_ws NEWLINE opt_ws expr {
-                                    auto list = $prev;
-                                    if(!list.GetFinalResult().empty()) { 
-                                        list.AddPending($expr); 
-                                    }
-                                    for(unsigned int i = 0; i < $expr.PendingDataSize(); i++) {
-                                        list.AddPending($expr[i]);
-                                    }
-                                    $$ = list;
+                                | exprList[prev] opt_newline expr {
+                                    $prev->PutInAdditional($expr);
+                                    $$ = $prev;
                                 }
                                 ;
 
 opt_newline:                 opt_ws NEWLINE opt_ws;
 opt_ws_or_nl:                opt_ws | opt_newline;
-ws_or_nl:                    any_ws | opt_newline;
+//any_ws_or_nl:                any_ws | opt_newline;
+//ws_or_nl:                    any_ws | opt_newline;
 
 statement:                      assign
-                                | PRINT opt_ws '|' exprList opt_ws_or_nl '|' { 
-                                    int err = Print($exprList, ' ', i);
-                                    
-                                    if (err == 1) {
-                                        cout << "Error: print error\n";
-                                        return 1;
+                                | PRINT opt_ws '|' exprList opt_ws_or_nl'|' { 
+                                    $$ = MakeNode(PRINT_CMD);
+                                    $$->SetLeft($exprList);
+                                    for(size_t index = 0; index < $exprList->Extras(); index++) {
+                                        $$->SetLeft($exprList->GetAdditional(index));
+                                        $exprList->NullAdditional(index);
                                     }
-                                    else if ($exprList.PendingDataSize() > 0 && err == SUCCEED) {
-                                        cout << '\n';
-                                    }
+                                    root = $$;
                                 }
                                 | EXIT '|' opt_ws '|'{ return 0; }
                                 ;
 
 
 //MATH OPERS BELOW ---------------------------------------------------------------------------------------------------------------------------------------------------
-math_expr:                      '(' ADD any_ws expr[left] any_ws exprList[right] opt_ws')' {
-                                    string tmp = Add($left, $right, i);
-                                    if(tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+math_expr:                      '(' ADD exprList[left] opt_ws_or_nl')' {
+                                    Perform($$, $left, ADDITION_CMD);
+                                    root = $$;
                                 }
-                                | '(' ADD any_ws expr opt_ws ')' {
-                                    string tmp = Add($4, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+                                | '(' SUB exprList[left] opt_ws_or_nl')' {
+                                    Perform($$, $left, SUBTRACTION_CMD);
+                                    root = $$;
                                 }
-                                | '(' SUB any_ws expr any_ws exprList ')' {
-                                    string tmp = Subtract($4, $6, i);
-                                    if(tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+                                | '(' MUL exprList[left] opt_ws_or_nl ')' {
+                                    Perform($$, $left, MULTIPLY_CMD);
+                                    root = $$;
                                 }
-                                | '(' SUB any_ws expr opt_ws ')' {
-                                    string tmp = Subtract($4, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+                                | '(' DIV exprList[left] opt_ws_or_nl ')' {
+                                    Perform($$, $left, DIVIDE_CMD);
+                                    root = $$;
                                 }
-                                | '(' MUL any_ws expr any_ws exprList ')' {
-                                    string tmp = Multiply($4, $6, i);
-                                    if(tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
-                                }
-                                | '(' MUL any_ws expr opt_ws ')' {
-                                    string tmp = Multiply($4, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
-                                }
-                                | '(' DIV any_ws expr any_ws exprList opt_ws_or_nl ')' {
-                                    string tmp = Divide($4, $6, i);
-                                    if(tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
-                                }
-                                | '(' DIV any_ws expr opt_ws ')' {
-                                    string tmp = Divide($4, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
-                                }
-                                | '(' POW any_ws expr[arg_1] any_ws expr[arg_2] opt_ws ')' {
-                                    auto res = Pow($arg_1, $arg_2, i);
-                                    if (res.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = res;
+                                | '(' POW exprList[left] opt_ws_or_nl ')' {
+                                    Perform($$, $left, POW_CMD);
+                                    root = $$;
                                 }
                                 ;
 //MATH OPER ABOVE ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //COMPARE OPERS BELOW --------------------------------------------------------------------------------------------------------------------------------------------------
 
-compare_expr:                   '(' LESS any_ws expr any_ws expr opt_ws ')' {
-                                    string tmp = Less($4, $6, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+compare_expr:                   '(' LESS any_ws expr[first] any_ws expr[second] opt_ws ')' {
+                                    $$ = MakeNode(LESS_CMD);
+                                    $$->SetLeft($first);
+                                    $$->SetRight($second);
+                                    root = $$;
                                 }
-                                | '(' GREATER any_ws expr any_ws expr opt_ws ')' {
-                                    string tmp = Greater($4, $6, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+                                | '(' GREATER any_ws expr[first] any_ws expr[second] opt_ws ')' {
+                                    $$ = MakeNode(GREATER_CMD);
+                                    $$->SetLeft($first);
+                                    $$->SetRight($second);
+                                    root = $$;
                                 }
-                                | '(' LESS_EQUAL any_ws expr any_ws expr opt_ws ')'{
-                                    string tmp = LessEqual($4, $6, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+                                | '(' LESS_EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')'{
+                                    $$ = MakeNode(LESS_EQ_CMD);
+                                    $$->SetLeft($first);
+                                    $$->SetRight($second);
+                                    root = $$;
                                 }
-                                | '(' GREATER_EQUAL any_ws expr any_ws expr opt_ws ')' {
-                                    string tmp = GreaterEqual($4, $6, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+                                | '(' GREATER_EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')' {
+                                    $$ = MakeNode(GREATER_EQ_CMD);
+                                    $$->SetLeft($first);
+                                    $$->SetRight($second);
+                                    root = $$;
                                 }
-                                | '('EQUAL any_ws expr any_ws expr opt_ws ')' {
-                                    string tmp = Equal($4, $6, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+                                | '('EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')' {
+                                    $$ = MakeNode(EQ_CMD);
+                                    $$->SetLeft($first);
+                                    $$->SetRight($second);
+                                    root = $$;
                                 }
-                                | '(' NOT_EQUAL any_ws expr any_ws expr opt_ws ')' {
-                                    string tmp = NotEqual($4, $6, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+                                | '(' NOT_EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')' {
+                                    $$ = MakeNode(NOT_CMD);
+
+                                    auto equal = MakeNode(EQ_CMD);
+                                    equal->SetLeft($first);
+                                    equal->SetRight($second);
+
+                                    $$->SetLeft(equal);
+
+                                    root = $$;
                                 }
                                 ;
 //COMPARE OPER ABOVE ------------------------------------------------------------------------------------------------------------------------------------------------
 
 //BOOL OPERS BELOW ---------------------------------------------------------------------------------------------------------------------------------------------------
-boolExpr:                      '(' AND any_ws expr any_ws expr opt_ws ')' {
-                                    string tmp = And($4, $6, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+boolExpr:                      '(' AND any_ws expr[first] any_ws expr[second] opt_ws ')' {
+                                    $$ = MakeNode(AND_CMD);
+                                    $$->SetLeft($first);
+                                    $$->SetRight($second);
+                                    root = $$;
                                 }
                                 | '(' NOT any_ws expr opt_ws ')' {
-                                    string tmp = Not($4, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+                                    $$ = MakeNode(NOT_CMD);
+                                    $$->SetLeft($expr);
+                                    root = $$;
                                 }
-                                | '(' OR any_ws expr any_ws expr opt_ws ')' {
-                                    string tmp = Or($4, $6, i);
-                                    if (tmp.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = tmp;
+                                | '(' OR any_ws expr[first] any_ws expr[second] opt_ws ')' {
+                                    $$ = MakeNode(OR_CMD);
+                                    $$->SetLeft($first);
+                                    $$->SetRight($second);
+                                    root = $$;
                                 }
                                 ;
 //BOOL OPER ABOVE -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 expr:                           term {
-                                    $$ = $1;
+                                    $$ = $term;
+                                    root = $$;
                                 }
                                 | math_expr {
-                                    $$ = $1;
+                                    $$ = $math_expr;
+                                    root = $$;
                                 }
-                                | '(' CAST any_ws exprList ws_or_nl types opt_ws_or_nl ')' {
-                                    string tmp = Cast($$, $4, $types, i);
-                                    if (tmp.empty()) {
-                                        cout << "Error: couldn't cast\n";
-                                        return 1;
-                                    }
+                                | '(' CAST any_ws expr[val] any_ws types opt_ws_or_nl ')' {
+                                    $$ = MakeNode(CAST_TYPE_CMD);
+                                    $$->SetLeft($val);
+                                    $$->SetRight($types);
+                                    root = $$;
                                 }
                                 | compare_expr {
-                                    $$ = $1;
+                                   $$ = $compare_expr;
+                                   root = $$;
                                 }
                                 | boolExpr {
-                                    $$ = $1;
+                                    $$ = $boolExpr;
+                                    root = $$;
                                 }
-                                | ID[list] '.' ADD_LIST '|' exprList[item] '|' {
-                                    string list_id = PutInContainer($list, $item, i);
-                                    if (list_id.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = list_id;
+                                | id[list] '.' ADD_LIST '|' opt_ws expr[item] opt_ws '|' {
+                                     $$ = MakeNode(PUT_IN_CONTAINER_CMD);
+                                     $$->SetLeft($list);
+                                     $$->SetRight($item);
+                                     root = $$;
                                 }
-                                | ID[list] '.' ADD_MAP '|' expr[key] any_ws expr[val] '|' {
-                                    string id = PutInMap($list, $key, $val, i);
-                                    if (id.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = id;
+                                | id[list] '.' ADD_MAP '|' opt_ws expr[key] any_ws expr[val] opt_ws '|' {
+                                    $$ = MakeNode(PUT_IN_MAP_CMD);
+                                    $$->SetLeft($list);
+                                    $$->SetMiddle($key);
+                                    $$->SetRight($val);
+                                    root = $$;
                                 }
-                                | ID[list] '[' expr[index] ']' {
-                                    string list_id = GetFromContainer($list, $index, i);
-                                    if (list_id.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = list_id;
+                                | id[list] '[' opt_ws expr[index] opt_ws ']' {
+                                    $$ = MakeNode(GET_FROM_CONTAINER_CMD);
+                                    $$->SetLeft($list);
+                                    $$->SetRight($index);
+                                    root = $$;
                                 }
-                                | ID[list] '.' SET '|' opt_ws expr[index] any_ws expr[new_val] opt_ws '|' {
-                                    string list_id = SetInContainer($list, $index, $new_val, i);
-                                    if (list_id.empty()) {
-                                        return 1;
-                                    }
-                                    $$ = list_id;
+                                | id[list] '.' SET '|' opt_ws expr[index] any_ws expr[new_val] opt_ws '|' {
+                                    $$ = MakeNode(SET_IN_CONTAINER_CMD);
+                                    $$->SetLeft($list);
+                                    $$->SetMiddle($index);
+                                    $$->SetRight($new_val);
+                                    root = $$;
+                                }
+                                | id[list] '.' SIZE '|' '|' {
+                                    $$ = MakeNode(GET_CONTAINER_SIZE_CMD);
+                                    $$->SetLeft($list);
+                                    root = $$;
                                 }
                                 ;
 
@@ -502,16 +418,17 @@ prog:                           expr newline
                                 | expr EOPU
                                 | statement newline
                                 | statement EOPU
-                                | newScope
                                 | newline
-                                | if
+                                | ifStatement
+                                | whileStatement
                                 | EOPU { 
+                                    i.EatAst(root);
                                     return 0 ;
                                 }
                                 | any_ws  
-                                | error { GarbageCollect(i); return 1; };
+                                | error {  };
 
-line:                           prog { GarbageCollect(i); } | line prog { GarbageCollect(i); };
+line:                           prog | line prog;
 %%
 
 

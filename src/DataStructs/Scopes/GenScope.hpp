@@ -16,12 +16,14 @@ private:
     SymbolTable m_table;
     bool m_runnable_scope = true;
     Scope *m_parent = nullptr;
+    string scope_type;
 
 protected:
 public:
 
     GenScope();
     GenScope(SymbolTable *table, Scope *parent);
+    GenScope(string type, SymbolTable *table, Scope *parent);
     ~GenScope();
 
     SymbolTable* GetTable();

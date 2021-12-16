@@ -1,4 +1,5 @@
 #include "StrWrapper.hpp"
+#include "../../src/Ast.hpp"
 #include <string>
 
 using namespace std;
@@ -12,8 +13,8 @@ struct YYSTYPE {
     // internal values used by the parser to pass data
     // around
     StrWrapper types;
-    StrWrapper id;
-    StrWrapper tmp_id;
+    string id;
+    AstNode* tmp_id;
     
     // representations of data types in Chimera
     StrWrapper str_val;
