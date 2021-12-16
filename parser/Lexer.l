@@ -84,7 +84,9 @@ false                           { yylval.bol_val = false; return BOOL_VAL; }
 {SINGLE_CHAR_TOKS}              { return yytext[0]; }
 \n                              { return NEWLINE; }
 ;                               { return SEMICOLON; }
-{SEPERATOR}                     { return MULTI_WS; }
+
+[\t]+                           { return MULTI_WS; }
+[ \t]{2,}                     { return MULTI_WS; }
 {SINGLE_SEP}                    { return SINGLE_WS; }
 
 <<EOF>>                         { return EOPU; }

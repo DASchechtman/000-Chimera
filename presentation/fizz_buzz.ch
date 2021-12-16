@@ -1,18 +1,23 @@
+print|"fizz buzz starting"|
+
 repeat 100 with i start
     fizz: int = 3
     buzz: int = 5
     fizz_cpy: float = i
     buzz_cpy: float = i
 
-    while (greater-equal fizz_cpy fizz) with j start
+    # haven't implemenented the module function yet. also haven't implemenented
+    # the ability to create my own functions yet. So the following two loops acts as
+    # an  impromptu module function to get the remainder of a number divided by another
+    while (greater-equal fizz_cpy fizz) start
         fizz_cpy = (sub fizz_cpy fizz)
     end
-
-    while (greater-equal buzz_cpy buzz) with j start
+    # fizz_cpy % 3
+    while (greater-equal buzz_cpy buzz) start
         buzz_cpy = (sub buzz_cpy buzz)
     end
 
-    output: string = ""
+    output: string | int = ""
 
     if (equal fizz_cpy 0) start
         output = (add output "fizz")
@@ -26,7 +31,7 @@ repeat 100 with i start
             output = (add output "buzz")
         end
     else-if true start
-        output = (cast i string)
+        output = i
     end
 
     print|output|

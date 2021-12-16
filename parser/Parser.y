@@ -58,9 +58,9 @@ extern char* yytext;
 
 %%
 
-end:                            END {
-                                    i.EatAst(MakeNode(END_BLOCK_CMD));
-                                };
+start:                          START { i.EatAst(MakeNode(START_BLOCK_CMD)); };
+
+end:                            END { i.EatAst(MakeNode(END_SCOPE_CMD)); };
 
 ifHead:                         IF any_ws expr any_ws START {
                                     auto control_block = MakeNode(CTRL_BLOCK_CMD);
@@ -129,7 +129,10 @@ elseIfBody:                     elseIfHead line;
 elseBody:                       elseHead line;
 elseIfChain:                    elseIfBody | elseIfChain elseIfBody;
 
-whileStatement:                 whileHead line end;
+whileStatement:                 whileHead line END {
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                };
+
 forloopStatement:               forloopHead line END {
                                    
                                     auto rebind = MakeNode(REBIND_CMD);
@@ -145,10 +148,19 @@ forloopStatement:               forloopHead line END {
                                        
                                     
                                 };
-ifStatement:                    ifBody end 
-                                | ifBody elseIfChain end 
-                                | ifBody elseIfChain elseBody end 
-                                | ifBody elseBody end;
+
+ifStatement:                    ifBody END {
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                }    
+                                | ifBody elseIfChain END {
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                } 
+                                | ifBody elseIfChain elseBody END {
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                }
+                                | ifBody elseBody END {
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                };
 
 newline:                        NEWLINE {i.EatAst(root); root = nullptr;} | SEMICOLON;
 
@@ -467,12 +479,13 @@ prog:                           expr newline
                                 | ifStatement
                                 | whileStatement
                                 | forloopStatement
+                                | start line end
                                 | EOPU { 
                                     i.EatAst(root);
                                     return 0 ;
                                 }
                                 | any_ws  
-                                | error {  };
+                                | error { return 0; };
 
 line:                           prog | line prog;
 %%

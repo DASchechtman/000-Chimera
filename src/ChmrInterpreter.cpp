@@ -394,6 +394,9 @@ string ChmrInterpreter::Bind(string to, string from, string type)
 {
     if (Table()->Has(to))
     {
+        if (!Table()->GetParent(to).empty()) {
+            to = Table()->GetParent(to);
+        }
         cout << "Error: var " << to << " already exists\n";
         return EMPTY_VAR_NAME;
     }
