@@ -32,11 +32,7 @@ extern char* yytext;
 // keywords
 %token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
 %token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW ADD_LIST ADD_MAP SET GET POINTS_TO
-<<<<<<< HEAD
-%token START END IF ELSE
-=======
 %token START END IF ELSE WHILE SIZE
->>>>>>> @{-1}
 
 // data values
 %token <int_val> INT_VAL 
@@ -60,7 +56,6 @@ extern char* yytext;
 
 %%
 
-<<<<<<< HEAD
 start:                          START {
                                     if (scope_type.empty()) {
                                         scope_type = GEN_SCOPE;
@@ -69,16 +64,11 @@ start:                          START {
                                     scope_type = "";
                                 };
 
-=======
->>>>>>> @{-1}
 end:                            END {
                                     i.EatAst(MakeNode(END_BLOCK_CMD));
                                 };
-<<<<<<< HEAD
                                 
 scope:                          start newline line | start any_ws line | start newline | start any_ws;
-=======
->>>>>>> @{-1}
 
 ifHead:                         IF any_ws expr any_ws START {
                                     auto control_block = MakeNode(CTRL_BLOCK_CMD);
@@ -89,36 +79,6 @@ ifHead:                         IF any_ws expr any_ws START {
                                     i.EatAst(control_block);
                                 };
 
-<<<<<<< HEAD
-ifMod:                          IF any_ws expr any_ws {
-                                    scope_type = IF_SCOPE;
-                                    if (SetNextScopeRunState($expr, i) == 1) {
-                                        return 1;
-                                    }
-                                }; 
-
-elseif:                         ELSE_IF { 
-                                            scope_type = ELIF_SCOPE;
-
-                                            // will only be true when the previous if statement couldn't run
-                                            $$ = i.NonRunnableScope();
-                                            if (!i.ParentNonRunnableScope()) {
-                                                i.OverrideRunnable();
-                                            }
-                                        };
-
-elseMod:                        ELSE {
-                                    scope_type = ELSE_SCOPE;
-
-                                    // will only be true when the previous if statement couldn't run
-                                    bool next_run_stat = i.NonRunnableScope();
-                                    if (!i.ParentNonRunnableScope()) {
-                                        i.OverrideRunnable();
-                                    }
-                                    StrWrapper expr;
-                                    expr = CreateTempVar(next_run_stat, i);
-                                    SetNextScopeRunState(expr, i);
-=======
 elseIfHead:                     ELSE_IF any_ws expr any_ws START {
                                     auto control_block = MakeNode(CTRL_BLOCK_CMD);
                                     auto if_block = MakeNode(ELIF_BLOCK_CMD);
@@ -126,7 +86,6 @@ elseIfHead:                     ELSE_IF any_ws expr any_ws START {
                                     control_block->SetLeft(if_block);
                                     root = nullptr;
                                     i.EatAst(control_block);
->>>>>>> @{-1}
                                 };
 
 elseHead:                       ELSE any_ws START{

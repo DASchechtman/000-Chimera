@@ -46,11 +46,7 @@ void GenScope::SetRunnableState(bool is_runnable) {
 }
 
 string GenScope::GetType() {
-<<<<<<< HEAD
-    return GEN_SCOPE;
-=======
     return scope_type;
->>>>>>> @{-1}
 }
 
 size_t GenScope::NumOfScopeMembers() {

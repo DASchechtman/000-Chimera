@@ -373,18 +373,12 @@ void ChmrInterpreter::ProcessCtrlStructure(AstNode *node) {
 // PUBLIC METHODS BELOW -----------------------------------------------------------------------------
 
 bool ChmrInterpreter::NonRunnableScope() {
-<<<<<<< HEAD
-=======
     //ic.AddInstruction(CHECK_SCOPE_CMD);
->>>>>>> @{-1}
     return scopes.IsntRunnable();
 }
 
 bool ChmrInterpreter::ParentNonRunnableScope() {
-<<<<<<< HEAD
-=======
     //ic.AddInstruction(CHECK_PARENT_SCOPE_CMD);
->>>>>>> @{-1}
     return scopes.ParentIsntRunnable();
 }
 
@@ -392,13 +386,10 @@ void ChmrInterpreter::OverrideRunnable() {
     scopes.MakeRunnable();
 }
 
-<<<<<<< HEAD
-=======
 void ChmrInterpreter::SetLoopStart() {
     
 }
 
->>>>>>> @{-1}
 string ChmrInterpreter::Bind(string to, string from, string type)
 {
     if (Table()->Has(to))
@@ -913,12 +904,6 @@ string ChmrInterpreter::Equal(string var_id_1, string var_id_2)
 {
     bool exists_1 = Table()->Has(var_id_1);
     bool exists_2 = Table()->Has(var_id_2);
-<<<<<<< HEAD
-    if (NonRunnableScope()) {
-        return PLACE_HOLDER_NAME;
-    }
-=======
->>>>>>> @{-1}
 
     if (!exists_1 || !exists_2)
     {
