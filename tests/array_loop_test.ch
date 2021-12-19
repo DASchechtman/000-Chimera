@@ -1,6 +1,7 @@
 x: int = 0
 arr: list<int> = []
 
+<<<<<<< HEAD
 while (less x 20) start
     arr.addTo|(add x 2)|
     x = (add x 1)
@@ -15,3 +16,12 @@ while (less x arr.size||) start
     print|arr[x]|
     x = (add x 1)
 end
+=======
+repeat 100 with i start
+    arr.addTo|i|
+end
+
+repeat arr.size|| with i start
+    print|arr[i]|
+end
+>>>>>>> @{-1}

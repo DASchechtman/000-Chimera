@@ -15,6 +15,8 @@ int lineno = 0;
 ChmrInterpreter i;
 string scope_type;
 AstNode *root = nullptr;
+AstNode *loop_id = nullptr;
+bool for_loop_made = false;
 
 void PrintLineNo();
 void yyerror(const char* err);
@@ -27,28 +29,73 @@ extern char* yytext;
 %define parse.error verbose
 
 // variable types
-%token <types> INT FLOAT DOUBLE BOOL CHAR STRING LIST MAP
+%token <types> INT 
+%token <types> FLOAT 
+%token <types> DOUBLE 
+%token <types> BOOL 
+%token <types> CHAR 
+%token <types> STRING 
+%token <types> LIST 
+%token <types> MAP
 
 // keywords
-%token CAST LESS GREATER LESS_EQUAL GREATER_EQUAL EQUAL NOT_EQUAL PRINT AND OR NOT EXIT 
-%token NEWLINE SEMICOLON EOPU REF ADD SUB MUL DIV POW ADD_LIST ADD_MAP SET GET POINTS_TO
-%token START END IF ELSE WHILE SIZE
+%token CAST 
+%token LESS 
+%token GREATER 
+%token LESS_EQUAL 
+%token GREATER_EQUAL 
+%token EQUAL 
+%token NOT_EQUAL 
+%token PRINT 
+%token AND 
+%token OR 
+%token NOT 
+%token EXIT 
+%token NEWLINE 
+%token SEMICOLON 
+%token EOPU 
+%token REF 
+%token ADD 
+%token SUB 
+%token MUL 
+%token DIV 
+%token POW 
+%token ADD_LIST 
+%token ADD_MAP 
+%token SET 
+%token GET 
+%token POINTS_TO
+%token START 
+%token END 
+%token IF 
+%token ELSE 
+%token WHILE 
+%token SIZE 
+%token REPEAT 
+%token WITH
+%token MULTI_WS 
+%token SINGLE_WS
 
-// data values
 %token <int_val> INT_VAL 
 %token <dou_val> DOUBLE_VAL 
 %token <str_val> STRING_VAL
 %token <char_val> CHAR_VAL 
 %token <bol_val> BOOL_VAL ELSE_IF
 %token <flo_val> FLOAT_VAL
-
-// whitespaces
-%token MULTI_WS SINGLE_WS
-
-// user defined names
 %token <id> ID
 
-%type <tmp_id> term expr math_expr compare_expr boolExpr unionTypes statement assign types id exprList
+%type <tmp_id> term 
+%type <tmp_id> expr 
+%type <tmp_id> math_expr 
+%type <tmp_id> compare_expr 
+%type <tmp_id> boolExpr 
+%type <tmp_id> unionTypes 
+%type <tmp_id> statement 
+%type <tmp_id> assign 
+%type <tmp_id> types 
+%type <tmp_id> id 
+%type <tmp_id> exprList 
+%type <tmp_id> forloopHead
 
 %token UNKNOWN
 
@@ -56,9 +103,9 @@ extern char* yytext;
 
 %%
 
-end:                            END {
-                                    i.EatAst(MakeNode(END_BLOCK_CMD));
-                                };
+start:                          START { i.EatAst(MakeNode(START_BLOCK_CMD)); };
+
+end:                            END { i.EatAst(MakeNode(END_SCOPE_CMD)); };
 
 ifHead:                         IF any_ws expr any_ws START {
                                     auto control_block = MakeNode(CTRL_BLOCK_CMD);
@@ -94,16 +141,71 @@ whileHead:                      WHILE any_ws expr any_ws START {
                                     i.EatAst(control_block);
                                 };
 
+forloopHead:                    REPEAT any_ws expr any_ws WITH any_ws id any_ws START {
+                                    i.EatAst(MakeNode(START_BLOCK_CMD));
+                                    auto make_var = MakeNode(BIND_CMD);
+                                    auto type = MakeNode(RAW_DATA_CMD, string("int"), VAR_TYPE_NODE_TYPE);
+                                    auto val = MakeNode(RAW_DATA_CMD, 0, INT_NODE_TYPE);
+                                    
+                                    make_var->SetLeft($id);
+                                    make_var->SetMiddle(type);
+                                    make_var->SetRight(val);
+                                    i.EatAst(make_var);
+                                    root = nullptr;
+
+                                    
+                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
+                                    auto while_block = MakeNode(WHILE_BLOCK_CMD);
+                                    auto less_block = MakeNode(LESS_CMD);
+                                    less_block->SetLeft($id->Copy());
+                                    less_block->SetRight($expr);
+                                    while_block->SetLeft(less_block);
+                                    control_block->SetLeft(while_block);
+                                    
+                                    i.EatAst(control_block);
+                                    
+                                    root = nullptr;
+                                    
+                                    $$ = $id->Copy();
+                                };
+
 ifBody:                         ifHead line;
 elseIfBody:                     elseIfHead line;
 elseBody:                       elseHead line;
 elseIfChain:                    elseIfBody | elseIfChain elseIfBody;
 
-whileStatement:                 whileHead line end;
-ifStatement:                    ifBody end 
-                                | ifBody elseIfChain end 
-                                | ifBody elseIfChain elseBody end 
-                                | ifBody elseBody end;
+whileStatement:                 whileHead line END {
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                };
+
+forloopStatement:               forloopHead line END {
+                                   
+                                    auto rebind = MakeNode(REBIND_CMD);
+                                    rebind->SetLeft($forloopHead);
+                                    auto add = MakeNode(ADDITION_CMD);
+                                    auto val = MakeNode(RAW_DATA_CMD, 1, INT_NODE_TYPE);
+                                    add->SetLeft($forloopHead->Copy());
+                                    add->SetRight(val);
+                                    rebind->SetRight(add);
+                                    i.EatAst(rebind);
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                    i.EatAst(MakeNode(END_SCOPE_CMD));
+                                       
+                                    
+                                };
+
+ifStatement:                    ifBody END {
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                }    
+                                | ifBody elseIfChain END {
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                } 
+                                | ifBody elseIfChain elseBody END {
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                }
+                                | ifBody elseBody END {
+                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                };
 
 newline:                        NEWLINE {i.EatAst(root); root = nullptr;} | SEMICOLON;
 
@@ -421,12 +523,14 @@ prog:                           expr newline
                                 | newline
                                 | ifStatement
                                 | whileStatement
+                                | forloopStatement
+                                | start line end
                                 | EOPU { 
                                     i.EatAst(root);
                                     return 0 ;
                                 }
                                 | any_ws  
-                                | error {  };
+                                | error { return 0; };
 
 line:                           prog | line prog;
 %%

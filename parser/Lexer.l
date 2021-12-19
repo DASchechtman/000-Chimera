@@ -21,7 +21,7 @@ CHAR                    (\\.|[^\\"])
 SINGLE_CHAR_TOKS        [=:()+\-*/|^&\[\]<>.{}]
 NEWLINE_TOKS            [\n;]
 SEPERATOR               [ \t]{2,}
-SINGLE_SEP              [ ]
+SINGLE_SEP              [ \f\v\t]
 COMMENT                 #[^\n]*\n?
 MULTI_LN_COMMENT        $[^$]*$\n?
 
@@ -69,6 +69,8 @@ else-if                         { return ELSE_IF; }
 else                            { return ELSE; }
 while                           { return WHILE; }
 size                            { return SIZE; }
+repeat                          { return REPEAT; }
+with                            { return WITH; }
 
 true                            { yylval.bol_val = true; return BOOL_VAL; }
 false                           { yylval.bol_val = false; return BOOL_VAL; }
@@ -80,9 +82,11 @@ false                           { yylval.bol_val = false; return BOOL_VAL; }
 \'{CHAR}\'                      { yylval.char_val = CharVal(yytext); return CHAR_VAL; }
 
 {SINGLE_CHAR_TOKS}              { return yytext[0]; }
-\n                              { return NEWLINE; }
+(\n|\r\n|\r)                    { return NEWLINE; }
 ;                               { return SEMICOLON; }
-{SEPERATOR}                     { return MULTI_WS; }
+
+\t+                             { return MULTI_WS; }
+{SINGLE_SEP}{2,}                { return MULTI_WS; }
 {SINGLE_SEP}                    { return SINGLE_WS; }
 
 <<EOF>>                         { return EOPU; }

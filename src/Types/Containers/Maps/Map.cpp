@@ -272,6 +272,7 @@ int Map::SetData(string index, ChimeraObject *data, VAR_TYPES type, MapItem &ite
     {
         size_t hash = StrHash(index);
         ret_code = MapData(hash, type, data, item);
+        m_size = ret_code == SUCCEED ? m_size+1 : m_size;
     }
     else
     {
@@ -297,17 +298,7 @@ size_t Map::StrHash(string index)
 
 size_t Map::Size()
 {
-    size_t sum = 0;
-
-    for (auto const &item : m_map)
-    {
-        if (item != nullptr)
-        {
-            sum += item->size();
-        }
-    }
-
-    return sum;
+    return m_size;
 }
 
 int Map::SetItem(int64 index, ChimeraObject *data)
