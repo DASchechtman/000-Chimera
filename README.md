@@ -10,6 +10,8 @@ The main way Chimera aims to do this is to allow for as much of the program as p
 1. [Hello world](#hw)
 1. [Data Types](#dt)
 1. [Operations](#opers)
+1. [Loops](#loops)
+1. [If-Statement](#ifstmt)
 
 <h2 id="install">Installation</h2>
 
@@ -289,3 +291,37 @@ Note: for bool types, every operator but 'equal' and 'not-equal' automatically r
 
 ### Misc operators
 1. (cast [one or more values] [type])
+
+<h2 id="loops">Loops</h2>
+
+there are 2 types of loops supported. For loops and while loops
+
+```
+# for loop (the 5 and i are arbitrary, you can choose any number and var name)
+repeat 5 with i start
+    # do stuff
+end
+
+# while loop
+while <boolean expression> start
+    # do stuff
+end
+```
+
+each loop has it's own scope (place in code with it's own set of varibles not accessable in other parts of the code)
+
+<h2 id="ifstmt">If Statements</h2>
+
+supports branches in the code via if-statements
+```
+if <bool expressions> start
+
+else-if <bool expresion> start
+    # can have as many if-else statements as you like
+else start
+
+end
+```
+
+note that the else-if/else parts of the if statement are optional
+

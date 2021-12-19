@@ -54,7 +54,8 @@ enum COMMANDS {
     ELSE_BLOCK_CMD,
     WHILE_BLOCK_CMD,
     START_BLOCK_CMD,
-    END_BLOCK_CMD
+    END_BLOCK_CMD,
+    END_SCOPE_CMD
 };
 
 enum DataType {
@@ -71,7 +72,7 @@ enum DataType {
 
 struct Data
 {
-    DataType type;
+    DataType type = NON_DATA_TYPE;
     int64 i;
     float f;
     dbl128 d;
@@ -180,6 +181,25 @@ public:
 
     AstNode* GetRight(size_t index = 0) {
         return rnode[index];
+    }
+
+    void CopyList(vector<AstNode*> &to, vector<AstNode*> &from) {
+        for (auto node : from) {
+            to.push_back(node->Copy());
+        }
+    }
+
+    AstNode* Copy() {
+        auto new_node = new AstNode();
+        new_node->Value() = value;
+        new_node->Type() = type;
+
+        CopyList(new_node->lnode, lnode);
+        CopyList(new_node->rnode, rnode);
+        CopyList(new_node->mnode, mnode);
+        CopyList(new_node->additional, additional);
+
+        return new_node;
     }
 
     ~AstNode() {
