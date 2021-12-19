@@ -80,6 +80,7 @@ private:
     vector<list<MapItem>*> m_map;
     VAR_TYPES m_key_type = UNDEFINED_DATA_TYPE;
     VAR_TYPES m_val_type = UNDEFINED_DATA_TYPE;
+    size_t m_size = 0;
 
     // used to determine when to resize the map and rehash all it's keys
     size_t free_hash_indexes;
@@ -152,6 +153,7 @@ int Map::SetData(T index, ChimeraObject *data, VAR_TYPES type, MapItem &item) {
     if (m_key_type == type) {
         size_t hash = NonStrHash(index);
         ret_code =  MapData(hash, type, data, item);
+        m_size = ret_code == SUCCEED ? m_size+1 : m_size;
     }
     else {
         cout << "Error: key type does not match\n";

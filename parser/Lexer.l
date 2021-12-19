@@ -21,7 +21,7 @@ CHAR                    (\\.|[^\\"])
 SINGLE_CHAR_TOKS        [=:()+\-*/|^&\[\]<>.{}]
 NEWLINE_TOKS            [\n;]
 SEPERATOR               [ \t]{2,}
-SINGLE_SEP              [ ]
+SINGLE_SEP              [ \f\v\t]
 COMMENT                 #[^\n]*\n?
 MULTI_LN_COMMENT        $[^$]*$\n?
 
@@ -82,11 +82,11 @@ false                           { yylval.bol_val = false; return BOOL_VAL; }
 \'{CHAR}\'                      { yylval.char_val = CharVal(yytext); return CHAR_VAL; }
 
 {SINGLE_CHAR_TOKS}              { return yytext[0]; }
-\n                              { return NEWLINE; }
+(\n|\r\n|\r)                    { return NEWLINE; }
 ;                               { return SEMICOLON; }
 
-[\t]+                           { return MULTI_WS; }
-[ \t]{2,}                     { return MULTI_WS; }
+\t+                             { return MULTI_WS; }
+{SINGLE_SEP}{2,}                { return MULTI_WS; }
 {SINGLE_SEP}                    { return SINGLE_WS; }
 
 <<EOF>>                         { return EOPU; }

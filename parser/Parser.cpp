@@ -1928,13 +1928,25 @@ yyreduce:
 #line 1929 "./parser/Parser.cpp"
     break;
 
+  case 37:
+#line 217 "./parser/Parser.y"
+                                         { cout << "multiline\n"; }
+#line 1935 "./parser/Parser.cpp"
+    break;
+
+  case 38:
+#line 217 "./parser/Parser.y"
+                                                                                { cout << "single line\n"; }
+#line 1941 "./parser/Parser.cpp"
+    break;
+
   case 41:
 #line 221 "./parser/Parser.y"
                                    {
                                     (yyval.tmp_id) = MakeNode(RAW_DATA_CMD, (yyvsp[0].id), ID_NODE_TYPE);
                                     root = (yyval.tmp_id); 
                                 }
-#line 1938 "./parser/Parser.cpp"
+#line 1950 "./parser/Parser.cpp"
     break;
 
   case 42:
@@ -1946,7 +1958,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 1950 "./parser/Parser.cpp"
+#line 1962 "./parser/Parser.cpp"
     break;
 
   case 43:
@@ -1957,7 +1969,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 1961 "./parser/Parser.cpp"
+#line 1973 "./parser/Parser.cpp"
     break;
 
   case 44:
@@ -1973,7 +1985,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 1977 "./parser/Parser.cpp"
+#line 1989 "./parser/Parser.cpp"
     break;
 
   case 45:
@@ -1984,7 +1996,7 @@ yyreduce:
                                    (yyval.tmp_id)->SetRight((yyvsp[0].tmp_id));
                                    root = (yyval.tmp_id);
                                 }
-#line 1988 "./parser/Parser.cpp"
+#line 2000 "./parser/Parser.cpp"
     break;
 
   case 46:
@@ -1996,7 +2008,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2000 "./parser/Parser.cpp"
+#line 2012 "./parser/Parser.cpp"
     break;
 
   case 47:
@@ -2007,7 +2019,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-6].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2011 "./parser/Parser.cpp"
+#line 2023 "./parser/Parser.cpp"
     break;
 
   case 48:
@@ -2019,7 +2031,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-6].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2023 "./parser/Parser.cpp"
+#line 2035 "./parser/Parser.cpp"
     break;
 
   case 49:
@@ -2032,7 +2044,7 @@ yyreduce:
                                     root = (yyval.tmp_id);
 
                                 }
-#line 2036 "./parser/Parser.cpp"
+#line 2048 "./parser/Parser.cpp"
     break;
 
   case 50:
@@ -2043,7 +2055,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-3].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2047 "./parser/Parser.cpp"
+#line 2059 "./parser/Parser.cpp"
     break;
 
   case 51:
@@ -2051,7 +2063,7 @@ yyreduce:
                                            {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                 }
-#line 2055 "./parser/Parser.cpp"
+#line 2067 "./parser/Parser.cpp"
     break;
 
   case 52:
@@ -2059,7 +2071,7 @@ yyreduce:
                                                    {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                 }
-#line 2063 "./parser/Parser.cpp"
+#line 2075 "./parser/Parser.cpp"
     break;
 
   case 53:
@@ -2068,7 +2080,7 @@ yyreduce:
                                     (yyvsp[-2].tmp_id)->PutInAdditional((yyvsp[0].tmp_id));
                                     (yyval.tmp_id) = (yyvsp[-2].tmp_id);
                                 }
-#line 2072 "./parser/Parser.cpp"
+#line 2084 "./parser/Parser.cpp"
     break;
 
   case 54:
@@ -2077,7 +2089,7 @@ yyreduce:
                                     (yyvsp[-2].tmp_id)->PutInAdditional((yyvsp[0].tmp_id));
                                     (yyval.tmp_id) = (yyvsp[-2].tmp_id);
                                 }
-#line 2081 "./parser/Parser.cpp"
+#line 2093 "./parser/Parser.cpp"
     break;
 
   case 59:
@@ -2091,13 +2103,13 @@ yyreduce:
                                     }
                                     root = (yyval.tmp_id);
                                 }
-#line 2095 "./parser/Parser.cpp"
+#line 2107 "./parser/Parser.cpp"
     break;
 
   case 60:
 #line 324 "./parser/Parser.y"
                                                      { return 0; }
-#line 2101 "./parser/Parser.cpp"
+#line 2113 "./parser/Parser.cpp"
     break;
 
   case 61:
@@ -2106,7 +2118,7 @@ yyreduce:
                                     Perform((yyval.tmp_id), (yyvsp[-2].tmp_id), ADDITION_CMD);
                                     root = (yyval.tmp_id);
                                 }
-#line 2110 "./parser/Parser.cpp"
+#line 2122 "./parser/Parser.cpp"
     break;
 
   case 62:
@@ -2115,7 +2127,7 @@ yyreduce:
                                     Perform((yyval.tmp_id), (yyvsp[-2].tmp_id), SUBTRACTION_CMD);
                                     root = (yyval.tmp_id);
                                 }
-#line 2119 "./parser/Parser.cpp"
+#line 2131 "./parser/Parser.cpp"
     break;
 
   case 63:
@@ -2124,7 +2136,7 @@ yyreduce:
                                     Perform((yyval.tmp_id), (yyvsp[-2].tmp_id), MULTIPLY_CMD);
                                     root = (yyval.tmp_id);
                                 }
-#line 2128 "./parser/Parser.cpp"
+#line 2140 "./parser/Parser.cpp"
     break;
 
   case 64:
@@ -2133,7 +2145,7 @@ yyreduce:
                                     Perform((yyval.tmp_id), (yyvsp[-2].tmp_id), DIVIDE_CMD);
                                     root = (yyval.tmp_id);
                                 }
-#line 2137 "./parser/Parser.cpp"
+#line 2149 "./parser/Parser.cpp"
     break;
 
   case 65:
@@ -2142,7 +2154,7 @@ yyreduce:
                                     Perform((yyval.tmp_id), (yyvsp[-2].tmp_id), POW_CMD);
                                     root = (yyval.tmp_id);
                                 }
-#line 2146 "./parser/Parser.cpp"
+#line 2158 "./parser/Parser.cpp"
     break;
 
   case 66:
@@ -2153,7 +2165,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2157 "./parser/Parser.cpp"
+#line 2169 "./parser/Parser.cpp"
     break;
 
   case 67:
@@ -2164,7 +2176,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2168 "./parser/Parser.cpp"
+#line 2180 "./parser/Parser.cpp"
     break;
 
   case 68:
@@ -2175,7 +2187,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2179 "./parser/Parser.cpp"
+#line 2191 "./parser/Parser.cpp"
     break;
 
   case 69:
@@ -2186,7 +2198,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2190 "./parser/Parser.cpp"
+#line 2202 "./parser/Parser.cpp"
     break;
 
   case 70:
@@ -2197,7 +2209,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2201 "./parser/Parser.cpp"
+#line 2213 "./parser/Parser.cpp"
     break;
 
   case 71:
@@ -2213,7 +2225,7 @@ yyreduce:
 
                                     root = (yyval.tmp_id);
                                 }
-#line 2217 "./parser/Parser.cpp"
+#line 2229 "./parser/Parser.cpp"
     break;
 
   case 72:
@@ -2224,7 +2236,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2228 "./parser/Parser.cpp"
+#line 2240 "./parser/Parser.cpp"
     break;
 
   case 73:
@@ -2234,7 +2246,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetLeft((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2238 "./parser/Parser.cpp"
+#line 2250 "./parser/Parser.cpp"
     break;
 
   case 74:
@@ -2245,7 +2257,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2249 "./parser/Parser.cpp"
+#line 2261 "./parser/Parser.cpp"
     break;
 
   case 75:
@@ -2254,7 +2266,7 @@ yyreduce:
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                     root = (yyval.tmp_id);
                                 }
-#line 2258 "./parser/Parser.cpp"
+#line 2270 "./parser/Parser.cpp"
     break;
 
   case 76:
@@ -2263,7 +2275,7 @@ yyreduce:
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                     root = (yyval.tmp_id);
                                 }
-#line 2267 "./parser/Parser.cpp"
+#line 2279 "./parser/Parser.cpp"
     break;
 
   case 77:
@@ -2274,7 +2286,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2278 "./parser/Parser.cpp"
+#line 2290 "./parser/Parser.cpp"
     break;
 
   case 78:
@@ -2283,7 +2295,7 @@ yyreduce:
                                    (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                    root = (yyval.tmp_id);
                                 }
-#line 2287 "./parser/Parser.cpp"
+#line 2299 "./parser/Parser.cpp"
     break;
 
   case 79:
@@ -2292,7 +2304,7 @@ yyreduce:
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                     root = (yyval.tmp_id);
                                 }
-#line 2296 "./parser/Parser.cpp"
+#line 2308 "./parser/Parser.cpp"
     break;
 
   case 80:
@@ -2303,7 +2315,7 @@ yyreduce:
                                      (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                      root = (yyval.tmp_id);
                                 }
-#line 2307 "./parser/Parser.cpp"
+#line 2319 "./parser/Parser.cpp"
     break;
 
   case 81:
@@ -2315,7 +2327,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2319 "./parser/Parser.cpp"
+#line 2331 "./parser/Parser.cpp"
     break;
 
   case 82:
@@ -2326,7 +2338,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2330 "./parser/Parser.cpp"
+#line 2342 "./parser/Parser.cpp"
     break;
 
   case 83:
@@ -2338,7 +2350,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetRight((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2342 "./parser/Parser.cpp"
+#line 2354 "./parser/Parser.cpp"
     break;
 
   case 84:
@@ -2348,7 +2360,7 @@ yyreduce:
                                     (yyval.tmp_id)->SetLeft((yyvsp[-4].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2352 "./parser/Parser.cpp"
+#line 2364 "./parser/Parser.cpp"
     break;
 
   case 94:
@@ -2357,17 +2369,17 @@ yyreduce:
                                     i.EatAst(root);
                                     return 0 ;
                                 }
-#line 2361 "./parser/Parser.cpp"
+#line 2373 "./parser/Parser.cpp"
     break;
 
   case 96:
 #line 488 "./parser/Parser.y"
                                         { return 0; }
-#line 2367 "./parser/Parser.cpp"
+#line 2379 "./parser/Parser.cpp"
     break;
 
 
-#line 2371 "./parser/Parser.cpp"
+#line 2383 "./parser/Parser.cpp"
 
       default: break;
     }
