@@ -76,7 +76,7 @@ int Int::Divide(Number &other) {
 
 int Int::Pow(Number &other) {
     try {
-        auto other_num = GetOtherNumber(other);
+        long double other_num = GetOtherNumber(other);
         m_data.integer = pow(m_data.integer, other_num);
     }
     catch (const char *msg) {

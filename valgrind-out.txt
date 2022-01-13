@@ -1,0 +1,86 @@
+==11732== Memcheck, a memory error detector
+==11732== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==11732== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==11732== Command: ./main ./tests/terminal_script.ch
+==11732== Parent PID: 11658
+==11732== 
+==11732== 
+==11732== Process terminating with default action of signal 27 (SIGPROF)
+==11732==    at 0x4CFA65A: __open_nocancel (open64_nocancel.c:45)
+==11732==    by 0x4D0836F: write_gmon (gmon.c:370)
+==11732==    by 0x4D08BCE: _mcleanup (gmon.c:444)
+==11732==    by 0x4C2E15D: __cxa_finalize (cxa_finalize.c:83)
+==11732==    by 0x110E16: ??? (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x4011F5A: _dl_fini (dl-fini.c:138)
+==11732==    by 0x4C2DA26: __run_exit_handlers (exit.c:108)
+==11732==    by 0x4C2DBDF: exit (exit.c:139)
+==11732==    by 0x4C0B0B9: (below main) (libc-start.c:342)
+==11732== 
+==11732== HEAP SUMMARY:
+==11732==     in use at exit: 509,092 bytes in 6 blocks
+==11732==   total heap usage: 1,780,059 allocs, 1,780,053 frees, 133,080,366 bytes allocated
+==11732== 
+==11732== 8 bytes in 1 blocks are still reachable in loss record 1 of 6
+==11732==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11732==    by 0x118D46: yyalloc(unsigned long) (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x11878F: yyensure_buffer_stack() (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x116EA8: yylex() (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x111548: yyparse() (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x113171: main (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732== 
+==11732== 64 bytes in 1 blocks are still reachable in loss record 2 of 6
+==11732==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11732==    by 0x118D46: yyalloc(unsigned long) (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x1182C8: yy_create_buffer(_IO_FILE*, int) (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x116ED2: yylex() (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x111548: yyparse() (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x113171: main (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732== 
+==11732== 472 bytes in 1 blocks are still reachable in loss record 3 of 6
+==11732==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11732==    by 0x4C69AAD: __fopen_internal (iofopen.c:65)
+==11732==    by 0x4C69AAD: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+==11732==    by 0x113136: main (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732== 
+==11732== 512 bytes in 1 blocks are still reachable in loss record 4 of 6
+==11732==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11732==    by 0x4C68E83: _IO_file_doallocate (filedoalloc.c:101)
+==11732==    by 0x4C7904F: _IO_doallocbuf (genops.c:347)
+==11732==    by 0x4C765C3: _IO_file_xsgetn (fileops.c:1288)
+==11732==    by 0x4C6A062: fread (iofread.c:38)
+==11732==    by 0x117BA9: yy_get_next_buffer() (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x117619: yylex() (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x111548: yyparse() (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x113171: main (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732== 
+==11732== 16,386 bytes in 1 blocks are still reachable in loss record 5 of 6
+==11732==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11732==    by 0x118D46: yyalloc(unsigned long) (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x1182FD: yy_create_buffer(_IO_FILE*, int) (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x116ED2: yylex() (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x111548: yyparse() (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x113171: main (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732== 
+==11732== 491,650 bytes in 1 blocks are still reachable in loss record 6 of 6
+==11732==    at 0x483DD99: calloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11732==    by 0x4D08A01: monstartup (gmon.c:153)
+==11732==    by 0x110D50: __gmon_start__ (in /mnt/g/My Drive/school/Classes/fall 2021/Senior Seminar/Chimera PL/main)
+==11732==    by 0x483B015: ??? (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11732==    by 0x1FFEFFFE7F: ???
+==11732==    by 0x4011B4B: call_init.part.0 (dl-init.c:58)
+==11732==    by 0x4011D05: call_init (dl-init.c:30)
+==11732==    by 0x4011D05: _dl_init (dl-init.c:86)
+==11732==    by 0x4001139: ??? (in /usr/lib/x86_64-linux-gnu/ld-2.31.so)
+==11732==    by 0x1: ???
+==11732==    by 0x1FFF000102: ???
+==11732==    by 0x1FFF000109: ???
+==11732== 
+==11732== LEAK SUMMARY:
+==11732==    definitely lost: 0 bytes in 0 blocks
+==11732==    indirectly lost: 0 bytes in 0 blocks
+==11732==      possibly lost: 0 bytes in 0 blocks
+==11732==    still reachable: 509,092 bytes in 6 blocks
+==11732==         suppressed: 0 bytes in 0 blocks
+==11732== 
+==11732== For lists of detected and suppressed errors, rerun with: -s
+==11732== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

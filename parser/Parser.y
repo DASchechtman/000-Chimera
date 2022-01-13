@@ -84,7 +84,8 @@ extern char* yytext;
 %token <flo_val> FLOAT_VAL
 %token <id> ID
 
-%type <tmp_id> term 
+%type <tmp_id> term
+%type <tmp_id> terms 
 %type <tmp_id> expr 
 %type <tmp_id> math_expr 
 %type <tmp_id> compare_expr 
@@ -103,69 +104,42 @@ extern char* yytext;
 
 %%
 
-start:                          START { i.EatAst(MakeNode(START_BLOCK_CMD)); };
+start:                          START { i.EatAst(MakeStartAst()); };
 
-end:                            END { i.EatAst(MakeNode(END_SCOPE_CMD)); };
+end:                            END { i.EatAst(MakeEndScopeAst()); };
 
 ifHead:                         IF any_ws expr any_ws START {
-                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
-                                    auto if_block = MakeNode(IF_BLOCK_CMD);
-                                    if_block->SetLeft($expr);
-                                    control_block->SetLeft(if_block);
                                     root = nullptr;
-                                    i.EatAst(control_block);
+                                    i.EatAst(MakeIfDeclAst($expr));
                                 };
 
 elseIfHead:                     ELSE_IF any_ws expr any_ws START {
-                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
-                                    auto if_block = MakeNode(ELIF_BLOCK_CMD);
-                                    if_block->SetLeft($expr);
-                                    control_block->SetLeft(if_block);
                                     root = nullptr;
-                                    i.EatAst(control_block);
+                                    i.EatAst(MakeElifDeclAst($expr));
                                 };
 
 elseHead:                       ELSE any_ws START{
-                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
-                                    auto if_block = MakeNode(ELSE_BLOCK_CMD);
-                                    control_block->SetLeft(if_block);
-                                    i.EatAst(control_block);
+                                    i.EatAst(MakeElseDeclAst());
                                 };
 
 whileHead:                      WHILE any_ws expr any_ws START {
-                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
-                                    auto while_block = MakeNode(WHILE_BLOCK_CMD);
-                                    while_block->SetLeft($expr);
-                                    control_block->SetLeft(while_block);
                                     root = nullptr;
-                                    i.EatAst(control_block);
+                                    i.EatAst(MakeWhileDeclAst($expr));
                                 };
 
 forloopHead:                    REPEAT any_ws expr any_ws WITH any_ws id any_ws START {
                                     i.EatAst(MakeNode(START_BLOCK_CMD));
-                                    auto make_var = MakeNode(BIND_CMD);
-                                    auto type = MakeNode(RAW_DATA_CMD, string("int"), VAR_TYPE_NODE_TYPE);
-                                    auto val = MakeNode(RAW_DATA_CMD, 0, INT_NODE_TYPE);
-                                    
-                                    make_var->SetLeft($id);
-                                    make_var->SetMiddle(type);
-                                    make_var->SetRight(val);
-                                    i.EatAst(make_var);
-                                    root = nullptr;
 
-                                    
-                                    auto control_block = MakeNode(CTRL_BLOCK_CMD);
-                                    auto while_block = MakeNode(WHILE_BLOCK_CMD);
-                                    auto less_block = MakeNode(LESS_CMD);
-                                    less_block->SetLeft($id->Copy());
-                                    less_block->SetRight($expr);
-                                    while_block->SetLeft(less_block);
-                                    control_block->SetLeft(while_block);
-                                    
-                                    i.EatAst(control_block);
+                                    auto type = MakeDataTypeNode("int");
+                                    auto val = MakeTermNode(0, INT_NODE_TYPE);
+                                    auto make = MakeAssignAst($id, type, val);
+                                    i.EatAst(make);
+
+                                    auto less = MakeLessCompAst($id->Copy(), $expr);
+                                    auto while_ast = MakeWhileDeclAst(less);
+                                    i.EatAst(while_ast);
                                     
                                     root = nullptr;
-                                    
                                     $$ = $id->Copy();
                                 };
 
@@ -175,86 +149,96 @@ elseBody:                       elseHead line;
 elseIfChain:                    elseIfBody | elseIfChain elseIfBody;
 
 whileStatement:                 whileHead line END {
-                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                    i.EatAst(MakeEndCtrlScopeAst());
                                 };
 
 forloopStatement:               forloopHead line END {
+
+                                    auto clone = $forloopHead->Copy();
+                                    clone->SaveAsExtraNode(MakeTermNode(1, INT_NODE_TYPE));
+                                    auto add_ast = MakeAddAst(clone);
+                                    auto rebind = MakeReassignAst($forloopHead, add_ast);
                                    
-                                    auto rebind = MakeNode(REBIND_CMD);
-                                    rebind->SetLeft($forloopHead);
-                                    auto add = MakeNode(ADDITION_CMD);
-                                    auto val = MakeNode(RAW_DATA_CMD, 1, INT_NODE_TYPE);
-                                    add->SetLeft($forloopHead->Copy());
-                                    add->SetRight(val);
-                                    rebind->SetRight(add);
                                     i.EatAst(rebind);
-                                    i.EatAst(MakeNode(END_BLOCK_CMD));
-                                    i.EatAst(MakeNode(END_SCOPE_CMD));
-                                       
+                                    i.EatAst(MakeEndCtrlScopeAst());
+                                    i.EatAst(MakeEndScopeAst());
                                     
                                 };
 
 ifStatement:                    ifBody END {
-                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                    i.EatAst(MakeEndCtrlScopeAst());
                                 }    
                                 | ifBody elseIfChain END {
-                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                    i.EatAst(MakeEndCtrlScopeAst());
                                 } 
                                 | ifBody elseIfChain elseBody END {
-                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                    i.EatAst(MakeEndCtrlScopeAst());
                                 }
                                 | ifBody elseBody END {
-                                    i.EatAst(MakeNode(END_BLOCK_CMD));
+                                    i.EatAst(MakeEndCtrlScopeAst());
                                 };
 
 newline:                        NEWLINE {i.EatAst(root); root = nullptr;} | SEMICOLON;
 
+terms:                          term { $$ = $1; } 
+                                | terms[list] any_ws term { $list->SaveAsExtraNode($term); $$ = $list; }
+                                | terms[list] opt_newline term {$list->SaveAsExtraNode($term); $$ = $list; }
+                                ;
+
 term:                           INT_VAL         { 
-                                       $$ = MakeNode(RAW_DATA_CMD, $1, INT_NODE_TYPE);
+                                       $$ = MakeTermNode($1, INT_NODE_TYPE);
                                        root = $$;             
                                 }
                                 | DOUBLE_VAL    { 
-                                        $$ = MakeNode(RAW_DATA_CMD, $1, DOUBLE_NODE_TYPE);
+                                        $$ = MakeTermNode($1, DOUBLE_NODE_TYPE);
                                         root = $$;          
                                 }
                                 | FLOAT_VAL     { 
-                                        $$ = MakeNode(RAW_DATA_CMD, $1, FLOAT_NODE_TYPE);
+                                        $$ = MakeTermNode($1, FLOAT_NODE_TYPE);
                                         root = $$;            
                                 }
                                 | STRING_VAL    { 
-                                        $$ = MakeNode(RAW_DATA_CMD, (string)$1, STRING_NODE_TYPE);
+                                        $$ = MakeTermNode((string)$1, STRING_NODE_TYPE);
                                         root = $$;                    
                                 }
                                 | CHAR_VAL      { 
-                                        $$ = MakeNode(RAW_DATA_CMD, $1, CHAR_NODE_TYPE);
+                                        $$ = MakeTermNode($1, CHAR_NODE_TYPE);
                                         root = $$;
                                 }
                                 | BOOL_VAL      { 
-                                        $$ = MakeNode(RAW_DATA_CMD, $1, BOOL_NODE_TYPE);
+                                        $$ = MakeTermNode($1, BOOL_NODE_TYPE);
                                         root = $$;
                                 }
                                 | id            { 
                                         $$ = $1;
                                         root = $$;         
                                 }
+                                | '[' opt_ws_or_nl terms  opt_ws_or_nl ']' {
+                                    $$ = MakeArrayTermAst($terms);
+                                    root = $$;
+                                }
+                                | '[' ']' {
+                                    $$ = MakeTermNode(0, ARRAY_NODE_TYPE);
+                                    root = $$;
+                                }
                                 ;
 
-types:                          INT             { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
-                                | FLOAT         { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
-                                | DOUBLE        { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
-                                | BOOL          { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
-                                | CHAR          { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
-                                | STRING        { $$ = MakeNode(RAW_DATA_CMD, (string)$1, VAR_TYPE_NODE_TYPE); root = $$; }
+types:                          INT             { $$ = MakeDataTypeNode((string)$1); root = $$; }
+                                | FLOAT         { $$ = MakeDataTypeNode((string)$1); root = $$; }
+                                | DOUBLE        { $$ = MakeDataTypeNode((string)$1); root = $$; }
+                                | BOOL          { $$ = MakeDataTypeNode((string)$1); root = $$; }
+                                | CHAR          { $$ = MakeDataTypeNode((string)$1); root = $$; }
+                                | STRING        { $$ = MakeDataTypeNode((string)$1); root = $$; }
                                 ;
 
 unionTypes:                     types[first] opt_ws '|' opt_ws types[other] {
                                    $$ = $first;
-                                   $$->PutInAdditional($other);
+                                   $$->SaveAsExtraNode($other);
                                    root = $$;
                                 }
                                 | unionTypes[prev] opt_ws '|' opt_ws types {
                                     $$ = $prev;
-                                    $$->PutInAdditional($types);
+                                    $$->SaveAsExtraNode($types);
                                     root = $$;
                                 }
                                 ;
@@ -264,72 +248,47 @@ any_ws:                         MULTI_WS | SINGLE_WS;
 opt_ws:                         any_ws | %empty;
 
 id:                             ID {
-                                    $$ = MakeNode(RAW_DATA_CMD, $1, ID_NODE_TYPE);
+                                    $$ = MakeTermNode($1, ID_NODE_TYPE);
                                     root = $$; 
                                 };
 
 assign:                         id ':' opt_ws types opt_ws '=' opt_ws expr {
-                                    $$ = MakeNode(BIND_CMD);                                    
-                                    $$->SetLeft($id);
-                                    $$->SetMiddle($types);
-                                    $$->SetRight($expr);
+                                    $$ = MakeAssignAst($id, $types, $expr);
                                     root = $$;
                                 }
                                 | id ':' opt_ws UNKNOWN opt_ws '=' opt_ws expr {
-                                    $$ = MakeNode(MAKE_UNION_CMD);
-                                    $$->SetLeft($id);
-                                    $$->SetRight($expr);
+                                    $$ = MakeUnionAst($id, $expr);
                                     root = $$;
                                 }
                                 | id ':' opt_ws unionTypes opt_ws '=' opt_ws expr {
-                                    $$ = MakeNode(MAKE_UNION_CMD);
-                                    $$->SetLeft($id);
-                                    $$->SetMiddle($unionTypes);
-                                    for(size_t index = 0; index < $unionTypes->Extras(); index++) {
-                                        $$->SetMiddle($unionTypes->GetAdditional(index));
-                                        $unionTypes->NullAdditional(index);
-                                    }
-                                    $$->SetRight($expr);
+                                    $$ = MakeUnionAst($id, $unionTypes, $expr);
                                     root = $$;
                                 }
                                 | id opt_ws '=' opt_ws expr {
-                                   $$ = MakeNode(REBIND_CMD);
-                                   $$->SetLeft($id);
-                                   $$->SetRight($expr);
+                                   $$ = MakeReassignAst($id, $expr);
                                    root = $$;
                                 }
                                 | id ':' opt_ws types '<' REF '>' opt_ws '=' opt_ws expr {
-                                    $$ = MakeNode(REFBIND_CMD);
-                                    $$->SetLeft($id);
-                                    $$->SetMiddle($types);
-                                    $$->SetRight($expr);
-                                    root = $$;
-                                }
-                                | id ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws '[' ']' {
-                                    $$ = MakeNode(MAKE_LIST_CMD);
-                                    $$->SetLeft($id);
-                                    $$->SetRight($types);
+                                    $$ = MakeRefAst($id, $types, $expr);
                                     root = $$;
                                 }
                                 | id ':' opt_ws MAP '<' types[key] opt_ws POINTS_TO opt_ws types[val] '>' opt_ws '=' opt_ws '{' '}' {
-                                    $$ = MakeNode(MAKE_MAP_CMD);
-                                    $$->SetLeft($id);
-                                    $$->SetMiddle($key);
-                                    $$->SetRight($val);
+                                    $$ = MakeMapBindAst($id, $key, $val);
                                     root = $$;
                                 }
                                 | id ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws expr {
-                                    $$ = MakeNode(MAKE_LIST_CMD);
-                                    $$->SetLeft($id);
-                                    $$->SetMiddle($expr);
-                                    $$->SetRight($types);
+                                    $$ = MakeArrayBindAst($id, $types, $expr);
+                                    root = $$;
+
+                                }
+                                | id ':' opt_ws LIST '<' unionTypes '>' opt_ws '=' opt_ws expr {
+                                    cout << "making union array\n";
+                                    $$ = MakeArrayBindAst($id, $unionTypes, $expr);
                                     root = $$;
 
                                 }
                                 | id opt_ws '=' opt_ws expr '<' REF '>' {
-                                    $$ = MakeNode(REFBIND_CMD);
-                                    $$->SetLeft($id);
-                                    $$->SetRight($expr);
+                                    $$ = MakeRebindRefAst($id, $expr);
                                     root = $$;
                                 }
                                 ;
@@ -342,28 +301,21 @@ exprList:                      opt_ws expr {
                                     $$ = $expr;
                                 }
                                 | exprList[prev] any_ws expr {  
-                                    $prev->PutInAdditional($expr);
+                                    $prev->SaveAsExtraNode($expr);
                                     $$ = $prev;
                                 }
                                 | exprList[prev] opt_newline expr {
-                                    $prev->PutInAdditional($expr);
+                                    $prev->SaveAsExtraNode($expr);
                                     $$ = $prev;
                                 }
                                 ;
 
 opt_newline:                 opt_ws NEWLINE opt_ws;
 opt_ws_or_nl:                opt_ws | opt_newline;
-//any_ws_or_nl:                any_ws | opt_newline;
-//ws_or_nl:                    any_ws | opt_newline;
 
 statement:                      assign
                                 | PRINT opt_ws '|' exprList opt_ws_or_nl'|' { 
-                                    $$ = MakeNode(PRINT_CMD);
-                                    $$->SetLeft($exprList);
-                                    for(size_t index = 0; index < $exprList->Extras(); index++) {
-                                        $$->SetLeft($exprList->GetAdditional(index));
-                                        $exprList->NullAdditional(index);
-                                    }
+                                    $$ = MakePrintAst($exprList);
                                     root = $$;
                                 }
                                 | EXIT '|' opt_ws '|'{ return 0; }
@@ -397,44 +349,27 @@ math_expr:                      '(' ADD exprList[left] opt_ws_or_nl')' {
 //COMPARE OPERS BELOW --------------------------------------------------------------------------------------------------------------------------------------------------
 
 compare_expr:                   '(' LESS any_ws expr[first] any_ws expr[second] opt_ws ')' {
-                                    $$ = MakeNode(LESS_CMD);
-                                    $$->SetLeft($first);
-                                    $$->SetRight($second);
+                                    $$ = MakeLessCompAst($first, $second);
                                     root = $$;
                                 }
                                 | '(' GREATER any_ws expr[first] any_ws expr[second] opt_ws ')' {
-                                    $$ = MakeNode(GREATER_CMD);
-                                    $$->SetLeft($first);
-                                    $$->SetRight($second);
+                                    $$ = MakeGreaterCompAst($first, $second);
                                     root = $$;
                                 }
                                 | '(' LESS_EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')'{
-                                    $$ = MakeNode(LESS_EQ_CMD);
-                                    $$->SetLeft($first);
-                                    $$->SetRight($second);
+                                    $$ = MakeLessEqualCompAst($first, $second);
                                     root = $$;
                                 }
                                 | '(' GREATER_EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')' {
-                                    $$ = MakeNode(GREATER_EQ_CMD);
-                                    $$->SetLeft($first);
-                                    $$->SetRight($second);
+                                    $$ = MakeGreaterEqualCompAst($first, $second);
                                     root = $$;
                                 }
                                 | '('EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')' {
-                                    $$ = MakeNode(EQ_CMD);
-                                    $$->SetLeft($first);
-                                    $$->SetRight($second);
+                                    $$ = MakeEqualCompAst($first, $second);
                                     root = $$;
                                 }
                                 | '(' NOT_EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')' {
-                                    $$ = MakeNode(NOT_CMD);
-
-                                    auto equal = MakeNode(EQ_CMD);
-                                    equal->SetLeft($first);
-                                    equal->SetRight($second);
-
-                                    $$->SetLeft(equal);
-
+                                    $$ = MakeNotEqualCompAst($first, $second);
                                     root = $$;
                                 }
                                 ;
@@ -442,20 +377,15 @@ compare_expr:                   '(' LESS any_ws expr[first] any_ws expr[second] 
 
 //BOOL OPERS BELOW ---------------------------------------------------------------------------------------------------------------------------------------------------
 boolExpr:                      '(' AND any_ws expr[first] any_ws expr[second] opt_ws ')' {
-                                    $$ = MakeNode(AND_CMD);
-                                    $$->SetLeft($first);
-                                    $$->SetRight($second);
+                                    $$ = MakeAndAst($first, $second);
                                     root = $$;
                                 }
                                 | '(' NOT any_ws expr opt_ws ')' {
-                                    $$ = MakeNode(NOT_CMD);
-                                    $$->SetLeft($expr);
+                                    $$ = MakeNotAst($expr);
                                     root = $$;
                                 }
                                 | '(' OR any_ws expr[first] any_ws expr[second] opt_ws ')' {
-                                    $$ = MakeNode(OR_CMD);
-                                    $$->SetLeft($first);
-                                    $$->SetRight($second);
+                                    $$ = MakeOrAst($first, $second);
                                     root = $$;
                                 }
                                 ;
@@ -470,9 +400,7 @@ expr:                           term {
                                     root = $$;
                                 }
                                 | '(' CAST any_ws expr[val] any_ws types opt_ws_or_nl ')' {
-                                    $$ = MakeNode(CAST_TYPE_CMD);
-                                    $$->SetLeft($val);
-                                    $$->SetRight($types);
+                                    $$ = MakeCastAst($val, $types);
                                     root = $$;
                                 }
                                 | compare_expr {
@@ -484,34 +412,23 @@ expr:                           term {
                                     root = $$;
                                 }
                                 | id[list] '.' ADD_LIST '|' opt_ws expr[item] opt_ws '|' {
-                                     $$ = MakeNode(PUT_IN_CONTAINER_CMD);
-                                     $$->SetLeft($list);
-                                     $$->SetRight($item);
+                                     $$ = MakeAddToListAst($list, $item);
                                      root = $$;
                                 }
                                 | id[list] '.' ADD_MAP '|' opt_ws expr[key] any_ws expr[val] opt_ws '|' {
-                                    $$ = MakeNode(PUT_IN_MAP_CMD);
-                                    $$->SetLeft($list);
-                                    $$->SetMiddle($key);
-                                    $$->SetRight($val);
+                                    $$ = MakeAddToMapAst($list, $key, $val);
                                     root = $$;
                                 }
                                 | id[list] '[' opt_ws expr[index] opt_ws ']' {
-                                    $$ = MakeNode(GET_FROM_CONTAINER_CMD);
-                                    $$->SetLeft($list);
-                                    $$->SetRight($index);
+                                    $$ = MakeGetFromCollectionAst($list, $index);
                                     root = $$;
                                 }
                                 | id[list] '.' SET '|' opt_ws expr[index] any_ws expr[new_val] opt_ws '|' {
-                                    $$ = MakeNode(SET_IN_CONTAINER_CMD);
-                                    $$->SetLeft($list);
-                                    $$->SetMiddle($index);
-                                    $$->SetRight($new_val);
+                                    $$ = MakeSetInCollectionAst($list, $index, $new_val);
                                     root = $$;
                                 }
                                 | id[list] '.' SIZE '|' '|' {
-                                    $$ = MakeNode(GET_CONTAINER_SIZE_CMD);
-                                    $$->SetLeft($list);
+                                    $$ = MakeCollectionSizeAst($list);
                                     root = $$;
                                 }
                                 ;

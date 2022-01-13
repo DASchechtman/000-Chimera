@@ -9,12 +9,15 @@ using namespace std;
 class List : public Container {
 private:
     vector<ChimeraObject*> m_list;
-    VAR_TYPES m_list_type;
+    vector<VAR_TYPES> m_list_type;
     string m_list_type_name;
+
+    bool IsCorrectType(VAR_TYPES type);
 protected:
 public:
 
     List(VAR_TYPES type);
+    List(vector<VAR_TYPES> types);
     ~List();
 
     int PutItem(ChimeraObject *item);

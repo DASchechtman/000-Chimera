@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Scopes/Scope.hpp"
-#include "Scopes/IfScope.hpp"
 #include "Scopes/GenScope.hpp"
 #include "SymbolTable.hpp"
 #include <stack>
@@ -36,13 +35,11 @@ public:
 
     void CreateScope(string type);
     void DestroyScope();
-    void SetNextScopeRunStat(bool runnable);
 
-    // forces the scope to be runnable no matter what the actual state of the scope is
-    void MakeRunnable();
+    // depricated function, will be removed in further development
+    void SetNextScopeRunStat(bool runnable);
     SymbolTable* GetTable();
-    bool IsntRunnable();
-    bool ParentIsntRunnable();
+
     string GetScopeType();
     size_t Size();
 

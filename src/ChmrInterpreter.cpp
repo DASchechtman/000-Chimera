@@ -9,7 +9,7 @@ using namespace std;
 // PRIVATE METHODS BELOW ---------------------------------------------------------------------------
 
 ChmrInterpreter::~ChmrInterpreter() {
-    for(auto node : trees) {
+    for(AstNode *node : ast_trees) {
         delete node;
     }
 }
@@ -22,7 +22,7 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
         return EMPTY_VAR_NAME;
     }
 
-    auto obj = Table()->GetEntry(from);
+    ChimeraObject *obj = Table()->GetEntry(from);
     string var_id = EMPTY_VAR_NAME;
     string p = Table()->GetParent(to);
 
@@ -32,42 +32,42 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
     {
         int64 data = 0;
         obj->Get(data);
-        var_id = CloneOrCreate(to, type, data);
+        var_id = CloneOrCreateVar(to, type, data);
         break;
     }
     case FLOAT_DATA_TYPE:
     {
         float data = 0;
         obj->Get(data);
-        var_id = CloneOrCreate(to, type, data);
+        var_id = CloneOrCreateVar(to, type, data);
         break;
     }
     case DOUBLE_DATA_TYPE:
     {
         long double data = 0;
         obj->Get(data);
-        var_id = CloneOrCreate(to, type, data);
+        var_id = CloneOrCreateVar(to, type, data);
         break;
     }
     case CHAR_DATA_TYPE:
     {
         char32_t data = 'a';
         obj->Get(data);
-        var_id = CloneOrCreate(to, type, data);
+        var_id = CloneOrCreateVar(to, type, data);
         break;
     }
     case STRING_DATA_TYPE:
     {
         string data;
         obj->Get(data);
-        var_id = CloneOrCreate(to, type, data);
+        var_id = CloneOrCreateVar(to, type, data);
         break;
     }
     case BOOL_DATA_TYPE:
     {
         bool data = false;
         obj->Get(data);
-        var_id = CloneOrCreate(to, type, data);
+        var_id = CloneOrCreateVar(to, type, data);
         break;
     }
     case LIST_DATA_TYPE: {
@@ -89,216 +89,13 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
     return var_id;
 }
 
-string ChmrInterpreter::DoLogicOper(string var_id_1, string var_id_2, bool (*oper)(bool, bool))
-{
-    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
-    {
-        cout << "Error: can't and a nonexistent value\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto var_1 = Table()->GetEntry(var_id_1);
-    auto var_2 = Table()->GetEntry(var_id_2);
-
-    string temp_bool_1 = Table()->AddEntry("", var_1->ConvertTo(BOOL_TYPE_NAME));
-    string temp_bool_2 = Table()->AddEntry("", var_2->ConvertTo(BOOL_TYPE_NAME));
-
-    ChimeraObject *bool_1 = Table()->GetEntry(temp_bool_1);
-    ChimeraObject *bool_2 = Table()->GetEntry(temp_bool_2);
-
-    bool res_1 = false;
-    bool res_2 = false;
-    bool_1->Get(res_1);
-    bool_2->Get(res_2);
-
-    return Create(EMPTY_VAR_NAME, BOOL_TYPE_NAME, (*oper)(res_1, res_2));
-}
-
-int ChmrInterpreter::DoMath(string var_id_1, string var_id_2, OPER_CODE code, int (*oper)(ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num))
-{
-    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
-    {
-        cout << "Error: trying to do math operation on a non-numerical value\n";
-        return FAIL;
-    }
-
-    auto var_1 = Table()->GetEntry(var_id_1);
-    auto var_2 = Table()->GetEntry(var_id_2);
-
-    int err = 1;
-
-    const char *oper_code_names[] = { "ADD\0", "SUBTRACT\0", "MULTIPLY\0", "DIVIDE\0", "POW\0" };
-
-    if (code == ADD_CODE || code == SUBTRACT_CODE)
-    {
-        if (var_1->IsNumber() && var_2->IsNumber())
-        {
-            err = (*oper)(var_1, var_2, true);
-        }
-        else if (var_1->IsText() && var_2->IsText())
-        {
-            err = (*oper)(var_1, var_2, false);
-        }
-        else
-        {
-            cout << "Error: cannont perform oper " << oper_code_names[code] << " on a number and a non-number\n";
-        }
-    }
-    else if (code == MULTIPLY_CODE || code == DIVIDE_CODE || code == POW_CODE)
-    {
-        if (var_1->IsNumber() && var_2->IsNumber())
-        {
-            err = (*oper)(var_1, var_2, true);
-        }
-        else
-        {
-            cout << "Error: cannot peform oper " << oper_code_names[code] << " on non-number data\n";
-        }
-    }
-
-    return err;
-}
-
-ChimeraObject* ChmrInterpreter::GetListItem(Container *list, ChimeraObject *index) {
-    ChimeraObject *item = nullptr;
-
-    switch(index->GetType()) {
-        
-        case INT_DATA_TYPE: {
-            int64 i = 0;
-            index->Get(i);
-            item = list->GetItem(i);
-            break;
-        }
-
-        case FLOAT_DATA_TYPE: {
-            float i = 0;
-            index->Get(i);
-            item = list->GetItem(i);
-            break;
-        }
-
-        case DOUBLE_DATA_TYPE: {
-            dbl128 i = 0;
-            index->Get(i);
-            item = list->GetItem(i);
-            break;
-        }
-
-        case STRING_DATA_TYPE: {
-            string i;
-            index->Get(i);
-            item = list->GetItem(i);
-            break;
-        }
-
-        case CHAR_DATA_TYPE: {
-            char32_t i = 0;
-            index->Get(i);
-            item = list->GetItem(i);
-            break;
-        }
-
-        case BOOL_DATA_TYPE: {
-            bool i = false;
-            index->Get(i);
-            item = list->GetItem(i);
-            break;
-        }
-        
-        default: {
-            cout << "Error: index is an unsupported type\n";
-        }
-    }
-
-    return item;
-}
-
-int ChmrInterpreter::SetData(ChimeraObject *to, ChimeraObject *from) {
-
-    switch(from->GetType()) {
-        
-        case INT_DATA_TYPE: {
-            int64 i = 0;
-            from->Get(i);
-            return to->Set(i);
-            break;
-        }
-
-        case FLOAT_DATA_TYPE: {
-            float i = 0;
-            from->Get(i);
-            return to->Set(i);
-            break;
-        }
-
-        case DOUBLE_DATA_TYPE: {
-            dbl128 i = 0;
-            from->Get(i);
-            return to->Set(i);
-            break;
-        }
-
-        case STRING_DATA_TYPE: {
-            string i;
-            from->Get(i);
-            return to->Set(i);
-            break;
-        }
-
-        case CHAR_DATA_TYPE: {
-            char32_t i = 0;
-            from->Get(i);
-            return to->Set(i);
-            break;
-        }
-
-        case BOOL_DATA_TYPE: {
-            bool i = false;
-            from->Get(i);
-            return to->Set(i);
-            break;
-        }
-        
-        default: {
-            cout << "Error: index is an unsupported type\n";
-        }
-    }
-    return FAIL;
-}
-
-VAR_TYPES ChmrInterpreter::TypeNameToNum(string type_name) {
-    VAR_TYPES list_type = UNDEFINED_DATA_TYPE;
-    
-    if (type_name == INT_TYPE_NAME) {
-        list_type = INT_DATA_TYPE;
-    }
-    else if (type_name == FLOAT_TYPE_NAME) {
-        list_type = FLOAT_DATA_TYPE;
-    }
-    else if (type_name == DOUBLE_TYPE_NAME) {
-        list_type = DOUBLE_DATA_TYPE;
-    }
-    else if (type_name == STRING_TYPE_NAME) {
-        list_type = STRING_DATA_TYPE;
-    }
-    else if (type_name == CHAR_TYPE_NAME) {
-        list_type = CHAR_DATA_TYPE;
-    }
-    else if (type_name == BOOL_TYPE_NAME) {
-        list_type = BOOL_DATA_TYPE;
-    }
-
-    return list_type;
-}
-
 SymbolTable* ChmrInterpreter::Table() {
     return scopes.GetTable();
 }
 
 void ChmrInterpreter::GoTo(size_t jump_point) {
-    for (size_t i = 0; i < jump_points_process.size(); i++) {
-        if (jump_points_process[i].jump_point == jump_point) {
+    for (size_t i = 0; i < jump_points.size(); i++) {
+        if (jump_points[i].jump_point == jump_point) {
             cur_jump_point = i;
             break;
         }
@@ -306,62 +103,73 @@ void ChmrInterpreter::GoTo(size_t jump_point) {
     cur_instruction = jump_point - 1;
 }
 
-size_t ChmrInterpreter::NextMatchingDepthPoint(vector<JumpInfo> &points, size_t init_depth) {
-
-    size_t start = 0;
-    size_t point = points[start].jump_point;
-
-    bool is_ctrl = trees[point]->Type() == CTRL_BLOCK_CMD;
-    bool is_while = is_ctrl && trees[point]->GetLeft()->Type() == WHILE_BLOCK_CMD;
-
-    if (is_while) {
-        start = 1;
-        init_depth = points[start].depth;
-    }
-
-    if (!is_while) {
-        points.erase(points.begin());
-    }
-    else {
-        start++;
-    }
-
-    while(points[start].depth != init_depth) {
-        if (!is_while) {
-            points.erase(points.begin());
-        }
-        else {
-            start++;
-        }
-    }
-    return points[start].jump_point;
+size_t ChmrInterpreter::ScopeLevel() {
+    return cur_scope_level;
 }
 
-size_t ChmrInterpreter::Index() {
-    return found_control_block;
+void ChmrInterpreter::IncreaseScopeLevel() {
+    cur_scope_level++;
+}
+
+void ChmrInterpreter::DecreaseScopeLevel() {
+    cur_scope_level--;
 }
 
 void ChmrInterpreter::ProcessCtrlStructure(AstNode *node) {
     if (node->Type() == CTRL_BLOCK_CMD) {
         bool is_start = (
-            node->GetLeft()->Type() == IF_BLOCK_CMD 
-            || node->GetLeft()->Type() == WHILE_BLOCK_CMD
+            node->GetFromLeftNodes()->Type() == IF_BLOCK_CMD 
+            || node->GetFromLeftNodes()->Type() == WHILE_BLOCK_CMD
         );
-        found_control_block = is_start ? found_control_block+1 : found_control_block;
+        cur_scope_level = is_start ? cur_scope_level+1 : cur_scope_level;
 
         JumpInfo ji;
-        ji.jump_point = trees.size()-1;
-        ji.depth = found_control_block;
+        ji.jump_point = ast_trees.size()-1;
+        ji.depth = cur_scope_level;
         
-        jump_points_process.push_back(ji);
+        jump_points.push_back(ji);
     }
     else if (node->Type() == END_BLOCK_CMD) {
         JumpInfo ji;
-        ji.jump_point = trees.size()-1;
-        ji.depth = found_control_block;
+        ji.jump_point = ast_trees.size()-1;
+        ji.depth = cur_scope_level;
 
-        jump_points_process.push_back(ji);
-        found_control_block = ji.depth-1;;
+        jump_points.push_back(ji);
+        cur_scope_level = ji.depth-1;;
+    }
+}
+
+void ChmrInterpreter::ConvertJumpPointsToScopeTree() {
+    for(JumpInfo point : jump_points) {
+        AstNode *point_type = ast_trees[point.jump_point];
+        
+        if (point_type->Type() == CTRL_BLOCK_CMD) {
+            if (
+                point_type->GetFromLeftNodes()->Type() == IF_BLOCK_CMD
+                || point_type->GetFromLeftNodes()->Type() == WHILE_BLOCK_CMD
+            ) {
+                bool is_if_stmt_outside_other_scopes = (
+                    point_type->GetFromLeftNodes()->Type() == IF_BLOCK_CMD 
+                    && scope_tree.Size() == 0
+                );
+                
+                scope_tree.CreateNewBlock(is_if_stmt_outside_other_scopes);
+                scope_tree.AddJpToBlock(point.jump_point);
+            }
+            else if (
+                point_type->GetFromLeftNodes()->Type() == ELIF_BLOCK_CMD
+                || point_type->GetFromLeftNodes()->Type() == ELSE_BLOCK_CMD
+            ) {
+                scope_tree.AddJpToBlock(point.jump_point);
+                scope_tree.CloseBlock();
+                scope_tree.CreateNewBlock(true);
+                scope_tree.AddJpToBlock(point.jump_point);
+            }
+        }
+        else if (point_type->Type() == END_BLOCK_CMD) {
+            scope_tree.AddJpToBlock(point.jump_point);
+            scope_tree.CloseBlock();
+        }
     }
 }
 
@@ -371,24 +179,6 @@ void ChmrInterpreter::ProcessCtrlStructure(AstNode *node) {
 // PROTECTED METHODS ABOVE -------------------------------------------------------------------------
 
 // PUBLIC METHODS BELOW -----------------------------------------------------------------------------
-
-bool ChmrInterpreter::NonRunnableScope() {
-    //ic.AddInstruction(CHECK_SCOPE_CMD);
-    return scopes.IsntRunnable();
-}
-
-bool ChmrInterpreter::ParentNonRunnableScope() {
-    //ic.AddInstruction(CHECK_PARENT_SCOPE_CMD);
-    return scopes.ParentIsntRunnable();
-}
-
-void ChmrInterpreter::OverrideRunnable() {
-    scopes.MakeRunnable();
-}
-
-void ChmrInterpreter::SetLoopStart() {
-    
-}
 
 string ChmrInterpreter::Bind(string to, string from, string type)
 {
@@ -415,9 +205,9 @@ string ChmrInterpreter::Rebind(string to, string from)
     }
     else
     {
-        auto obj = Table()->GetEntry(to);
+        ChimeraObject *obj = Table()->GetEntry(to);
         if (obj->GetGeneralType() == COLLECTION_DATA_TYPE) {
-            return ReassignContainer(to, from);
+            return ReassignContainer(to, from, Table());
         }
         return MakeBind(to, from, Table()->GetEntry(to)->GetTypeName());
     }
@@ -436,7 +226,7 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type) {
         return EMPTY_VAR_NAME;
     }
 
-    auto obj = Table()->GetEntry(Table()->GetParent(var_id));
+    ChimeraObject *obj = Table()->GetEntry(Table()->GetParent(var_id));
 
     // makes sure that the reference id is valid in cases
     // that a reference is being rebound
@@ -469,7 +259,7 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
         return EMPTY_VAR_NAME;
     }
 
-    auto type_list = types;
+    vector<string> type_list = types;
 
     if (unknown) {
         type_list = {
@@ -482,7 +272,7 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
         };
     }
 
-    auto from = Table()->GetEntry(var_id_2);
+    ChimeraObject *from = Table()->GetEntry(var_id_2);
     ChimeraObject *to = new ChimeraUnion(type_list, from);
 
     if (to->GetType() == UNDEFINED_DATA_TYPE) {
@@ -494,203 +284,7 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
     return Table()->AddEntry(var_id, to);
 }
 
-string ChmrInterpreter::MakeList(string var_id, string type) {
-    auto list = new List(TypeNameToNum(type));
-    return NonRunnableScope() ? PLACE_HOLDER_NAME : Table()->AddEntry(var_id, list);
-}
-
-string ChmrInterpreter::MakeMap(string var_id, string key_type, string val_type) {
-    auto map = new Map(TypeNameToNum(key_type), TypeNameToNum(val_type));
-    return NonRunnableScope() ? PLACE_HOLDER_NAME : Table()->AddEntry(var_id, map);
-}
-
-string ChmrInterpreter::PutInContainer(string list_id, string item_id) {
-
-    if (!Table()->Has(list_id) || !Table()->Has(item_id)) {
-        cout << "Error: cannot add because one of the items don't exist\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto list = Table()->GetEntry(list_id);
-
-    if (list->GetType() == LIST_DATA_TYPE) {
-        auto item = Table()->GetEntry(item_id);
-        if(((List*)list)->PutItem(item) == FAIL) {
-            return EMPTY_VAR_NAME;
-        }
-        return item_id;
-    }
-    else {
-        cout << "Error: cannot put item into non-container type\n";
-        return EMPTY_VAR_NAME;
-    }
-}
-
-string ChmrInterpreter::PutInMap(string map_id, string key_id, string val_id) {
-
-    if (!Table()->Has(map_id) || !Table()->Has(key_id) || !Table()->Has(val_id)) {
-        cout << "Error: cannot put into map\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto container = Table()->GetEntry(map_id);
-    auto key = Table()->GetEntry(key_id);
-    auto val = Table()->GetEntry(val_id);
-
-    if (container->GetType() == MAP_DATA_TYPE) {
-        Map *map = (Map*)container;
-        switch (key->GetType()) {
-            case INT_DATA_TYPE: {
-                int64 data;
-                key->Get(data);
-                map->SetItem(data, val);
-                break;
-            }
-            case FLOAT_DATA_TYPE: {
-                float data;
-                key->Get(data);
-                map->SetItem(data, val);
-                break;
-            }
-            case DOUBLE_DATA_TYPE: {
-                dbl128 data;
-                key->Get(data);
-                map->SetItem(data, val);
-                break;
-            }
-            case CHAR_DATA_TYPE: {
-                char32_t data;
-                key->Get(data);
-                map->SetItem(data, val);
-                break;
-            }
-            case STRING_DATA_TYPE: {
-                string data;
-                key->Get(data);
-                map->SetItem(data, val);
-                break;
-            }
-            case BOOL_DATA_TYPE: {
-                bool data;
-                key->Get(data);
-                map->SetItem(data, val);
-                break;
-            }
-            default: {
-                cout << "Error: can't use unsupported type on map\n";
-                return EMPTY_VAR_NAME;
-            }
-        }
-    }
-    else {
-        cout << "Error: cannot put keyed values into non-map item\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    return map_id;
-}
-
-string ChmrInterpreter::GetFromContainer(string list_id, string index_id) {
-
-    if (!Table()->Has(list_id) || !Table()->Has(index_id)) {
-        cout << "Error: cannot get a value with non-existent parts\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto obj = Table()->GetEntry(list_id);
-
-    if (obj->GetGeneralType() == COLLECTION_DATA_TYPE) {
-        auto index = Table()->GetEntry(index_id);
-        Container *list = (Container*)obj;
-
-        ChimeraObject *item = GetListItem(list, index);
-
-
-        if (item == nullptr) {
-            return EMPTY_VAR_NAME;
-        }
-        else {
-            return Table()->AddEntry(EMPTY_VAR_NAME, item->Clone());
-        }
-
-    }
-    else {
-        cout << "Error: cannot get index from non-containter type\n";
-        return EMPTY_VAR_NAME;
-    }
-}
-
-string ChmrInterpreter::SetInContainer(string list_id, string index_id, string new_item_id){
-
-    if (!Table()->Has(list_id) || !Table()->Has(index_id) || !Table()->Has(new_item_id)) {
-        cout << "Error: cannot set item in list cuz one of the args don't exist\n";
-        return EMPTY_VAR_NAME;
-    }
-    auto obj_1 = Table()->GetEntry(list_id);
-    auto index = Table()->GetEntry(index_id);
-
-    if (obj_1->GetGeneralType() == COLLECTION_DATA_TYPE) {
-        auto item = GetListItem((Container*)obj_1, index);
-        auto new_item = Table()->GetEntry(new_item_id);
-
-        if (item == nullptr) {
-            cout << "Error: item does not exist in list\n";
-            return EMPTY_VAR_NAME;
-        }
-        else if (SetData(item, new_item) == FAIL) {
-            return EMPTY_VAR_NAME;
-        }
-
-        return Table()->AddEntry(EMPTY_VAR_NAME, item->Clone());
-    }
-    else {
-        cout << "Error: cannot access element of non-list type\n";
-        return EMPTY_VAR_NAME;
-    }
-}
-
-string ChmrInterpreter::ReassignContainer(string list_id_1, string list_id_2) {
-
-    if (!Table()->Has(list_id_1) || !Table()->Has(list_id_2)) {
-        cout << "Error: cannot assign to list because one of the args don't exist\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto list_1 = Table()->GetEntry(list_id_1);
-    auto list_2 = Table()->GetEntry(list_id_2);
-
-    if (list_1->GetGeneralType() == COLLECTION_DATA_TYPE && list_2->GetGeneralType() == COLLECTION_DATA_TYPE) {
-        if (list_1->GetType() == list_2->GetType()) {
-            ((Container*)list_1)->SetToNewContainer((Container*)list_2);
-            return list_id_1;
-        } 
-        else {
-            cout << "Error: cannot assign " << list_1->GetTypeName() << " to " << list_2->GetTypeName() << '\n';
-            return EMPTY_VAR_NAME;
-        }
-    }
-    else {
-        cout << "Error: cannot perform operation 'reassign' on a list on non-list type\n";
-        return EMPTY_VAR_NAME;
-    }
-}
-
-string ChmrInterpreter::GetContainerSize(string list_id_1) {
-    if (!Table()->Has(list_id_1)) {
-        return "Error: cannot get the size of nonexistent data\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto obj = Table()->GetEntry(list_id_1);
-    if (obj->GetGeneralType() != COLLECTION_DATA_TYPE) {
-        cout << "Error: cannot get the size of nonindexable item\n";
-        return EMPTY_VAR_NAME;
-    }
-    auto size = (int64)((Container*)obj)->Size();
-    return CreateTmpVar(size);
-}
-
-string ChmrInterpreter::CloneToTemp(string var_id)
+string ChmrInterpreter::CloneVarToTempVar(string var_id)
 {
 
     if (!Table()->Has(var_id))
@@ -699,103 +293,14 @@ string ChmrInterpreter::CloneToTemp(string var_id)
         return EMPTY_VAR_NAME;
     }
 
-    auto obj = Table()->GetEntry(var_id);
-    auto tmp = MakeBind(EMPTY_VAR_NAME, var_id, obj->GetTypeName());
+    ChimeraObject *obj = Table()->GetEntry(var_id);
+    string tmp = MakeBind(EMPTY_VAR_NAME, var_id, obj->GetTypeName());
     Table()->SetParent(tmp, var_id);
     return tmp;
         
 }
 
-int ChmrInterpreter::Add(string var_id_1, string var_id_2)
-{
-
-    auto callback = [](ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num)
-    {
-        int err = 1;
-        if (is_num)
-        {
-            err = ((Number *)obj_1)->Add(*(Number *)obj_2);
-        }
-        else
-        {
-            err = ((Text *)obj_1)->Add(*(Text *)obj_2);
-        }
-
-        return err;
-    };
-
-    return DoMath(var_id_1, var_id_2, ADD_CODE, callback);
-}
-
-int ChmrInterpreter::Subtract(string var_id_1, string var_id_2)
-{
-
-    auto callback = [](ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num)
-    {
-        int err = 1;
-        if (is_num)
-        {
-            err = ((Number *)obj_1)->Subtract(*(Number *)obj_2);
-        }
-        else
-        {
-            err = ((Text *)obj_1)->Subtract(*(Text *)obj_2);
-        }
-
-        return err;
-    };
-
-    return DoMath(var_id_1, var_id_2, SUBTRACT_CODE, callback);
-}
-
-int ChmrInterpreter::Multiply(string var_id_1, string var_id_2)
-{
-
-    auto callback = [](ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num)
-    {
-        if (!is_num)
-        {
-            return FAIL;
-        }
-
-        return ((Number *)obj_1)->Multiply(*(Number *)obj_2);
-    };
-
-    return DoMath(var_id_1, var_id_2, MULTIPLY_CODE, callback);
-}
-
-int ChmrInterpreter::Divide(string var_id_1, string var_id_2)
-{
-    auto callback = [](ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num)
-    {
-        if (!is_num)
-        {
-            return FAIL;
-        }
-
-        return ((Number *)obj_1)->Divide(*(Number *)obj_2);
-    };
-
-    return DoMath(var_id_1, var_id_2, DIVIDE_CODE, callback);
-}
-
-int ChmrInterpreter::Pow(string base_id, string exp_id)
-{
-
-    auto callback = [](ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num)
-    {
-        if (!is_num)
-        {
-            return FAIL;
-        }
-
-        return ((Number*)obj_1)->Pow(*(Number*)obj_2);
-    };
-
-    return DoMath(base_id, exp_id, POW_CODE, callback);
-}
-
-string ChmrInterpreter::Cast(string var_id, string type)
+string ChmrInterpreter::CastVarTo(string var_id, string type)
 {
 
     if (!Table()->Has(var_id))
@@ -804,7 +309,7 @@ string ChmrInterpreter::Cast(string var_id, string type)
         return EMPTY_VAR_NAME;
     }
 
-    auto var = Table()->GetEntry(var_id)->ConvertTo(type);
+    ChimeraObject *var = Table()->GetEntry(var_id)->ConvertTo(type);
 
     if (var == nullptr)
     {
@@ -813,111 +318,6 @@ string ChmrInterpreter::Cast(string var_id, string type)
     }
 
     return Table()->AddEntry("", var);
-}
-
-string ChmrInterpreter::And(string var_id_1, string var_id_2)
-{
-    return DoLogicOper(var_id_1, var_id_2, [](bool b1, bool b2) { return b1 && b2; });
-}
-
-string ChmrInterpreter::Or(string var_id_1, string var_id_2)
-{
-    return DoLogicOper(var_id_1, var_id_2, [](bool b1, bool b2) { return b1 || b2; });
-}
-
-string ChmrInterpreter::Not(string var_id_1)
-{
-    if (!Table()->Has(var_id_1))
-    {
-        cout << "Error: cannot perform logical oper on nonexistent\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto var = Table()->GetEntry(var_id_1);
-    auto bool_var_name = Table()->AddEntry("", var->ConvertTo(BOOL_TYPE_NAME));
-    auto bool_var = Table()->GetEntry(bool_var_name);
-
-    bool res = false;
-    bool_var->Get(res);
-
-    return Create(EMPTY_VAR_NAME, BOOL_TYPE_NAME, !res);
-}
-
-string ChmrInterpreter::Less(string var_id_1, string var_id_2)
-{
-
-    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
-    {
-        cout << "Error: cannot compare nonexistent values\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto var_1 = Table()->GetEntry(var_id_1);
-    auto var_2 = Table()->GetEntry(var_id_2);
-
-    return CreateTmpVar(var_1->Less(var_2));
-}
-
-string ChmrInterpreter::LessEqual(string var_id_1, string var_id_2)
-{
-
-    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
-    {
-        cout << "Error: cannot compare nonexistent values\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto var_1 = Table()->GetEntry(var_id_1);
-    auto var_2 = Table()->GetEntry(var_id_2);
-
-    return CreateTmpVar(var_1->LessEqual(var_2));
-}
-
-string ChmrInterpreter::Greater(string var_id_1, string var_id_2)
-{
-
-    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
-    {
-        cout << "Error: cannot compare nonexistent values\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto var_1 = Table()->GetEntry(var_id_1);
-    auto var_2 = Table()->GetEntry(var_id_2);
-
-    return CreateTmpVar(var_1->Greater(var_2));
-}
-
-string ChmrInterpreter::GreaterEqual(string var_id_1, string var_id_2)
-{
-    
-    if (!Table()->Has(var_id_1) || !Table()->Has(var_id_2))
-    {
-        cout << "Error: cannot compare nonexistent values\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto var_1 = Table()->GetEntry(var_id_1);
-    auto var_2 = Table()->GetEntry(var_id_2);
-
-    return CreateTmpVar(var_1->GreaterEqual(var_2));
-}
-
-string ChmrInterpreter::Equal(string var_id_1, string var_id_2)
-{
-    bool exists_1 = Table()->Has(var_id_1);
-    bool exists_2 = Table()->Has(var_id_2);
-
-    if (!exists_1 || !exists_2)
-    {
-        cout << "Error: cannot compare nonexistent values\n";
-        return EMPTY_VAR_NAME;
-    }
-
-    auto var_1 = Table()->GetEntry(var_id_1);
-    auto var_2 = Table()->GetEntry(var_id_2);
-
-    return CreateTmpVar(var_1->Equal(var_2));
 }
 
 void ChmrInterpreter::GarbageCollect()
@@ -933,17 +333,6 @@ void ChmrInterpreter::DestroyScope() {
     scopes.DestroyScope();
 }
 
-int ChmrInterpreter::SetNextScopeRunState(string expr_id) {
-
-    if (!Table()->Has(expr_id)) {
-        cout << "Error: can't evaluate a nonexistent expression\n";
-        return FAIL;
-    }
-
-    scopes.SetNextScopeRunStat(Table()->GetEntry(expr_id)->ToBool());
-    return SUCCEED;
-}
-
 int ChmrInterpreter::PrintVar(string var_id, char end)
 {
 
@@ -953,7 +342,7 @@ int ChmrInterpreter::PrintVar(string var_id, char end)
         return FAIL;
     }
 
-    auto obj = Table()->GetEntry(var_id);
+    ChimeraObject *obj = Table()->GetEntry(var_id);
     cout << *obj << end;
 
     return SUCCEED;
@@ -964,49 +353,24 @@ void ChmrInterpreter::EatAst(AstNode *root) {
         return;
     }
 
-    trees.push_back(root);
+    ast_trees.push_back(root);
 
     ProcessCtrlStructure(root);
 
-    if (!found_control_block) {
-        if (jump_points_process.size() > 0) {
-            for(auto point : jump_points_process) {
-                auto point_type = trees[point.jump_point];
-
-                if (point_type->Type() == CTRL_BLOCK_CMD) {
-                    if (
-                        point_type->GetLeft()->Type() == IF_BLOCK_CMD
-                        || point_type->GetLeft()->Type() == WHILE_BLOCK_CMD
-                    ) {
-                        jump_points.CreateNewBlock();
-                        jump_points.AddJpToBlock(point.jump_point);
-                    }
-                    else if (
-                        point_type->GetLeft()->Type() == ELIF_BLOCK_CMD
-                        || point_type->GetLeft()->Type() == ELSE_BLOCK_CMD
-                    ) {
-                        jump_points.AddJpToBlock(point.jump_point);
-                        jump_points.CloseBlock();
-                        jump_points.CreateNewBlock(true);
-                        jump_points.AddJpToBlock(point.jump_point);
-                    }
-                }
-                else if (point_type->Type() == END_BLOCK_CMD) {
-                    jump_points.AddJpToBlock(point.jump_point);
-                    jump_points.CloseBlock();
-                }
-            }
+    if (cur_scope_level == 0) {
+        if (jump_points.size() > 0) {
+            ConvertJumpPointsToScopeTree();
         }
 
-        while(cur_instruction < trees.size()) {
-            RunAst(trees[cur_instruction]);
+        while(cur_instruction < ast_trees.size()) {
+            RunAst(ast_trees[cur_instruction]);
             cur_instruction++;
             GarbageCollect();
         }
 
-        if (jump_points_process.size() > 0) {
-            jump_points_process.clear();
-            jump_points.Clear();
+        if (jump_points.size() > 0) {
+            jump_points.clear();
+            scope_tree.Clear();
         }
     }
 }
@@ -1016,32 +380,32 @@ string ChmrInterpreter::RunAst(AstNode *root) {
     switch(root->Type()) {
         case PRINT_CMD: {
             for(size_t i = 0; i < root->Size(AstNode::LEFT); i++) {
-                auto print_data = RunAst(root->GetLeft(i));
+                string print_data = RunAst(root->GetFromLeftNodes(i));
                 PrintVar(print_data, ' ');
             }
             cout << '\n';
             break;
         }
         case BIND_CMD: {
-            auto to = RunAst(root->GetLeft());
-            auto from = RunAst(root->GetRight());
-            auto type = RunAst(root->GetMiddle());
+            string to = RunAst(root->GetFromLeftNodes());
+            string from = RunAst(root->GetFromRightNodes());
+            string type = RunAst(root->GetFromMiddleNodes());
             return Bind(to, from, type);
         }
         case MAKE_UNION_CMD: {
-            auto to = RunAst(root->GetLeft());
-            auto from = RunAst(root->GetRight());
+            string to = RunAst(root->GetFromLeftNodes());
+            string from = RunAst(root->GetFromRightNodes());
             vector<string> types;
 
             for(size_t i = 0; i < root->Size(AstNode::MIDDLE); i++) {
-                types.push_back(RunAst(root->GetMiddle(i)));
+                types.push_back(RunAst(root->GetFromMiddleNodes(i)));
             }
 
             return MakeUnion(to, types, from, types.empty());
         }
         case REBIND_CMD: {
-            auto to = RunAst(root->GetLeft());
-            auto from = RunAst(root->GetRight());
+            string to = RunAst(root->GetFromLeftNodes());
+            string from = RunAst(root->GetFromRightNodes());
 
             bool exists = Table()->Has(to);
             bool is_child = Table()->CameFromVar(to);
@@ -1053,11 +417,11 @@ string ChmrInterpreter::RunAst(AstNode *root) {
             return Rebind(to, from);
         }
         case REFBIND_CMD: {
-            auto ref = RunAst(root->GetLeft());
-            auto var = RunAst(root->GetRight());
+            string ref = RunAst(root->GetFromLeftNodes());
+            string var = RunAst(root->GetFromRightNodes());
             string type = "";
             if (root->Size(AstNode::MIDDLE) > 0) {
-                type = RunAst(root->GetMiddle());
+                type = RunAst(root->GetFromMiddleNodes());
             }
             else {
                 ref = Table()->GetParent(ref);
@@ -1065,45 +429,49 @@ string ChmrInterpreter::RunAst(AstNode *root) {
             return RefBind(ref, var, type);
         }
         case MAKE_LIST_CMD: {
-            auto id = RunAst(root->GetLeft());
-            auto type = RunAst(root->GetRight());
+            string id = RunAst(root->GetFromLeftNodes());
+            vector<string> type;
+            for(size_t i = 0; i < root->Size(AstNode::RIGHT); i++) {
+                type.push_back(RunAst(root->GetFromRightNodes(i)));
+            }
+
             if (root->Size(AstNode::MIDDLE) > 0) {
-                auto expr = RunAst(root->GetMiddle());
-                auto list = MakeList(id, type);
-                return ReassignContainer(list, expr);
+                string expr = RunAst(root->GetFromMiddleNodes());
+                string list = MakeArray(id, type, Table());
+                return ReassignContainer(list, expr, Table());
             }
             else {
-                return MakeList(id, type);
+                return MakeArray(id, type, Table());
             }
         }
         case MAKE_MAP_CMD: {
-            auto id = RunAst(root->GetLeft());
-            auto key = RunAst(root->GetMiddle());
-            auto val = RunAst(root->GetRight());
-            return MakeMap(id, key, val);
+            string id = RunAst(root->GetFromLeftNodes());
+            string key = RunAst(root->GetFromMiddleNodes());
+            string val = RunAst(root->GetFromRightNodes());
+            return MakeMap(id, key, val, Table());
         }
         case ADDITION_CMD:
         case SUBTRACTION_CMD:
         case MULTIPLY_CMD:
         case DIVIDE_CMD:
         case POW_CMD: {
-            auto left = RunAst(root->GetLeft());
-            auto right = RunAst(root->GetRight());
+            string left = RunAst(root->GetFromLeftNodes());
+            string right = RunAst(root->GetFromRightNodes());
     
             if (root->Type() == ADDITION_CMD) {
-                Add(left, right);
+                Add(left, right, Table());
             }
             else if (root->Type() == SUBTRACTION_CMD) {
-                Subtract(left, right);
+                Subtract(left, right, Table());
             }
             else if (root->Type() == MULTIPLY_CMD) {
-                Multiply(left, right);
+                Multiply(left, right, Table());
             }
             else if (root->Type() == DIVIDE_CMD) {
-                Divide(left, right);
+                Divide(left, right, Table());
             }
             else if (root->Type() == POW_CMD) {
-                Pow(left, right);
+                Pow(left, right, Table());
             }
             
             return left;
@@ -1113,73 +481,67 @@ string ChmrInterpreter::RunAst(AstNode *root) {
         case GREATER_CMD:
         case GREATER_EQ_CMD:
         case EQ_CMD: {
-            auto left = RunAst(root->GetLeft());
-            auto right = RunAst(root->GetRight());
+            string left = RunAst(root->GetFromLeftNodes());
+            string right = RunAst(root->GetFromRightNodes());
 
             if (root->Type() == LESS_CMD) {
-                return Less(left, right);
+                return Less(left, right, Table());
             }
             else if (root->Type() == LESS_EQ_CMD) {
-                return LessEqual(left, right);
+                return LessEqual(left, right, Table());
             }
             else if (root->Type() == GREATER_CMD) {
-                return Greater(left, right);
+                return Greater(left, right, Table());
             }
             else if (root->Type() == GREATER_EQ_CMD) {
-                return GreaterEqual(left, right);
+                return GreaterEqual(left, right, Table());
             }
             else if (root->Type() == EQ_CMD) {
-                return Equal(left, right);
+                return Equal(left, right, Table());
             }
 
             break;
         }
         case AND_CMD:
         case OR_CMD:{
-            auto left = RunAst(root->GetLeft());
-            auto right = RunAst(root->GetRight());
-
-            if (root->Type() == AND_CMD) {
-                return And(left, right);
-            }
-            else {
-                return Or(left, right);
-            }
+            string left = RunAst(root->GetFromLeftNodes());
+            string right = RunAst(root->GetFromRightNodes());
+            return root->Type() == AND_CMD ? And(left, right, Table()) : Or(left, right, Table());
         }
         case NOT_CMD: {
-            auto val = RunAst(root->GetLeft());
-            return Not(val);
+            string val = RunAst(root->GetFromLeftNodes());
+            return Not(val, Table());
         }
         case CAST_TYPE_CMD: {
-            auto val = RunAst(root->GetLeft());
-            auto type_to = RunAst(root->GetRight());
-            return Cast(val, type_to);
+            string val = RunAst(root->GetFromLeftNodes());
+            string type_to = RunAst(root->GetFromRightNodes());
+            return CastVarTo(val, type_to);
         }
         case PUT_IN_CONTAINER_CMD: {
-            auto list = Table()->GetParent(RunAst(root->GetLeft()));
-            auto val = RunAst(root->GetRight());
-            return PutInContainer(list, val);
+            string list = Table()->GetParent(RunAst(root->GetFromLeftNodes()));
+            string val = RunAst(root->GetFromRightNodes());
+            return PutInArray(list, val, Table());
         }
         case PUT_IN_MAP_CMD: {
-            auto map = Table()->GetParent(RunAst(root->GetLeft()));
-            auto key = RunAst(root->GetMiddle());
-            auto val = RunAst(root->GetRight());
-            return PutInMap(map, key, val);
+            string map = Table()->GetParent(RunAst(root->GetFromLeftNodes()));
+            string key = RunAst(root->GetFromMiddleNodes());
+            string val = RunAst(root->GetFromRightNodes());
+            return PutInMap(map, key, val, Table());
         }
         case GET_FROM_CONTAINER_CMD: {
-            auto container = RunAst(root->GetLeft());
-            auto index = RunAst(root->GetRight());
-            return GetFromContainer(container, index);
+            string container = RunAst(root->GetFromLeftNodes());
+            string index = RunAst(root->GetFromRightNodes());
+            return GetFromContainer(container, index, Table());
         }
         case SET_IN_CONTAINER_CMD: {
-            auto container = Table()->GetParent(RunAst(root->GetLeft()));
-            auto index = RunAst(root->GetMiddle());
-            auto new_val = RunAst(root->GetRight());
-            return SetInContainer(container, index, new_val);
+            string container = Table()->GetParent(RunAst(root->GetFromLeftNodes()));
+            string index = RunAst(root->GetFromMiddleNodes());
+            string new_val = RunAst(root->GetFromRightNodes());
+            return SetInContainer(container, index, new_val, Table());
         }
         case GET_CONTAINER_SIZE_CMD: {
-            auto container = RunAst(root->GetLeft());
-            return GetContainerSize(container);
+            string container = RunAst(root->GetFromLeftNodes());
+            return GetContainerSize(container, Table());
         }
         case RAW_DATA_CMD: {
             string data_name;
@@ -1202,42 +564,62 @@ string ChmrInterpreter::RunAst(AstNode *root) {
             else if (root->Value().type == BOOL_NODE_TYPE) {
                 return CreateTmpVar(root->Value().b);
             }
+            else if (root->Value().type == ARRAY_NODE_TYPE) {
+                string arr;
+                if (root->Size(AstNode::LEFT) > 0) {
+                    string var_name = RunAst(root->GetFromLeftNodes());
+                    
+                    arr = MakeArray(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, Table());
+
+                    for(size_t i = 0; i < root->Size(AstNode::LEFT); i++) {
+                        if (i == 0) {
+                            PutInArray(arr, var_name, Table());
+                            continue;
+                        }
+                        PutInArray(arr, RunAst(root->GetFromLeftNodes(i)), Table());
+                    }
+                }
+
+                arr = arr.empty() ? MakeArray(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, Table()) : arr;
+                return arr;
+            }
             else if (root->Value().type == VAR_TYPE_NODE_TYPE) {
                 return root->Value().s;
             } else if (root->Value().type == ID_NODE_TYPE) {
                 if (!Table()->Has(root->Value().s)) {
                     return root->Value().s;
                 }
-                return CloneToTemp(root->Value().s);;
+                return CloneVarToTempVar(root->Value().s);;
             }
                 
             break;
         }
         case CTRL_BLOCK_CMD: {
-            RunAst(root->GetLeft());
+            RunAst(root->GetFromLeftNodes());
             break;
         }
         case IF_BLOCK_CMD: {
-            auto jump = jump_points[Index()];
-            auto next = jump->Next();
+            CircularList *jump_points = scope_tree[ScopeLevel()];
+            size_t next_jump_point = jump_points->Next();
             cur_stack_level.push(scopes.Size());
-            auto can_run = Table()->GetEntry(RunAst(root->GetLeft()))->ToBool();
-            found_control_block++;
+            bool can_run = Table()->GetEntry(RunAst(root->GetFromLeftNodes()))->ToBool();
+            IncreaseScopeLevel();
         
             if (can_run) {
                 CreateScope(GEN_SCOPE);
             }
             else {
-                GoTo(next);
+                GoTo(next_jump_point);
             }
             
             break;
         }
         case ELIF_BLOCK_CMD: {
-            auto jump = jump_points[Index()-1];
-            auto next = jump->Next();
-            if (cur_stack_level.top() == scopes.Size()) {
-                auto can_run = Table()->GetEntry(RunAst(root->GetLeft()))->ToBool();
+            CircularList *jump = scope_tree[ScopeLevel()-1];
+            size_t next = jump->Next();
+            bool prev_if_branch_ran = cur_stack_level.top() != scopes.Size();
+            if (!prev_if_branch_ran) {
+                bool can_run = Table()->GetEntry(RunAst(root->GetFromLeftNodes()))->ToBool();
 
                 if (can_run) {
                     CreateScope(GEN_SCOPE);
@@ -1252,9 +634,10 @@ string ChmrInterpreter::RunAst(AstNode *root) {
             break;
         }
         case ELSE_BLOCK_CMD: {
-            auto jump = jump_points[Index()-1];
-            auto next = jump->Next();
-            if (cur_stack_level.top() == scopes.Size()) {
+            CircularList *jump = scope_tree[ScopeLevel()-1];
+            size_t next = jump->Next();
+            bool prev_if_branch_ran = cur_stack_level.top() != scopes.Size();
+            if (!prev_if_branch_ran) {
                 CreateScope(GEN_SCOPE);
             }
             else {
@@ -1263,11 +646,11 @@ string ChmrInterpreter::RunAst(AstNode *root) {
             break;
         }
         case WHILE_BLOCK_CMD: {
-            auto jump = jump_points[Index()];
-            auto next = jump->Next();
-            auto can_run = Table()->GetEntry(RunAst(root->GetLeft()))->ToBool();
+            CircularList *jump = scope_tree[ScopeLevel()];
+            size_t next = jump->Next();
+            bool can_run = Table()->GetEntry(RunAst(root->GetFromLeftNodes()))->ToBool();
             cur_stack_level.push(scopes.Size());
-            found_control_block++;
+            IncreaseScopeLevel();
 
             if (can_run) {
                 CreateScope(GEN_SCOPE);
@@ -1285,14 +668,14 @@ string ChmrInterpreter::RunAst(AstNode *root) {
             break;
         }
         case END_BLOCK_CMD: {
-            found_control_block--;
-            auto jump = jump_points[Index()];
-            auto info = jump->PrevInfo(true);
-            bool is_ctrl = trees[info.jump_point]->Type() == CTRL_BLOCK_CMD;
-            bool is_while = is_ctrl && trees[info.jump_point]->GetLeft()->Type() == WHILE_BLOCK_CMD;
+            DecreaseScopeLevel();
+            CircularList *jump = scope_tree[ScopeLevel()];
+            JumpInfo info = jump->PrevInfo(true);
+            bool is_ctrl = ast_trees[info.jump_point]->Type() == CTRL_BLOCK_CMD;
+            bool is_while = is_ctrl && ast_trees[info.jump_point]->GetFromLeftNodes()->Type() == WHILE_BLOCK_CMD;
 
             if(is_while && info.can_jump) {
-                jump_points.MoveToLastNode(Index());
+                scope_tree.MoveToLastNode(ScopeLevel());
                 GoTo(jump->PrevInfo().jump_point);
             }
             else {
@@ -1312,7 +695,9 @@ string ChmrInterpreter::RunAst(AstNode *root) {
             DestroyScope();
             break;
         }
-        default: {}
+        default: {
+            cout << "Error: command not recognized\n";
+        }
     }
 
     return EMPTY_VAR_NAME;

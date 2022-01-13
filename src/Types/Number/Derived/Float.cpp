@@ -72,7 +72,7 @@ int Float::Divide(Number &other) {
 
 int Float::Pow(Number &other) {
     try {
-        auto other_num = GetOtherNumber(other);
+        long double other_num = GetOtherNumber(other);
         m_data.floating = pow(m_data.floating, other_num);
     }
     catch (const char *msg) {

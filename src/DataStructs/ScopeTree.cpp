@@ -7,96 +7,109 @@ ScopeTree::~ScopeTree() {
 }
 
 void ScopeTree::MoveToLevel(size_t level) {
-    while(level != cur_block->depth) {
-        if (level > cur_block->depth) {
-            if (cur_block->children.empty()) {
+    while(level != cur_block->m_depth) {
+        if (level > cur_block->m_depth) {
+            if (cur_block->m_children.empty()) {
                 break;
             }
-            auto size = cur_block->children.size();
-            cur_block = cur_block->children[cur_block->cur_child % size];
+            size_t size = cur_block->m_children.size();
+            cur_block = cur_block->m_children[cur_block->m_cur_child % size];
         }
         else {
-            if (!cur_block->parent) {
+            if (!cur_block->m_parent) {
                 break;
             }
-            cur_block = cur_block->parent;
+            cur_block = cur_block->m_parent;
         }
     }
 }
 
 void ScopeTree::MoveToNextNode(size_t index) {
-    cur_block->parent->cur_child++;
-    auto cur_index = cur_block->parent->cur_child;
-    auto size = cur_block->parent->children.size();
-    cur_block = cur_block->parent->children[cur_index % size];
+    cur_block->m_parent->m_cur_child++;
+    size_t cur_index = cur_block->m_parent->m_cur_child;
+    size_t size = cur_block->m_parent->m_children.size();
+    cur_block = cur_block->m_parent->m_children[cur_index % size];
 }
 
-void ScopeTree::RemoveParent(shared_ptr<ScopeBlock> child) {
-    for (auto c : child->children) {
-        RemoveParent(c);
+void ScopeTree::AvoidCircularRefsBugs(shared_ptr<ScopeBlock> child) {
+    for (shared_ptr<ScopeBlock> c : child->m_children) {
+        AvoidCircularRefsBugs(c);
     }
-    child->parent.reset();
+    child->m_parent = nullptr;
 }
 
 void ScopeTree::CreateNewBlock(bool is_if_link) {
+    size++;
     if (!cur_block) {
         root = make_shared<ScopeBlock>(ScopeBlock());
         cur_block = root;
-        return;
-    }
-    auto new_block = make_shared<ScopeBlock>(ScopeBlock());
 
-    new_block->depth = cur_block->depth + 1;
-    new_block->parent = cur_block;
-    new_block->is_if_link = is_if_link;
-    cur_block->children.push_back(new_block);
+        // makes sure the root of a tree is never an if-statement
+        if(!is_if_link) {
+            return;
+        }
+    }
+
+    shared_ptr<ScopeBlock> new_block = make_shared<ScopeBlock>(ScopeBlock());
+
+    new_block->m_depth = cur_block->m_depth + 1;
+    new_block->m_parent = cur_block;
+    new_block->m_is_if_link = is_if_link;
+    cur_block->m_children.push_back(new_block);
     cur_block = new_block;
 }
 
 void ScopeTree::AddJpToBlock(size_t jump_point) {
-    cur_block->jump_points.Add(jump_point);
+    cur_block->m_jump_points.Add(jump_point);
 }
 
 void ScopeTree::CloseBlock() {
-    if (cur_block->parent) {
-        cur_block = cur_block->parent;
+    if (cur_block->m_parent) {
+        cur_block = cur_block->m_parent;
     }
 }
 
 void ScopeTree::MoveToLastNode(size_t level) {
     if (level >= 1) {
-        if (cur_block && level != cur_block->depth) {
+        if (cur_block && level != cur_block->m_depth) {
             MoveToLevel(level);
-            cur_block->parent->cur_child -= 2;
-            MoveToNextNode(level);
         }
-        else {
-            cur_block->parent->cur_child -= 2;
-            MoveToNextNode(level);
-        }
+
+        cur_block->m_parent->m_cur_child -= 2;
+        MoveToNextNode(level);
     }
 }
 
 void ScopeTree::Clear() {
     if (root) {
-        RemoveParent(root);
+        AvoidCircularRefsBugs(root);
         cur_block.reset();
         root.reset();
     }
+}
+
+size_t ScopeTree::Size() {
+    return size;
 }
 
 CircularList* ScopeTree::operator[](size_t index) {
     
     MoveToLevel(index);
 
-    auto ret = &cur_block->jump_points;
-    if (cur_block->jump_points.IsLastElement() && cur_block->parent) {
+    if(cur_block->m_jump_points.IsEmpty()) {
+        index++;
+        MoveToLevel(index);
+    }
+
+    CircularList *cur_jps = &cur_block->m_jump_points;
+    if (cur_block->m_jump_points.AtLastElement() && cur_block->m_parent) {
         MoveToNextNode(index);
-        if (cur_block->is_if_link) {
-            ret->Next();
-            ret = &cur_block->jump_points;
+        if (cur_block->m_is_if_link) {
+            CircularList *prev_jps = cur_jps;
+            cur_jps = &cur_block->m_jump_points;
+            prev_jps->Next();
         }
     }
 
-    return ret;
+    return cur_jps;
 }

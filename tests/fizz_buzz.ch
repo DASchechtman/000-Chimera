@@ -1,6 +1,6 @@
-iters: int = 1
-
-while true start
+print|"starting"|
+repeat 20 with iters start
+$
     fizz: int = 3
     buzz: int = 5
     fizz_cpy: float = iters
@@ -32,7 +32,8 @@ while true start
     end
 
     print|output|
-    iters = (add iters 1)
+    $
+    print|iters|
 end
 
 print|"program done"|

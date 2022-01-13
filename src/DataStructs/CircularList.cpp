@@ -6,6 +6,10 @@ void CircularList::Add(size_t data) {
     m_list.push_back(ji);
 }
 
+bool CircularList::IsEmpty() {
+    return m_list.empty();
+}
+
 size_t CircularList::Cur() {
     return m_list[m_cur_index%m_list.size()].jump_point;
 }
@@ -35,6 +39,6 @@ JumpInfo& CircularList::PrevInfo(bool peek) {
     return m_list[(m_cur_index-1)%m_list.size()];
 }
 
-bool CircularList::IsLastElement() {
+bool CircularList::AtLastElement() {
     return (m_cur_index % m_list.size()) == m_list.size()-1;
 }

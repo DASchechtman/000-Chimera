@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include "../Types.hpp"
 
 using namespace std;
 
@@ -22,6 +23,7 @@ enum VAR_TYPES {
     CHAR_DATA_TYPE, 
     STRING_DATA_TYPE, 
     BOOL_DATA_TYPE,
+    UNKNOWN_DATA_TYPE,
     UNDEFINED_DATA_TYPE, 
 };
 
@@ -45,6 +47,7 @@ const string UNDEFINED_TYPE_NAME = "undefined";
 const string TEXT_TYPE_NAME = "text";
 const string NUMBER_TYPE_NAME = "number";
 const string MAP_TYPE_NAME = "map";
+const string UNKNOWN_TYPE_NAME = "unknown";
 
 const string EMPTY_VAR_NAME;
 
@@ -54,8 +57,7 @@ const int SUCCEED = 0;
 // used for when a scope isn't runnable as a placeholder return value
 const int NON_RUNNABLE = 2;
 
-typedef long long int64;
-typedef long double dbl128;
+
 
 union ObjectData {
     string *str;

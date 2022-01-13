@@ -73,7 +73,7 @@ int Double::Divide(Number &other) {
 
 int Double::Pow(Number &other) {
     try {
-        auto other_num = GetOtherNumber(other);
+        long double other_num = GetOtherNumber(other);
         m_data.decimal = pow(m_data.decimal, other_num);
     }
     catch (const char *msg) {

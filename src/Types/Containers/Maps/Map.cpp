@@ -62,6 +62,14 @@ void Map::SetToNewContainer(Container *new_container)
     }
 }
 
+void Map::SetDeclaredType(VAR_TYPES type) {
+    m_declared_type = type;
+}
+
+VAR_TYPES Map::GetDeclaredType() {
+    return m_declared_type;
+}
+
 size_t Map::Hash(ChimeraObject *item)
 {
     size_t total_size = Size() == 0 ? 1 : Size();
@@ -82,7 +90,7 @@ void Map::ResizeIfNeeded(size_t new_size)
     }
     else if (new_size >= m_map.size())
     {
-        auto size = new_size - m_map.size();
+        size_t size = new_size - m_map.size();
         for (size_t i = 0; i < size; i++)
         {
             m_map.push_back(nullptr);
@@ -179,8 +187,8 @@ int Map::MapData(size_t hash, VAR_TYPES key_type, ChimeraObject *data, MapItem i
 
 void Map::RehashIndexes()
 {
-    auto copy = m_map;
-    auto new_size = m_map.size() * 2;
+    vector<list<MapItem>*> copy = m_map;
+    size_t new_size = m_map.size() * 2;
 
     for (size_t i = 0; i < new_size; i++)
     {
@@ -198,7 +206,7 @@ void Map::RehashIndexes()
         }
     }
 
-    for (const auto item : copy)
+    for (list<MapItem>* const item : copy)
     {
         if (item != nullptr)
         {
@@ -387,7 +395,7 @@ ChimeraObject *Map::GetItem(bool index)
 
 void Map::Clear()
 {
-    for (const auto *list : m_map)
+    for (const list<MapItem> *list : m_map)
     {
         if (list != nullptr)
         {
@@ -404,10 +412,10 @@ string Map::ToStr()
 {
     stringstream str_val;
     str_val << "{";
-    auto max_size = Size();
+    size_t max_size = Size();
     size_t index = 0;
 
-    for (const auto &item : m_map)
+    for (const list<MapItem> *item : m_map)
     {
         if (item == nullptr)
         {
@@ -551,6 +559,7 @@ bool Map::ToBool()
 ChimeraObject *Map::Clone()
 {
     Map *map = new Map(m_key_type, m_val_type);
+    map->SetDeclaredType(m_declared_type);
     map->SetToNewContainer(this);
     return map;
 }

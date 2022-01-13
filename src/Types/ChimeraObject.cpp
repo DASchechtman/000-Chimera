@@ -24,14 +24,14 @@ bool ChimeraObject::PerformCompareOper(ChimeraObject *other, COMPARE_OPERS oper_
 
     if (other_is_num && self_is_num)
     {
-        auto self_val = ((Number *)this)->GetNumber();
-        auto other_val = ((Number *)other)->GetNumber();
+        long double self_val = ((Number *)this)->GetNumber();
+        long double other_val = ((Number *)other)->GetNumber();
         ret = Compare(self_val, other_val, oper_code);
     }
     else if (other_is_text && self_is_text)
     {
-        auto self_text = ((Text *)this)->GetText();
-        auto other_text = ((Text *)other)->GetText();
+        string self_text = ((Text *)this)->GetText();
+        string other_text = ((Text *)other)->GetText();
         ret = Compare(self_text, other_text, oper_code);
     }
     else if (other_is_bool && self_is_bool && oper_code == EQUAL_OPER)

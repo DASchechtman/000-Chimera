@@ -80,6 +80,7 @@ private:
     vector<list<MapItem>*> m_map;
     VAR_TYPES m_key_type = UNDEFINED_DATA_TYPE;
     VAR_TYPES m_val_type = UNDEFINED_DATA_TYPE;
+    VAR_TYPES m_declared_type = UNDEFINED_DATA_TYPE;
     size_t m_size = 0;
 
     // used to determine when to resize the map and rehash all it's keys
@@ -113,6 +114,8 @@ public:
     int PutItem(ChimeraObject *data);
     size_t Size();
     void SetToNewContainer(Container *new_container);
+    void SetDeclaredType(VAR_TYPES type);
+    VAR_TYPES GetDeclaredType();
 
     int SetItem(int64 index, ChimeraObject *data);
     int SetItem(float index, ChimeraObject *data);

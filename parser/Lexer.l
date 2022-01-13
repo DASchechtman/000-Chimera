@@ -134,7 +134,7 @@ string TextVal(const char* str) {
         delete[] c;
     }
 
-    return ret_str.c_str();
+    return ret_str;
 }
 
 int yywrap() {return 1;}

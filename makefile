@@ -9,13 +9,20 @@ build:
 	bison -d ./parser/Parser.y -o ./parser/Parser.cpp
 	flex ./parser/Lexer.l
 	mv lex.yy.c ./parser/
-	g++ -Wall ./parser/Parser.cpp ./parser/lex.yy.c $(PARSER_UTILS) $(SRCS) -o $(EXE_NAME)
+	g++ -std=c++11 -Wall ./parser/Parser.cpp ./parser/lex.yy.c $(PARSER_UTILS) $(SRCS) -o $(EXE_NAME)
 
 debug:
 	bison -d ./parser/Parser.y -o ./parser/Parser.cpp
 	flex ./parser/Lexer.l
 	mv lex.yy.c ./parser/
 	g++ -g -Wall ./parser/Parser.cpp ./parser/lex.yy.c $(PARSER_UTILS) $(SRCS) -o $(EXE_NAME)
+
+profile:
+	bison -d ./parser/Parser.y -o ./parser/Parser.cpp
+	flex ./parser/Lexer.l
+	mv lex.yy.c ./parser/
+	g++ -pg -Wall ./parser/Parser.cpp ./parser/lex.yy.c $(PARSER_UTILS) $(SRCS) -o $(EXE_NAME)
+	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file=valgrind-out.txt ./$(EXE_NAME) ./tests/terminal_script.ch
 
 run:
 	./$(EXE_NAME)

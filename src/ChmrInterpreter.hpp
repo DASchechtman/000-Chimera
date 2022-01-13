@@ -20,10 +20,12 @@
 #include "Types/Composables/ComposableOr/ChimeraUnion.hpp"
 #include "Types/Containers/Lists/List.hpp"
 #include "Types/Containers/Maps/Map.hpp"
+#include "InterpreterOpers/Math.hpp"
+#include "InterpreterOpers/Boolean.hpp"
+#include "InterpreterOpers/ContainerOpers.hpp"
+#include "InterpreterOpers/CompareOper.hpp"
 
 using namespace std;
-
-enum OPER_CODE {ADD_CODE, SUBTRACT_CODE, MULTIPLY_CODE, DIVIDE_CODE, POW_CODE};
 
 /*
 note: in the interpreter, if a string returning method returns an empty string. that means the string failed
@@ -33,104 +35,49 @@ class ChmrInterpreter
 {
 private:
     ScopeStack scopes;
-    vector<AstNode*> trees;
-    size_t found_control_block = 0;
+    vector<AstNode*> ast_trees;
+    size_t cur_scope_level = 0;
     size_t cur_instruction = 0;
-    vector<JumpInfo> jump_points_process;
-    ScopeTree jump_points; 
+    vector<JumpInfo> jump_points;
+    ScopeTree scope_tree; 
     stack<size_t> cur_stack_level;
     size_t cur_jump_point = 0;
 
     /* used to put a lot of boilerplate into one place for the assign/reassign actions */
     string MakeBind(string to, string from, string type);
-    /* used to put boilerplate code into one place for logical (and, or) opers */
-    string DoLogicOper(string var_id_1, string var_id_2, bool (*oper)(bool, bool));
-
-    /* used to put boilerplate code into one place for math operators */
-    int DoMath(string var_id_1, string var_id_2, OPER_CODE code, int (*oper)(ChimeraObject *obj_1, ChimeraObject *obj_2, bool is_num));
-    ChimeraObject* GetListItem(Container *list, ChimeraObject *index);
-    int SetData(ChimeraObject *to, ChimeraObject *from);
-    VAR_TYPES TypeNameToNum(string type_name);
     SymbolTable* Table();
     void ProcessCtrlStructure(AstNode *node);
-
+    void ConvertJumpPointsToScopeTree();
     void GoTo(size_t jump_point);
-    size_t NextMatchingDepthPoint(vector<JumpInfo> &points, size_t init_depth);
-    size_t Index();
+    size_t ScopeLevel();
+    void IncreaseScopeLevel();
+    void DecreaseScopeLevel();
+    string Bind(string to, string from, string type);
+    string Rebind(string to, string from);
+    string RefBind(string ref_id, string var_id, string type="");
+    string MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown=false);
+    string CloneVarToTempVar(string var_id);
+    string CastVarTo(string var_id, string type);
+    void GarbageCollect();
+    void CreateScope(string scope_type);
+    void DestroyScope();
+    int PrintVar(string var_id, char end);
+    string RunAst(AstNode* root);
+
+    template <class T>
+    string CreateTmpVar(T data);
 
     /* boilerplate for creating variable bindings */
     template <class T>
     string Create(string var_id, string type, T data);
 
-    /* 
-    used to create clone versions of already defined variables
-    for example (print|x|). x will cloned to a temp var, and that temp var would be printed to screen
-    */
     template <class T>
-    string CloneOrCreate(string to, string type, T data);
+    string CloneOrCreateVar(string to, string type, T data);
 
 public:
 
-    ~ChmrInterpreter();
-
-    // interface to control some scopestack functionality outside of the interpreter
-    bool NonRunnableScope();
-    bool ParentNonRunnableScope();
-    void OverrideRunnable();
-    void SetLoopStart();
-
-    // methods used to create bindings to user variables 
-    string Bind(string to, string from, string type);
-    string Rebind(string to, string from);
-    string RefBind(string ref_id, string var_id, string type="");
-
-    string MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown=false);
-    
-    string MakeList(string var_id, string type);
-    string MakeMap(string var_id, string key_type, string val_type);
-    
-    string PutInContainer(string list_id, string item_id);
-    string PutInMap(string map_id, string key_id, string val_id);
-    string GetFromContainer(string list_id, string index_id);
-    string SetInContainer(string list_id, string index_id, string new_item_id);
-    string ReassignContainer(string list_id_1, string list_id_2);
-    string GetContainerSize(string list_id_1);
-
-    // method used to make clones of user defined vars
-    // so that if you do say (print|(+ x 1)|). the actual
-    // value of 'x' won't be affected
-
-    string CloneToTemp(string var_id);
-
-    int Add(string var_id_1, string var_id_2);
-    int Subtract(string var_id_1, string var_id_2);
-    int Multiply(string var_id_1, string var_id_2);
-    int Divide(string var_id_1, string var_id_2);
-    int Pow(string base_id, string exp_id);
-    
-    string Cast(string var_id, string type);
-
-    string And(string var_id_1, string var_id_2);
-    string Or(string var_id_1, string var_id_2);
-    string Not(string var_id);
-
-    string Less(string var_id_1, string var_id_2);
-    string LessEqual(string var_id_1, string var_id_2);
-    string Greater(string var_id_1, string var_id_2);
-    string GreaterEqual(string var_id_1, string var_id_2);
-    string Equal(string var_id_1, string var_id_2);
-
-    void GarbageCollect();
-    void CreateScope(string scope_type);
-    void DestroyScope();
-    int SetNextScopeRunState(string expr_id);
-    int PrintVar(string var_id, char end);
-
     void EatAst(AstNode* root);
-    string RunAst(AstNode* root);
-
-    template <class T>
-    string CreateTmpVar(T data);
+    ~ChmrInterpreter();
 };
 
 // PRIVATE TEMPLATE METHODS BELOW ----------------------------------------------------------------------------------------------------------------------------------
@@ -138,33 +85,38 @@ template <class T>
 string ChmrInterpreter::Create(string var_id, string type, T data)
 {
     string new_var_name;
-    auto tbl = Table();
+    SymbolTable *tbl = Table();
 
     if (type == INT_TYPE_NAME)
     {
-        new_var_name = Table()->AddEntry(var_id, new Int());
+        new_var_name = tbl->AddEntry(var_id, new Int());
     }
     else if (type == FLOAT_TYPE_NAME)
     {
-        new_var_name = Table()->AddEntry(var_id, new Float());
+        new_var_name = tbl->AddEntry(var_id, new Float());
     }
     else if (type == DOUBLE_TYPE_NAME)
     {
-        new_var_name = Table()->AddEntry(var_id, new Double());
+        new_var_name = tbl->AddEntry(var_id, new Double());
     }
     else if (type == CHAR_TYPE_NAME)
     {
-        new_var_name = Table()->AddEntry(var_id, new Char());
+        new_var_name = tbl->AddEntry(var_id, new Char());
     }
     else if (type == STRING_TYPE_NAME)
     {
-        new_var_name = Table()->AddEntry(var_id, new String());
+        new_var_name = tbl->AddEntry(var_id, new String());
     }
     else if (type == BOOL_TYPE_NAME)
     {
-        new_var_name = Table()->AddEntry(var_id, new Bool());
+        new_var_name = tbl->AddEntry(var_id, new Bool());
     }
-    auto entry = tbl->GetEntry(new_var_name);
+    else {
+        cout << "Error: cannot not make data of type " << type << '\n';
+        return EMPTY_VAR_NAME;
+    }
+
+    ChimeraObject *entry = tbl->GetEntry(new_var_name);
 
     if (new_var_name.empty() || entry->Set(data) == 1)
     {
@@ -184,7 +136,7 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
 };
 
 template <class T>
-string ChmrInterpreter::CloneOrCreate(string to, string type, T data)
+string ChmrInterpreter::CloneOrCreateVar(string to, string type, T data)
 {
     if (!Table()->Has(to))
     {
@@ -192,7 +144,7 @@ string ChmrInterpreter::CloneOrCreate(string to, string type, T data)
     }
     else
     {
-        auto obj = Table()->GetEntry(to);
+        ChimeraObject *obj = Table()->GetEntry(to);
         if (obj->GetTypeName() != type)
         {
             return EMPTY_VAR_NAME;
