@@ -115,8 +115,10 @@ exit||
 
 a character is a single letter surrounded by single quotes, whereas a string is one or more letters surrounded by double quotes
 
-Note: you can cast any type into any other type. In the case of casting a string to a number, if the string represents a number it will be converted to that represented number. Otherwise a hash of the string will be returned
+**Note**: you can cast any type into any other type. In the case of casting a string to a number, if the string represents a number it will be converted to that represented number. Otherwise a hash of the string will be returned
 see [Operations](#opers) to learn how to cast
+
+**Note**: For container types like lists and maps, nested containers aren't supported yet. For example Chimera doesn't support 2d lists yet
 
 ### Union types
 a variable can be composed of one or more of the above base types. For example
@@ -229,6 +231,18 @@ int_list.set|0 77|
 print|int_list[0]|
 #Output: 77
 ```
+
+You can also make lists that can contain multiple types of data
+```
+multi_type_list: list<int | string | bool> = []
+multi_type_list.addTo|1|
+multi_type_list.addTo|"hello world"|
+multi_type_list.addTo|true|
+
+print|multi_type_list|
+# >>> [1, hello world, true]
+```
+
 #### ***Map***
 Maps associate one type of data with another. for example a string value can be associated with a int value
 

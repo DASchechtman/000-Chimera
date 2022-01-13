@@ -127,6 +127,9 @@ string ChimeraObject::GetTypeName()
     else if (m_type == MAP_DATA_TYPE) {
         type_name = MAP_TYPE_NAME;
     }
+    else {
+        cout << "Error: unable to get type\n";
+    }
 
     return type_name;
 }
