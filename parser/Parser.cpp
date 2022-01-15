@@ -88,13 +88,12 @@ bool for_loop_made = false;
 
 void PrintLineNo();
 void yyerror(const char* err);
-extern "C"
 extern int yylex();
 extern FILE *yyin;
 extern void yyrestart(FILE* input);
 extern char* yytext;
 
-#line 98 "./parser/Parser.cpp"
+#line 97 "./parser/Parser.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -573,17 +572,17 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   108,   108,   110,   112,   117,   122,   126,   131,   147,
-     148,   149,   150,   150,   152,   156,   169,   172,   175,   178,
-     182,   182,   184,   185,   186,   189,   193,   197,   201,   205,
-     209,   213,   217,   221,   227,   228,   229,   230,   231,   232,
-     235,   240,   247,   247,   249,   249,   251,   256,   260,   264,
-     268,   272,   276,   280,   285,   291,   298,   301,   304,   308,
-     314,   315,   315,   317,   318,   322,   327,   331,   335,   339,
-     343,   352,   356,   360,   364,   368,   372,   380,   384,   388,
-     395,   399,   403,   407,   411,   415,   419,   423,   427,   431,
-     437,   438,   439,   440,   441,   442,   443,   444,   445,   446,
-     450,   451,   453,   453
+       0,   107,   107,   109,   111,   116,   121,   125,   130,   146,
+     147,   148,   149,   149,   151,   155,   168,   171,   174,   177,
+     181,   181,   183,   184,   185,   188,   192,   196,   200,   204,
+     208,   212,   216,   220,   226,   227,   228,   229,   230,   231,
+     234,   239,   246,   246,   248,   248,   250,   255,   259,   263,
+     267,   271,   275,   279,   284,   290,   297,   300,   303,   307,
+     313,   314,   314,   316,   317,   321,   326,   330,   334,   338,
+     342,   351,   355,   359,   363,   367,   371,   379,   383,   387,
+     394,   398,   402,   406,   410,   414,   418,   422,   426,   430,
+     436,   437,   438,   439,   440,   441,   442,   443,   444,   445,
+     449,   450,   452,   452
 };
 #endif
 
@@ -1670,54 +1669,54 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 108 "./parser/Parser.y"
+#line 107 "./parser/Parser.y"
                                       { i.EatAst(MakeStartAst()); }
-#line 1676 "./parser/Parser.cpp"
+#line 1675 "./parser/Parser.cpp"
     break;
 
   case 3:
-#line 110 "./parser/Parser.y"
+#line 109 "./parser/Parser.y"
                                     { i.EatAst(MakeEndScopeAst()); }
-#line 1682 "./parser/Parser.cpp"
+#line 1681 "./parser/Parser.cpp"
     break;
 
   case 4:
-#line 112 "./parser/Parser.y"
+#line 111 "./parser/Parser.y"
                                                             {
                                     root = nullptr;
                                     i.EatAst(MakeIfDeclAst((yyvsp[-2].tmp_id)));
                                 }
-#line 1691 "./parser/Parser.cpp"
+#line 1690 "./parser/Parser.cpp"
     break;
 
   case 5:
-#line 117 "./parser/Parser.y"
+#line 116 "./parser/Parser.y"
                                                                  {
                                     root = nullptr;
                                     i.EatAst(MakeElifDeclAst((yyvsp[-2].tmp_id)));
                                 }
-#line 1700 "./parser/Parser.cpp"
+#line 1699 "./parser/Parser.cpp"
     break;
 
   case 6:
-#line 122 "./parser/Parser.y"
+#line 121 "./parser/Parser.y"
                                                  {
                                     i.EatAst(MakeElseDeclAst());
                                 }
-#line 1708 "./parser/Parser.cpp"
+#line 1707 "./parser/Parser.cpp"
     break;
 
   case 7:
-#line 126 "./parser/Parser.y"
+#line 125 "./parser/Parser.y"
                                                                {
                                     root = nullptr;
                                     i.EatAst(MakeWhileDeclAst((yyvsp[-2].tmp_id)));
                                 }
-#line 1717 "./parser/Parser.cpp"
+#line 1716 "./parser/Parser.cpp"
     break;
 
   case 8:
-#line 131 "./parser/Parser.y"
+#line 130 "./parser/Parser.y"
                                                                                       {
                                     i.EatAst(MakeNode(START_BLOCK_CMD));
 
@@ -1733,19 +1732,19 @@ yyreduce:
                                     root = nullptr;
                                     (yyval.tmp_id) = (yyvsp[-2].tmp_id)->Copy();
                                 }
-#line 1737 "./parser/Parser.cpp"
+#line 1736 "./parser/Parser.cpp"
     break;
 
   case 14:
-#line 152 "./parser/Parser.y"
+#line 151 "./parser/Parser.y"
                                                    {
                                     i.EatAst(MakeEndCtrlScopeAst());
                                 }
-#line 1745 "./parser/Parser.cpp"
+#line 1744 "./parser/Parser.cpp"
     break;
 
   case 15:
-#line 156 "./parser/Parser.y"
+#line 155 "./parser/Parser.y"
                                                      {
 
                                     auto clone = (yyvsp[-2].tmp_id)->Copy();
@@ -1758,577 +1757,577 @@ yyreduce:
                                     i.EatAst(MakeEndScopeAst());
                                     
                                 }
-#line 1762 "./parser/Parser.cpp"
+#line 1761 "./parser/Parser.cpp"
     break;
 
   case 16:
-#line 169 "./parser/Parser.y"
+#line 168 "./parser/Parser.y"
                                            {
                                     i.EatAst(MakeEndCtrlScopeAst());
                                 }
-#line 1770 "./parser/Parser.cpp"
+#line 1769 "./parser/Parser.cpp"
     break;
 
   case 17:
-#line 172 "./parser/Parser.y"
+#line 171 "./parser/Parser.y"
                                                          {
                                     i.EatAst(MakeEndCtrlScopeAst());
                                 }
-#line 1778 "./parser/Parser.cpp"
+#line 1777 "./parser/Parser.cpp"
     break;
 
   case 18:
-#line 175 "./parser/Parser.y"
+#line 174 "./parser/Parser.y"
                                                                   {
                                     i.EatAst(MakeEndCtrlScopeAst());
                                 }
-#line 1786 "./parser/Parser.cpp"
+#line 1785 "./parser/Parser.cpp"
     break;
 
   case 19:
-#line 178 "./parser/Parser.y"
+#line 177 "./parser/Parser.y"
                                                       {
                                     i.EatAst(MakeEndCtrlScopeAst());
                                 }
-#line 1794 "./parser/Parser.cpp"
+#line 1793 "./parser/Parser.cpp"
     break;
 
   case 20:
-#line 182 "./parser/Parser.y"
+#line 181 "./parser/Parser.y"
                                         {i.EatAst(root); root = nullptr;}
-#line 1800 "./parser/Parser.cpp"
+#line 1799 "./parser/Parser.cpp"
     break;
 
   case 22:
-#line 184 "./parser/Parser.y"
+#line 183 "./parser/Parser.y"
                                      { (yyval.tmp_id) = (yyvsp[0].tmp_id); }
-#line 1806 "./parser/Parser.cpp"
+#line 1805 "./parser/Parser.cpp"
     break;
 
   case 23:
-#line 185 "./parser/Parser.y"
+#line 184 "./parser/Parser.y"
                                                           { (yyvsp[-2].tmp_id)->SaveAsExtraNode((yyvsp[0].tmp_id)); (yyval.tmp_id) = (yyvsp[-2].tmp_id); }
-#line 1812 "./parser/Parser.cpp"
+#line 1811 "./parser/Parser.cpp"
     break;
 
   case 24:
-#line 186 "./parser/Parser.y"
+#line 185 "./parser/Parser.y"
                                                                {(yyvsp[-2].tmp_id)->SaveAsExtraNode((yyvsp[0].tmp_id)); (yyval.tmp_id) = (yyvsp[-2].tmp_id); }
-#line 1818 "./parser/Parser.cpp"
+#line 1817 "./parser/Parser.cpp"
     break;
 
   case 25:
-#line 189 "./parser/Parser.y"
+#line 188 "./parser/Parser.y"
                                                 { 
                                        (yyval.tmp_id) = MakeTermNode((yyvsp[0].int_val), INT_NODE_TYPE);
                                        root = (yyval.tmp_id);             
                                 }
-#line 1827 "./parser/Parser.cpp"
+#line 1826 "./parser/Parser.cpp"
     break;
 
   case 26:
-#line 193 "./parser/Parser.y"
+#line 192 "./parser/Parser.y"
                                                 { 
                                         (yyval.tmp_id) = MakeTermNode((yyvsp[0].dou_val), DOUBLE_NODE_TYPE);
                                         root = (yyval.tmp_id);          
                                 }
-#line 1836 "./parser/Parser.cpp"
+#line 1835 "./parser/Parser.cpp"
     break;
 
   case 27:
-#line 197 "./parser/Parser.y"
+#line 196 "./parser/Parser.y"
                                                 { 
                                         (yyval.tmp_id) = MakeTermNode((yyvsp[0].flo_val), FLOAT_NODE_TYPE);
                                         root = (yyval.tmp_id);            
                                 }
-#line 1845 "./parser/Parser.cpp"
+#line 1844 "./parser/Parser.cpp"
     break;
 
   case 28:
-#line 201 "./parser/Parser.y"
+#line 200 "./parser/Parser.y"
                                                 { 
                                         (yyval.tmp_id) = MakeTermNode((string)(yyvsp[0].str_val), STRING_NODE_TYPE);
                                         root = (yyval.tmp_id);                    
                                 }
-#line 1854 "./parser/Parser.cpp"
+#line 1853 "./parser/Parser.cpp"
     break;
 
   case 29:
-#line 205 "./parser/Parser.y"
+#line 204 "./parser/Parser.y"
                                                 { 
                                         (yyval.tmp_id) = MakeTermNode((yyvsp[0].char_val), CHAR_NODE_TYPE);
                                         root = (yyval.tmp_id);
                                 }
-#line 1863 "./parser/Parser.cpp"
+#line 1862 "./parser/Parser.cpp"
     break;
 
   case 30:
-#line 209 "./parser/Parser.y"
+#line 208 "./parser/Parser.y"
                                                 { 
                                         (yyval.tmp_id) = MakeTermNode((yyvsp[0].bol_val), BOOL_NODE_TYPE);
                                         root = (yyval.tmp_id);
                                 }
-#line 1872 "./parser/Parser.cpp"
+#line 1871 "./parser/Parser.cpp"
     break;
 
   case 31:
-#line 213 "./parser/Parser.y"
+#line 212 "./parser/Parser.y"
                                                 { 
                                         (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                         root = (yyval.tmp_id);         
                                 }
-#line 1881 "./parser/Parser.cpp"
+#line 1880 "./parser/Parser.cpp"
     break;
 
   case 32:
-#line 217 "./parser/Parser.y"
+#line 216 "./parser/Parser.y"
                                                                            {
                                     (yyval.tmp_id) = MakeArrayTermAst((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 1890 "./parser/Parser.cpp"
+#line 1889 "./parser/Parser.cpp"
     break;
 
   case 33:
-#line 221 "./parser/Parser.y"
+#line 220 "./parser/Parser.y"
                                           {
                                     (yyval.tmp_id) = MakeTermNode(0, ARRAY_NODE_TYPE);
                                     root = (yyval.tmp_id);
                                 }
-#line 1899 "./parser/Parser.cpp"
+#line 1898 "./parser/Parser.cpp"
     break;
 
   case 34:
-#line 227 "./parser/Parser.y"
+#line 226 "./parser/Parser.y"
                                                 { (yyval.tmp_id) = MakeDataTypeNode((string)(yyvsp[0].types)); root = (yyval.tmp_id); }
-#line 1905 "./parser/Parser.cpp"
+#line 1904 "./parser/Parser.cpp"
     break;
 
   case 35:
-#line 228 "./parser/Parser.y"
+#line 227 "./parser/Parser.y"
                                                 { (yyval.tmp_id) = MakeDataTypeNode((string)(yyvsp[0].types)); root = (yyval.tmp_id); }
-#line 1911 "./parser/Parser.cpp"
+#line 1910 "./parser/Parser.cpp"
     break;
 
   case 36:
-#line 229 "./parser/Parser.y"
+#line 228 "./parser/Parser.y"
                                                 { (yyval.tmp_id) = MakeDataTypeNode((string)(yyvsp[0].types)); root = (yyval.tmp_id); }
-#line 1917 "./parser/Parser.cpp"
+#line 1916 "./parser/Parser.cpp"
     break;
 
   case 37:
-#line 230 "./parser/Parser.y"
+#line 229 "./parser/Parser.y"
                                                 { (yyval.tmp_id) = MakeDataTypeNode((string)(yyvsp[0].types)); root = (yyval.tmp_id); }
-#line 1923 "./parser/Parser.cpp"
+#line 1922 "./parser/Parser.cpp"
     break;
 
   case 38:
-#line 231 "./parser/Parser.y"
+#line 230 "./parser/Parser.y"
                                                 { (yyval.tmp_id) = MakeDataTypeNode((string)(yyvsp[0].types)); root = (yyval.tmp_id); }
-#line 1929 "./parser/Parser.cpp"
+#line 1928 "./parser/Parser.cpp"
     break;
 
   case 39:
-#line 232 "./parser/Parser.y"
+#line 231 "./parser/Parser.y"
                                                 { (yyval.tmp_id) = MakeDataTypeNode((string)(yyvsp[0].types)); root = (yyval.tmp_id); }
-#line 1935 "./parser/Parser.cpp"
+#line 1934 "./parser/Parser.cpp"
     break;
 
   case 40:
-#line 235 "./parser/Parser.y"
+#line 234 "./parser/Parser.y"
                                                                             {
                                    (yyval.tmp_id) = (yyvsp[-4].tmp_id);
                                    (yyval.tmp_id)->SaveAsExtraNode((yyvsp[0].tmp_id));
                                    root = (yyval.tmp_id);
                                 }
-#line 1945 "./parser/Parser.cpp"
+#line 1944 "./parser/Parser.cpp"
     break;
 
   case 41:
-#line 240 "./parser/Parser.y"
+#line 239 "./parser/Parser.y"
                                                                            {
                                     (yyval.tmp_id) = (yyvsp[-4].tmp_id);
                                     (yyval.tmp_id)->SaveAsExtraNode((yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 1955 "./parser/Parser.cpp"
+#line 1954 "./parser/Parser.cpp"
     break;
 
   case 46:
-#line 251 "./parser/Parser.y"
+#line 250 "./parser/Parser.y"
                                    {
                                     (yyval.tmp_id) = MakeTermNode((yyvsp[0].id), ID_NODE_TYPE);
                                     root = (yyval.tmp_id); 
                                 }
-#line 1964 "./parser/Parser.cpp"
+#line 1963 "./parser/Parser.cpp"
     break;
 
   case 47:
-#line 256 "./parser/Parser.y"
+#line 255 "./parser/Parser.y"
                                                                            {
                                     (yyval.tmp_id) = MakeAssignAst((yyvsp[-7].tmp_id), (yyvsp[-4].tmp_id), (yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 1973 "./parser/Parser.cpp"
+#line 1972 "./parser/Parser.cpp"
     break;
 
   case 48:
-#line 260 "./parser/Parser.y"
+#line 259 "./parser/Parser.y"
                                                                                {
                                     (yyval.tmp_id) = MakeUnionAst((yyvsp[-7].tmp_id), (yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 1982 "./parser/Parser.cpp"
+#line 1981 "./parser/Parser.cpp"
     break;
 
   case 49:
-#line 264 "./parser/Parser.y"
+#line 263 "./parser/Parser.y"
                                                                                   {
                                     (yyval.tmp_id) = MakeUnionAst((yyvsp[-7].tmp_id), (yyvsp[-4].tmp_id), (yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 1991 "./parser/Parser.cpp"
+#line 1990 "./parser/Parser.cpp"
     break;
 
   case 50:
-#line 268 "./parser/Parser.y"
+#line 267 "./parser/Parser.y"
                                                             {
                                    (yyval.tmp_id) = MakeReassignAst((yyvsp[-4].tmp_id), (yyvsp[0].tmp_id));
                                    root = (yyval.tmp_id);
                                 }
-#line 2000 "./parser/Parser.cpp"
+#line 1999 "./parser/Parser.cpp"
     break;
 
   case 51:
-#line 272 "./parser/Parser.y"
+#line 271 "./parser/Parser.y"
                                                                                          {
                                     (yyval.tmp_id) = MakeRefAst((yyvsp[-10].tmp_id), (yyvsp[-7].tmp_id), (yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2009 "./parser/Parser.cpp"
+#line 2008 "./parser/Parser.cpp"
     break;
 
   case 52:
-#line 276 "./parser/Parser.y"
+#line 275 "./parser/Parser.y"
                                                                                                                                     {
                                     (yyval.tmp_id) = MakeMapBindAst((yyvsp[-15].tmp_id), (yyvsp[-10].tmp_id), (yyvsp[-6].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2018 "./parser/Parser.cpp"
+#line 2017 "./parser/Parser.cpp"
     break;
 
   case 53:
-#line 280 "./parser/Parser.y"
+#line 279 "./parser/Parser.y"
                                                                                           {
                                     (yyval.tmp_id) = MakeArrayBindAst((yyvsp[-10].tmp_id), (yyvsp[-5].tmp_id), (yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
 
                                 }
-#line 2028 "./parser/Parser.cpp"
+#line 2027 "./parser/Parser.cpp"
     break;
 
   case 54:
-#line 285 "./parser/Parser.y"
+#line 284 "./parser/Parser.y"
                                                                                                {
                                     cout << "making union array\n";
                                     (yyval.tmp_id) = MakeArrayBindAst((yyvsp[-10].tmp_id), (yyvsp[-5].tmp_id), (yyvsp[0].tmp_id));
                                     root = (yyval.tmp_id);
 
                                 }
-#line 2039 "./parser/Parser.cpp"
+#line 2038 "./parser/Parser.cpp"
     break;
 
   case 55:
-#line 291 "./parser/Parser.y"
+#line 290 "./parser/Parser.y"
                                                                         {
                                     (yyval.tmp_id) = MakeRebindRefAst((yyvsp[-7].tmp_id), (yyvsp[-3].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2048 "./parser/Parser.cpp"
+#line 2047 "./parser/Parser.cpp"
     break;
 
   case 56:
-#line 298 "./parser/Parser.y"
+#line 297 "./parser/Parser.y"
                                            {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                 }
-#line 2056 "./parser/Parser.cpp"
+#line 2055 "./parser/Parser.cpp"
     break;
 
   case 57:
-#line 301 "./parser/Parser.y"
+#line 300 "./parser/Parser.y"
                                                    {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                 }
-#line 2064 "./parser/Parser.cpp"
+#line 2063 "./parser/Parser.cpp"
     break;
 
   case 58:
-#line 304 "./parser/Parser.y"
+#line 303 "./parser/Parser.y"
                                                              {  
                                     (yyvsp[-2].tmp_id)->SaveAsExtraNode((yyvsp[0].tmp_id));
                                     (yyval.tmp_id) = (yyvsp[-2].tmp_id);
                                 }
-#line 2073 "./parser/Parser.cpp"
+#line 2072 "./parser/Parser.cpp"
     break;
 
   case 59:
-#line 308 "./parser/Parser.y"
+#line 307 "./parser/Parser.y"
                                                                   {
                                     (yyvsp[-2].tmp_id)->SaveAsExtraNode((yyvsp[0].tmp_id));
                                     (yyval.tmp_id) = (yyvsp[-2].tmp_id);
                                 }
-#line 2082 "./parser/Parser.cpp"
+#line 2081 "./parser/Parser.cpp"
     break;
 
   case 64:
-#line 318 "./parser/Parser.y"
+#line 317 "./parser/Parser.y"
                                                                             { 
                                     (yyval.tmp_id) = MakePrintAst((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2091 "./parser/Parser.cpp"
+#line 2090 "./parser/Parser.cpp"
     break;
 
   case 65:
-#line 322 "./parser/Parser.y"
+#line 321 "./parser/Parser.y"
                                                      { return 0; }
-#line 2097 "./parser/Parser.cpp"
+#line 2096 "./parser/Parser.cpp"
     break;
 
   case 66:
-#line 327 "./parser/Parser.y"
+#line 326 "./parser/Parser.y"
                                                                        {
                                     Perform((yyval.tmp_id), (yyvsp[-2].tmp_id), ADDITION_CMD);
                                     root = (yyval.tmp_id);
                                 }
-#line 2106 "./parser/Parser.cpp"
+#line 2105 "./parser/Parser.cpp"
     break;
 
   case 67:
-#line 331 "./parser/Parser.y"
+#line 330 "./parser/Parser.y"
                                                                          {
                                     Perform((yyval.tmp_id), (yyvsp[-2].tmp_id), SUBTRACTION_CMD);
                                     root = (yyval.tmp_id);
                                 }
-#line 2115 "./parser/Parser.cpp"
+#line 2114 "./parser/Parser.cpp"
     break;
 
   case 68:
-#line 335 "./parser/Parser.y"
+#line 334 "./parser/Parser.y"
                                                                           {
                                     Perform((yyval.tmp_id), (yyvsp[-2].tmp_id), MULTIPLY_CMD);
                                     root = (yyval.tmp_id);
                                 }
-#line 2124 "./parser/Parser.cpp"
+#line 2123 "./parser/Parser.cpp"
     break;
 
   case 69:
-#line 339 "./parser/Parser.y"
+#line 338 "./parser/Parser.y"
                                                                           {
                                     Perform((yyval.tmp_id), (yyvsp[-2].tmp_id), DIVIDE_CMD);
                                     root = (yyval.tmp_id);
                                 }
-#line 2133 "./parser/Parser.cpp"
+#line 2132 "./parser/Parser.cpp"
     break;
 
   case 70:
-#line 343 "./parser/Parser.y"
+#line 342 "./parser/Parser.y"
                                                                           {
                                     Perform((yyval.tmp_id), (yyvsp[-2].tmp_id), POW_CMD);
                                     root = (yyval.tmp_id);
                                 }
-#line 2142 "./parser/Parser.cpp"
+#line 2141 "./parser/Parser.cpp"
     break;
 
   case 71:
-#line 352 "./parser/Parser.y"
+#line 351 "./parser/Parser.y"
                                                                                            {
                                     (yyval.tmp_id) = MakeLessCompAst((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2151 "./parser/Parser.cpp"
+#line 2150 "./parser/Parser.cpp"
     break;
 
   case 72:
-#line 356 "./parser/Parser.y"
+#line 355 "./parser/Parser.y"
                                                                                                 {
                                     (yyval.tmp_id) = MakeGreaterCompAst((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2160 "./parser/Parser.cpp"
+#line 2159 "./parser/Parser.cpp"
     break;
 
   case 73:
-#line 360 "./parser/Parser.y"
+#line 359 "./parser/Parser.y"
                                                                                                   {
                                     (yyval.tmp_id) = MakeLessEqualCompAst((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2169 "./parser/Parser.cpp"
+#line 2168 "./parser/Parser.cpp"
     break;
 
   case 74:
-#line 364 "./parser/Parser.y"
+#line 363 "./parser/Parser.y"
                                                                                                       {
                                     (yyval.tmp_id) = MakeGreaterEqualCompAst((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2178 "./parser/Parser.cpp"
+#line 2177 "./parser/Parser.cpp"
     break;
 
   case 75:
-#line 368 "./parser/Parser.y"
+#line 367 "./parser/Parser.y"
                                                                                              {
                                     (yyval.tmp_id) = MakeEqualCompAst((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2187 "./parser/Parser.cpp"
+#line 2186 "./parser/Parser.cpp"
     break;
 
   case 76:
-#line 372 "./parser/Parser.y"
+#line 371 "./parser/Parser.y"
                                                                                                   {
                                     (yyval.tmp_id) = MakeNotEqualCompAst((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2196 "./parser/Parser.cpp"
+#line 2195 "./parser/Parser.cpp"
     break;
 
   case 77:
-#line 380 "./parser/Parser.y"
+#line 379 "./parser/Parser.y"
                                                                                          {
                                     (yyval.tmp_id) = MakeAndAst((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2205 "./parser/Parser.cpp"
+#line 2204 "./parser/Parser.cpp"
     break;
 
   case 78:
-#line 384 "./parser/Parser.y"
+#line 383 "./parser/Parser.y"
                                                                  {
                                     (yyval.tmp_id) = MakeNotAst((yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2214 "./parser/Parser.cpp"
+#line 2213 "./parser/Parser.cpp"
     break;
 
   case 79:
-#line 388 "./parser/Parser.y"
+#line 387 "./parser/Parser.y"
                                                                                            {
                                     (yyval.tmp_id) = MakeOrAst((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2223 "./parser/Parser.cpp"
+#line 2222 "./parser/Parser.cpp"
     break;
 
   case 80:
-#line 395 "./parser/Parser.y"
+#line 394 "./parser/Parser.y"
                                      {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                     root = (yyval.tmp_id);
                                 }
-#line 2232 "./parser/Parser.cpp"
+#line 2231 "./parser/Parser.cpp"
     break;
 
   case 81:
-#line 399 "./parser/Parser.y"
+#line 398 "./parser/Parser.y"
                                             {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                     root = (yyval.tmp_id);
                                 }
-#line 2241 "./parser/Parser.cpp"
+#line 2240 "./parser/Parser.cpp"
     break;
 
   case 82:
-#line 403 "./parser/Parser.y"
+#line 402 "./parser/Parser.y"
                                                                                           {
                                     (yyval.tmp_id) = MakeCastAst((yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2250 "./parser/Parser.cpp"
+#line 2249 "./parser/Parser.cpp"
     break;
 
   case 83:
-#line 407 "./parser/Parser.y"
+#line 406 "./parser/Parser.y"
                                                {
                                    (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                    root = (yyval.tmp_id);
                                 }
-#line 2259 "./parser/Parser.cpp"
+#line 2258 "./parser/Parser.cpp"
     break;
 
   case 84:
-#line 411 "./parser/Parser.y"
+#line 410 "./parser/Parser.y"
                                            {
                                     (yyval.tmp_id) = (yyvsp[0].tmp_id);
                                     root = (yyval.tmp_id);
                                 }
-#line 2268 "./parser/Parser.cpp"
+#line 2267 "./parser/Parser.cpp"
     break;
 
   case 85:
-#line 415 "./parser/Parser.y"
+#line 414 "./parser/Parser.y"
                                                                                          {
                                      (yyval.tmp_id) = MakeAddToListAst((yyvsp[-7].tmp_id), (yyvsp[-2].tmp_id));
                                      root = (yyval.tmp_id);
                                 }
-#line 2277 "./parser/Parser.cpp"
+#line 2276 "./parser/Parser.cpp"
     break;
 
   case 86:
-#line 419 "./parser/Parser.y"
+#line 418 "./parser/Parser.y"
                                                                                                         {
                                     (yyval.tmp_id) = MakeAddToMapAst((yyvsp[-9].tmp_id), (yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2286 "./parser/Parser.cpp"
+#line 2285 "./parser/Parser.cpp"
     break;
 
   case 87:
-#line 423 "./parser/Parser.y"
+#line 422 "./parser/Parser.y"
                                                                              {
                                     (yyval.tmp_id) = MakeGetFromCollectionAst((yyvsp[-5].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2295 "./parser/Parser.cpp"
+#line 2294 "./parser/Parser.cpp"
     break;
 
   case 88:
-#line 427 "./parser/Parser.y"
+#line 426 "./parser/Parser.y"
                                                                                                           {
                                     (yyval.tmp_id) = MakeSetInCollectionAst((yyvsp[-9].tmp_id), (yyvsp[-4].tmp_id), (yyvsp[-2].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2304 "./parser/Parser.cpp"
+#line 2303 "./parser/Parser.cpp"
     break;
 
   case 89:
-#line 431 "./parser/Parser.y"
+#line 430 "./parser/Parser.y"
                                                             {
                                     (yyval.tmp_id) = MakeCollectionSizeAst((yyvsp[-4].tmp_id));
                                     root = (yyval.tmp_id);
                                 }
-#line 2313 "./parser/Parser.cpp"
+#line 2312 "./parser/Parser.cpp"
     break;
 
   case 99:
-#line 446 "./parser/Parser.y"
+#line 445 "./parser/Parser.y"
                                        { 
                                     i.EatAst(root);
                                     return 0 ;
                                 }
-#line 2322 "./parser/Parser.cpp"
+#line 2321 "./parser/Parser.cpp"
     break;
 
   case 101:
-#line 451 "./parser/Parser.y"
+#line 450 "./parser/Parser.y"
                                         { return 0; }
-#line 2328 "./parser/Parser.cpp"
+#line 2327 "./parser/Parser.cpp"
     break;
 
 
-#line 2332 "./parser/Parser.cpp"
+#line 2331 "./parser/Parser.cpp"
 
       default: break;
     }
@@ -2560,7 +2559,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 454 "./parser/Parser.y"
+#line 453 "./parser/Parser.y"
 
 
 

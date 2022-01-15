@@ -31,7 +31,6 @@ using namespace std;
 note: in the interpreter, if a string returning method returns an empty string. that means the string failed
 */
 
-typedef ChmrInterpreter CInter;
 class ChmrInterpreter
 {
 private:
@@ -43,7 +42,7 @@ private:
     ScopeTree scope_tree; 
     stack<size_t> cur_stack_level;
     size_t cur_jump_point = 0;
-    vector<string (*)(AstNode*, CInter&)> callbacks;
+    vector<string (*)(AstNode*, ChmrInterpreter*)> callbacks;
 
     /* used to put a lot of boilerplate into one place for the assign/reassign actions */
     string MakeBind(string to, string from, string type);
@@ -81,6 +80,7 @@ private:
 public:
 
     void EatAst(AstNode* root);
+    ChmrInterpreter();
     ~ChmrInterpreter();
 };
 

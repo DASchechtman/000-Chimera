@@ -8,6 +8,10 @@ using namespace std;
 
 // PRIVATE METHODS BELOW ---------------------------------------------------------------------------
 
+ChmrInterpreter::ChmrInterpreter() {
+    GenerateCallbacks();
+}
+
 ChmrInterpreter::~ChmrInterpreter()
 {
     for (AstNode *node : ast_trees)
@@ -407,626 +411,222 @@ void ChmrInterpreter::EatAst(AstNode *root)
 
 string ChmrInterpreter::RunAst(AstNode *root)
 {
-
-    switch (root->Type())
-    {
-    case PRINT_CMD:
-    {
-        for (size_t i = 0; i < root->Size(AstNode::LEFT); i++)
-        {
-            string print_data = RunAst(root->GetFromLeftNodes(i));
-            PrintVar(print_data, ' ');
-        }
-        cout << '\n';
-        break;
+    if (root->Type() < callbacks.size() && callbacks[root->Type()] != nullptr) {
+        return callbacks[root->Type()](root, this);
     }
-    case BIND_CMD:
-    {
-        string to = RunAst(root->GetFromLeftNodes());
-        string from = RunAst(root->GetFromRightNodes());
-        string type = RunAst(root->GetFromMiddleNodes());
-        return Bind(to, from, type);
-    }
-    case MAKE_UNION_CMD:
-    {
-        string to = RunAst(root->GetFromLeftNodes());
-        string from = RunAst(root->GetFromRightNodes());
-        vector<string> types;
-
-        for (size_t i = 0; i < root->Size(AstNode::MIDDLE); i++)
-        {
-            types.push_back(RunAst(root->GetFromMiddleNodes(i)));
-        }
-
-        return MakeUnion(to, types, from, types.empty());
-    }
-    case REBIND_CMD:
-    {
-        string to = RunAst(root->GetFromLeftNodes());
-        string from = RunAst(root->GetFromRightNodes());
-
-        bool exists = Table()->Has(to);
-        bool is_child = Table()->CameFromVar(to);
-
-        if (exists && is_child)
-        {
-            to = Table()->GetParent(to);
-        }
-
-        return Rebind(to, from);
-    }
-    case REFBIND_CMD:
-    {
-        string ref = RunAst(root->GetFromLeftNodes());
-        string var = RunAst(root->GetFromRightNodes());
-        string type = "";
-        if (root->Size(AstNode::MIDDLE) > 0)
-        {
-            type = RunAst(root->GetFromMiddleNodes());
-        }
-        else
-        {
-            ref = Table()->GetParent(ref);
-        }
-        return RefBind(ref, var, type);
-    }
-    case MAKE_LIST_CMD:
-    {
-        string id = RunAst(root->GetFromLeftNodes());
-        vector<string> type;
-        for (size_t i = 0; i < root->Size(AstNode::RIGHT); i++)
-        {
-            type.push_back(RunAst(root->GetFromRightNodes(i)));
-        }
-
-        if (root->Size(AstNode::MIDDLE) > 0)
-        {
-            string expr = RunAst(root->GetFromMiddleNodes());
-            string list = MakeArray(id, type, Table());
-            return ReassignContainer(list, expr, Table());
-        }
-        else
-        {
-            return MakeArray(id, type, Table());
-        }
-    }
-    case MAKE_MAP_CMD:
-    {
-        string id = RunAst(root->GetFromLeftNodes());
-        string key = RunAst(root->GetFromMiddleNodes());
-        string val = RunAst(root->GetFromRightNodes());
-        return MakeMap(id, key, val, Table());
-    }
-    case ADDITION_CMD:
-    case SUBTRACTION_CMD:
-    case MULTIPLY_CMD:
-    case DIVIDE_CMD:
-    case POW_CMD:
-    {
-        string left = RunAst(root->GetFromLeftNodes());
-        string right = RunAst(root->GetFromRightNodes());
-
-        if (root->Type() == ADDITION_CMD)
-        {
-            Add(left, right, Table());
-        }
-        else if (root->Type() == SUBTRACTION_CMD)
-        {
-            Subtract(left, right, Table());
-        }
-        else if (root->Type() == MULTIPLY_CMD)
-        {
-            Multiply(left, right, Table());
-        }
-        else if (root->Type() == DIVIDE_CMD)
-        {
-            Divide(left, right, Table());
-        }
-        else if (root->Type() == POW_CMD)
-        {
-            Pow(left, right, Table());
-        }
-
-        return left;
-    }
-    case LESS_CMD:
-    case LESS_EQ_CMD:
-    case GREATER_CMD:
-    case GREATER_EQ_CMD:
-    case EQ_CMD:
-    {
-        string left = RunAst(root->GetFromLeftNodes());
-        string right = RunAst(root->GetFromRightNodes());
-
-        if (root->Type() == LESS_CMD)
-        {
-            return Less(left, right, Table());
-        }
-        else if (root->Type() == LESS_EQ_CMD)
-        {
-            return LessEqual(left, right, Table());
-        }
-        else if (root->Type() == GREATER_CMD)
-        {
-            return Greater(left, right, Table());
-        }
-        else if (root->Type() == GREATER_EQ_CMD)
-        {
-            return GreaterEqual(left, right, Table());
-        }
-        else if (root->Type() == EQ_CMD)
-        {
-            return Equal(left, right, Table());
-        }
-
-        break;
-    }
-    case AND_CMD:
-    case OR_CMD:
-    {
-        string left = RunAst(root->GetFromLeftNodes());
-        string right = RunAst(root->GetFromRightNodes());
-        return root->Type() == AND_CMD ? And(left, right, Table()) : Or(left, right, Table());
-    }
-    case NOT_CMD:
-    {
-        string val = RunAst(root->GetFromLeftNodes());
-        return Not(val, Table());
-    }
-    case CAST_TYPE_CMD:
-    {
-        string val = RunAst(root->GetFromLeftNodes());
-        string type_to = RunAst(root->GetFromRightNodes());
-        return CastVarTo(val, type_to);
-    }
-    case PUT_IN_CONTAINER_CMD:
-    {
-        string list = Table()->GetParent(RunAst(root->GetFromLeftNodes()));
-        string val = RunAst(root->GetFromRightNodes());
-        return PutInArray(list, val, Table());
-    }
-    case PUT_IN_MAP_CMD:
-    {
-        string map = Table()->GetParent(RunAst(root->GetFromLeftNodes()));
-        string key = RunAst(root->GetFromMiddleNodes());
-        string val = RunAst(root->GetFromRightNodes());
-        return PutInMap(map, key, val, Table());
-    }
-    case GET_FROM_CONTAINER_CMD:
-    {
-        string container = RunAst(root->GetFromLeftNodes());
-        string index = RunAst(root->GetFromRightNodes());
-        return GetFromContainer(container, index, Table());
-    }
-    case SET_IN_CONTAINER_CMD:
-    {
-        string container = Table()->GetParent(RunAst(root->GetFromLeftNodes()));
-        string index = RunAst(root->GetFromMiddleNodes());
-        string new_val = RunAst(root->GetFromRightNodes());
-        return SetInContainer(container, index, new_val, Table());
-    }
-    case GET_CONTAINER_SIZE_CMD:
-    {
-        string container = RunAst(root->GetFromLeftNodes());
-        return GetContainerSize(container, Table());
-    }
-    case RAW_DATA_CMD:
-    {
-        string data_name;
-
-        if (root->Value().type == INT_NODE_TYPE)
-        {
-            return CreateTmpVar(root->Value().i);
-        }
-        else if (root->Value().type == FLOAT_NODE_TYPE)
-        {
-            return CreateTmpVar(root->Value().f);
-        }
-        else if (root->Value().type == DOUBLE_NODE_TYPE)
-        {
-            return CreateTmpVar(root->Value().d);
-        }
-        else if (root->Value().type == CHAR_NODE_TYPE)
-        {
-            return CreateTmpVar(root->Value().c);
-        }
-        else if (root->Value().type == STRING_NODE_TYPE)
-        {
-            return CreateTmpVar(root->Value().s);
-        }
-        else if (root->Value().type == BOOL_NODE_TYPE)
-        {
-            return CreateTmpVar(root->Value().b);
-        }
-        else if (root->Value().type == ARRAY_NODE_TYPE)
-        {
-            string arr;
-            if (root->Size(AstNode::LEFT) > 0)
-            {
-                string var_name = RunAst(root->GetFromLeftNodes());
-
-                arr = MakeArray(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, Table());
-
-                for (size_t i = 0; i < root->Size(AstNode::LEFT); i++)
-                {
-                    if (i == 0)
-                    {
-                        PutInArray(arr, var_name, Table());
-                        continue;
-                    }
-                    PutInArray(arr, RunAst(root->GetFromLeftNodes(i)), Table());
-                }
-            }
-
-            arr = arr.empty() ? MakeArray(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, Table()) : arr;
-            return arr;
-        }
-        else if (root->Value().type == VAR_TYPE_NODE_TYPE)
-        {
-            return root->Value().s;
-        }
-        else if (root->Value().type == ID_NODE_TYPE)
-        {
-            if (!Table()->Has(root->Value().s))
-            {
-                return root->Value().s;
-            }
-            return CloneVarToTempVar(root->Value().s);
-            ;
-        }
-
-        break;
-    }
-    case CTRL_BLOCK_CMD:
-    {
-        RunAst(root->GetFromLeftNodes());
-        break;
-    }
-    case IF_BLOCK_CMD:
-    {
-        CircularList *jump_points = scope_tree[ScopeLevel()];
-        size_t next_jump_point = jump_points->Next();
-        cur_stack_level.push(scopes.Size());
-        bool can_run = Table()->GetEntry(RunAst(root->GetFromLeftNodes()))->ToBool();
-        IncreaseScopeLevel();
-
-        if (can_run)
-        {
-            CreateScope(GEN_SCOPE);
-        }
-        else
-        {
-            GoTo(next_jump_point);
-        }
-
-        break;
-    }
-    case ELIF_BLOCK_CMD:
-    {
-        CircularList *jump = scope_tree[ScopeLevel() - 1];
-        size_t next = jump->Next();
-        bool prev_if_branch_ran = cur_stack_level.top() != scopes.Size();
-        if (!prev_if_branch_ran)
-        {
-            bool can_run = Table()->GetEntry(RunAst(root->GetFromLeftNodes()))->ToBool();
-
-            if (can_run)
-            {
-                CreateScope(GEN_SCOPE);
-            }
-            else
-            {
-                GoTo(next);
-            }
-        }
-        else
-        {
-            GoTo(next);
-        }
-        break;
-    }
-    case ELSE_BLOCK_CMD:
-    {
-        CircularList *jump = scope_tree[ScopeLevel() - 1];
-        size_t next = jump->Next();
-        bool prev_if_branch_ran = cur_stack_level.top() != scopes.Size();
-        if (!prev_if_branch_ran)
-        {
-            CreateScope(GEN_SCOPE);
-        }
-        else
-        {
-            GoTo(next);
-        }
-        break;
-    }
-    case WHILE_BLOCK_CMD:
-    {
-        CircularList *jump = scope_tree[ScopeLevel()];
-        size_t next = jump->Next();
-        bool can_run = Table()->GetEntry(RunAst(root->GetFromLeftNodes()))->ToBool();
-        cur_stack_level.push(scopes.Size());
-        IncreaseScopeLevel();
-
-        if (can_run)
-        {
-            CreateScope(GEN_SCOPE);
-        }
-        else
-        {
-            GoTo(next);
-        }
-
-        jump->PrevInfo(true).can_jump = can_run;
-
-        break;
-    }
-    case START_BLOCK_CMD:
-    {
-        CreateScope(GEN_SCOPE);
-        break;
-    }
-    case END_BLOCK_CMD:
-    {
-        DecreaseScopeLevel();
-        CircularList *jump = scope_tree[ScopeLevel()];
-        JumpInfo info = jump->PrevInfo(true);
-        bool is_ctrl = ast_trees[info.jump_point]->Type() == CTRL_BLOCK_CMD;
-        bool is_while = is_ctrl && ast_trees[info.jump_point]->GetFromLeftNodes()->Type() == WHILE_BLOCK_CMD;
-
-        if (is_while && info.can_jump)
-        {
-            scope_tree.MoveToLastNode(ScopeLevel());
-            GoTo(jump->PrevInfo().jump_point);
-        }
-        else
-        {
-            jump->Next();
-        }
-
-        if (scopes.Size() > cur_stack_level.top())
-        {
-            DestroyScope();
-        }
-
-        cur_stack_level.pop();
-
-        break;
-    }
-    case END_SCOPE_CMD:
-    {
-        DestroyScope();
-        break;
-    }
-    default:
-    {
-        cout << "Error: command not recognized\n";
-    }
-    }
-
     return EMPTY_VAR_NAME;
 }
 
 // PUBLIC METHODS ABOVE -----------------------------------------------------------------------------
+typedef ChmrInterpreter* CInter;
 
 void ChmrInterpreter::GenerateCallbacks()
 {
-    callbacks.resize(END_SCOPE_CMD + 1);
+    callbacks.resize(END_SCOPE_CMD + 1, nullptr);
 
-    callbacks[NO_CMD] = [](AstNode *node, CInter &i)
+    callbacks[NO_CMD] = [](AstNode *node, CInter i)
     { return EMPTY_VAR_NAME; };
 
-    callbacks[RAW_DATA_CMD] = [](AstNode *root, CInter &i)
+    callbacks[RAW_DATA_CMD] = [](AstNode *root, CInter i)
     {
         string data_name;
 
         if (root->Value().type == INT_NODE_TYPE)
         {
-            data_name = i.CreateTmpVar(root->Value().i);
+            data_name = i->CreateTmpVar(root->Value().i);
         }
         else if (root->Value().type == FLOAT_NODE_TYPE)
         {
-            data_name = i.CreateTmpVar(root->Value().f);
+            data_name = i->CreateTmpVar(root->Value().f);
         }
         else if (root->Value().type == DOUBLE_NODE_TYPE)
         {
-            data_name = i.CreateTmpVar(root->Value().d);
+            data_name = i->CreateTmpVar(root->Value().d);
         }
         else if (root->Value().type == CHAR_NODE_TYPE)
         {
-            data_name = i.CreateTmpVar(root->Value().c);
+            data_name = i->CreateTmpVar(root->Value().c);
         }
         else if (root->Value().type == STRING_NODE_TYPE)
         {
-            data_name = i.CreateTmpVar(root->Value().s);
+            data_name = i->CreateTmpVar(root->Value().s);
         }
         else if (root->Value().type == BOOL_NODE_TYPE)
         {
-            data_name = i.CreateTmpVar(root->Value().b);
+            data_name = i->CreateTmpVar(root->Value().b);
         }
         else if (root->Value().type == ARRAY_NODE_TYPE)
         {
-            string arr;
-            if (root->Size(AstNode::LEFT) > 0)
+            string arr = MakeArray(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, i->Table());
+            for (size_t iter = 0; iter < root->Size(AstNode::LEFT); iter++)
             {
-                string var_name = i.RunAst(root->GetFromLeftNodes());
-
-                arr = MakeArray(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, i.Table());
-                for (size_t iter = 0; iter < root->Size(AstNode::LEFT); iter++)
-                {
-                    if (iter == 0)
-                    {
-                        PutInArray(arr, var_name, i.Table());
-                        continue;
-                    }
-                    PutInArray(arr, i.RunAst(root->GetFromLeftNodes(iter)), i.Table());
-                }
-
-                arr = arr.empty() ? MakeArray(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, i.Table()) : arr;
-                data_name = arr;
+                PutInArray(arr, i->RunAst(root->GetFromLeftNodes(iter)), i->Table());
             }
-            else if (root->Value().type == VAR_TYPE_NODE_TYPE)
+            data_name = arr;
+        }
+        else if (root->Value().type == VAR_TYPE_NODE_TYPE)
+        {
+            data_name = root->Value().s;
+        }
+        else if (root->Value().type == ID_NODE_TYPE)
+        {
+            if (!i->Table()->Has(root->Value().s))
             {
                 data_name = root->Value().s;
             }
-            else if (root->Value().type == ID_NODE_TYPE)
+            else
             {
-                if (!i.Table()->Has(root->Value().s))
-                {
-                    data_name = root->Value().s;
-                }
-                else
-                {
-                    data_name = i.CloneVarToTempVar(root->Value().s);
-                }
+                data_name = i->CloneVarToTempVar(root->Value().s);
             }
-            return data_name;
         }
+        
+
+        return data_name;
     };
 
-    callbacks[BIND_CMD] = [](AstNode *root, CInter &i)
+    callbacks[BIND_CMD] = [](AstNode *root, CInter i)
     {
-        string to = i.RunAst(root->GetFromLeftNodes());
-        string from = i.RunAst(root->GetFromRightNodes());
-        string type = i.RunAst(root->GetFromMiddleNodes());
-        return i.Bind(to, from, type);
+        string to = i->RunAst(root->GetFromLeftNodes());
+        string from = i->RunAst(root->GetFromRightNodes());
+        string type = i->RunAst(root->GetFromMiddleNodes());
+        return i->Bind(to, from, type);
     };
 
-    callbacks[REBIND_CMD] = [](AstNode *root, CInter &i)
+    callbacks[REBIND_CMD] = [](AstNode *root, CInter i)
     {
-        string to = i.RunAst(root->GetFromLeftNodes());
-        string from = i.RunAst(root->GetFromRightNodes());
+        string to = i->RunAst(root->GetFromLeftNodes());
+        string from = i->RunAst(root->GetFromRightNodes());
 
-        bool exists = i.Table()->Has(to);
-        bool is_child = i.Table()->CameFromVar(to);
+        bool exists = i->Table()->Has(to);
+        bool is_child = i->Table()->CameFromVar(to);
 
         if (exists && is_child)
         {
-            to = i.Table()->GetParent(to);
+            to = i->Table()->GetParent(to);
         }
 
-        return i.Rebind(to, from);
+        return i->Rebind(to, from);
     };
 
-    callbacks[REFBIND_CMD] = [](AstNode *root, CInter &i)
+    callbacks[REFBIND_CMD] = [](AstNode *root, CInter i)
     {
-        string ref = i.RunAst(root->GetFromLeftNodes());
-        string var = i.RunAst(root->GetFromRightNodes());
+        string ref = i->RunAst(root->GetFromLeftNodes());
+        string var = i->RunAst(root->GetFromRightNodes());
         string type = "";
         if (root->Size(AstNode::MIDDLE) > 0)
         {
-            type = i.RunAst(root->GetFromMiddleNodes());
+            type = i->RunAst(root->GetFromMiddleNodes());
         }
         else
         {
-            ref = i.Table()->GetParent(ref);
+            ref = i->Table()->GetParent(ref);
         }
-        return i.RefBind(ref, var, type);
+        return i->RefBind(ref, var, type);
     };
 
-    callbacks[MAKE_UNION_CMD] = [](AstNode *root, CInter &i)
+    callbacks[MAKE_UNION_CMD] = [](AstNode *root, CInter i)
     {
-        string to = i.RunAst(root->GetFromLeftNodes());
-        string from = i.RunAst(root->GetFromRightNodes());
+        string to = i->RunAst(root->GetFromLeftNodes());
+        string from = i->RunAst(root->GetFromRightNodes());
         vector<string> types;
 
         for (size_t iters = 0; iters < root->Size(AstNode::MIDDLE); iters++)
         {
-            types.push_back(i.RunAst(root->GetFromMiddleNodes(i)));
+            types.push_back(i->RunAst(root->GetFromMiddleNodes(iters)));
         }
 
-        return i.MakeUnion(to, types, from, types.empty());
+        return i->MakeUnion(to, types, from, types.empty());
     };
 
-    callbacks[MAKE_LIST_CMD] = [](AstNode *root, CInter &i)
+    callbacks[MAKE_LIST_CMD] = [](AstNode *root, CInter i)
     {
-        string id = i.RunAst(root->GetFromLeftNodes());
+        string id = i->RunAst(root->GetFromLeftNodes());
         vector<string> type;
         for (size_t iters = 0; iters < root->Size(AstNode::RIGHT); iters++)
         {
-            type.push_back(i.RunAst(root->GetFromRightNodes(i)));
+            type.push_back(i->RunAst(root->GetFromRightNodes(iters)));
         }
 
         if (root->Size(AstNode::MIDDLE) > 0)
         {
-            string expr = i.RunAst(root->GetFromMiddleNodes());
-            string list = MakeArray(id, type, i.Table());
-            return ReassignContainer(list, expr, i.Table());
+            string expr = i->RunAst(root->GetFromMiddleNodes());
+            string list = MakeArray(id, type, i->Table());
+            return ReassignContainer(list, expr, i->Table());
         }
         else
         {
-            return MakeArray(id, type, i.Table());
+            return MakeArray(id, type, i->Table());
         }
     };
 
-    callbacks[MAKE_MAP_CMD] = [](AstNode *root, CInter &i)
+    callbacks[MAKE_MAP_CMD] = [](AstNode *root, CInter i)
     {
-        string id = i.RunAst(root->GetFromLeftNodes());
-        string key = i.RunAst(root->GetFromMiddleNodes());
-        string val = i.RunAst(root->GetFromRightNodes());
-        return MakeMap(id, key, val, i.Table());
+        string id = i->RunAst(root->GetFromLeftNodes());
+        string key = i->RunAst(root->GetFromMiddleNodes());
+        string val = i->RunAst(root->GetFromRightNodes());
+        return MakeMap(id, key, val, i->Table());
     };
 
-    callbacks[PUT_IN_CONTAINER_CMD] = [](AstNode *root, CInter &i)
+    callbacks[PUT_IN_CONTAINER_CMD] = [](AstNode *root, CInter i)
     {
-        string list = i.Table()->GetParent(i.RunAst(root->GetFromLeftNodes()));
-        string val = i.RunAst(root->GetFromRightNodes());
-        return PutInArray(list, val, i.Table());
+        string list = i->Table()->GetParent(i->RunAst(root->GetFromLeftNodes()));
+        string val = i->RunAst(root->GetFromRightNodes());
+        return PutInArray(list, val, i->Table());
     };
 
-    callbacks[PUT_IN_MAP_CMD] = [](AstNode *root, CInter &i)
+    callbacks[PUT_IN_MAP_CMD] = [](AstNode *root, CInter i)
     {
-        string map = i.Table()->GetParent(i.RunAst(root->GetFromLeftNodes()));
-        string key = i.RunAst(root->GetFromMiddleNodes());
-        string val = i.RunAst(root->GetFromRightNodes());
-        return PutInMap(map, key, val, i.Table());
+        string map = i->Table()->GetParent(i->RunAst(root->GetFromLeftNodes()));
+        string key = i->RunAst(root->GetFromMiddleNodes());
+        string val = i->RunAst(root->GetFromRightNodes());
+        return PutInMap(map, key, val, i->Table());
     };
 
-    callbacks[GET_FROM_CONTAINER_CMD] = [](AstNode *root, CInter &i)
+    callbacks[GET_FROM_CONTAINER_CMD] = [](AstNode *root, CInter i)
     {
-        string container = i.RunAst(root->GetFromLeftNodes());
-        string index = i.RunAst(root->GetFromRightNodes());
-        return GetFromContainer(container, index, i.Table());
+        string container = i->RunAst(root->GetFromLeftNodes());
+        string index = i->RunAst(root->GetFromRightNodes());
+        return GetFromContainer(container, index, i->Table());
     };
 
-    callbacks[SET_IN_CONTAINER_CMD] = [](AstNode *root, CInter &i)
+    callbacks[SET_IN_CONTAINER_CMD] = [](AstNode *root, CInter i)
     {
-        string container = i.Table()->GetParent(i.RunAst(root->GetFromLeftNodes()));
-        string index = i.RunAst(root->GetFromMiddleNodes());
-        string new_val = i.RunAst(root->GetFromRightNodes());
-        return SetInContainer(container, index, new_val, i.Table());
+        string container = i->Table()->GetParent(i->RunAst(root->GetFromLeftNodes()));
+        string index = i->RunAst(root->GetFromMiddleNodes());
+        string new_val = i->RunAst(root->GetFromRightNodes());
+        return SetInContainer(container, index, new_val, i->Table());
     };
 
-    callbacks[GET_CONTAINER_SIZE_CMD] = [](AstNode *root, CInter &i)
+    callbacks[GET_CONTAINER_SIZE_CMD] = [](AstNode *root, CInter i)
     {
-        string container = i.RunAst(root->GetFromLeftNodes());
-        return GetContainerSize(container, i.Table());
+        string container = i->RunAst(root->GetFromLeftNodes());
+        return GetContainerSize(container, i->Table());
     };
 
-    auto MathOpers = [](AstNode *root, CInter &i)
+    auto MathOpers = [](AstNode *root, CInter i)
     {
-        string left = i.RunAst(root->GetFromLeftNodes());
-        string right = i.RunAst(root->GetFromRightNodes());
+        string left = i->RunAst(root->GetFromLeftNodes());
+        string right = i->RunAst(root->GetFromRightNodes());
 
         if (root->Type() == ADDITION_CMD)
         {
-            Add(left, right, i.Table());
+            Add(left, right, i->Table());
         }
         else if (root->Type() == SUBTRACTION_CMD)
         {
-            Subtract(left, right, i.Table());
+            Subtract(left, right, i->Table());
         }
         else if (root->Type() == MULTIPLY_CMD)
         {
-            Multiply(left, right, i.Table());
+            Multiply(left, right, i->Table());
         }
         else if (root->Type() == DIVIDE_CMD)
         {
-            Divide(left, right, i.Table());
+            Divide(left, right, i->Table());
         }
         else if (root->Type() == POW_CMD)
         {
-            Pow(left, right, i.Table());
+            Pow(left, right, i->Table());
         }
 
         return left;
@@ -1038,53 +638,53 @@ void ChmrInterpreter::GenerateCallbacks()
     callbacks[DIVIDE_CMD] = MathOpers;
     callbacks[POW_CMD] = MathOpers;
 
-    callbacks[CAST_TYPE_CMD] = [](AstNode *root, CInter &i)
+    callbacks[CAST_TYPE_CMD] = [](AstNode *root, CInter i)
     {
-        string val = i.RunAst(root->GetFromLeftNodes());
-        string type_to = i.RunAst(root->GetFromRightNodes());
-        return i.CastVarTo(val, type_to);
+        string val = i->RunAst(root->GetFromLeftNodes());
+        string type_to = i->RunAst(root->GetFromRightNodes());
+        return i->CastVarTo(val, type_to);
     };
 
-    auto AndOrOper = [](AstNode *root, CInter &i)
+    auto AndOrOper = [](AstNode *root, CInter i)
     {
-        string left = i.RunAst(root->GetFromLeftNodes());
-        string right = i.RunAst(root->GetFromRightNodes());
-        return root->Type() == AND_CMD ? And(left, right, i.Table()) : Or(left, right, i.Table());
+        string left = i->RunAst(root->GetFromLeftNodes());
+        string right = i->RunAst(root->GetFromRightNodes());
+        return root->Type() == AND_CMD ? And(left, right, i->Table()) : Or(left, right, i->Table());
     };
 
     callbacks[AND_CMD] = AndOrOper;
     callbacks[OR_CMD] = AndOrOper;
 
-    callbacks[NOT_CMD] = [](AstNode *root, CInter &i)
+    callbacks[NOT_CMD] = [](AstNode *root, CInter i)
     {
-        string val = i.RunAst(root->GetFromLeftNodes());
-        return Not(val, i.Table());
+        string val = i->RunAst(root->GetFromLeftNodes());
+        return Not(val, i->Table());
     };
 
-    auto CompareOper = [](AstNode *root, CInter &i)
+    auto CompareOper = [](AstNode *root, CInter i)
     {
-        string left = i.RunAst(root->GetFromLeftNodes());
-        string right = i.RunAst(root->GetFromRightNodes());
+        string left = i->RunAst(root->GetFromLeftNodes());
+        string right = i->RunAst(root->GetFromRightNodes());
 
         if (root->Type() == LESS_CMD)
         {
-            return Less(left, right, i.Table());
+            return Less(left, right, i->Table());
         }
         else if (root->Type() == LESS_EQ_CMD)
         {
-            return LessEqual(left, right, i.Table());
+            return LessEqual(left, right, i->Table());
         }
         else if (root->Type() == GREATER_CMD)
         {
-            return Greater(left, right, i.Table());
+            return Greater(left, right, i->Table());
         }
         else if (root->Type() == GREATER_EQ_CMD)
         {
-            return GreaterEqual(left, right, i.Table());
+            return GreaterEqual(left, right, i->Table());
         }
         else if (root->Type() == EQ_CMD)
         {
-            return Equal(left, right, i.Table());
+            return Equal(left, right, i->Table());
         }
 
         return EMPTY_VAR_NAME;
@@ -1096,141 +696,141 @@ void ChmrInterpreter::GenerateCallbacks()
     callbacks[GREATER_EQ_CMD] = CompareOper;
     callbacks[EQ_CMD] = CompareOper;
 
-    callbacks[PRINT_CMD] = [](AstNode *root, CInter &i)
+    callbacks[PRINT_CMD] = [](AstNode *root, CInter i)
     {
         for (size_t iters = 0; iters < root->Size(AstNode::LEFT); iters++)
         {
-            string print_data = i.RunAst(root->GetFromLeftNodes(iters));
-            i.PrintVar(print_data, ' ');
+            string print_data = i->RunAst(root->GetFromLeftNodes(iters));
+            i->PrintVar(print_data, ' ');
         }
         cout << '\n';
         return EMPTY_VAR_NAME;
     };
 
-    callbacks[CTRL_BLOCK_CMD] = [](AstNode *root, CInter &i)
+    callbacks[CTRL_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        return i.RunAst(root->GetFromLeftNodes());
+        return i->RunAst(root->GetFromLeftNodes());
     };
 
-    callbacks[IF_BLOCK_CMD] = [](AstNode *root, CInter &i)
+    callbacks[IF_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        CircularList *jump_points = i.scope_tree[i.ScopeLevel()];
+        CircularList *jump_points = i->scope_tree[i->ScopeLevel()];
         size_t next_jump_point = jump_points->Next();
-        i.cur_stack_level.push(i.scopes.Size());
-        bool can_run = i.Table()->GetEntry(i.RunAst(root->GetFromLeftNodes()))->ToBool();
-        i.IncreaseScopeLevel();
+        i->cur_stack_level.push(i->scopes.Size());
+        bool can_run = i->Table()->GetEntry(i->RunAst(root->GetFromLeftNodes()))->ToBool();
+        i->IncreaseScopeLevel();
 
         if (can_run)
         {
-            i.CreateScope(GEN_SCOPE);
+            i->CreateScope(GEN_SCOPE);
         }
         else
         {
-            i.GoTo(next_jump_point);
+            i->GoTo(next_jump_point);
         }
         return EMPTY_VAR_NAME;
     };
 
-    callbacks[ELIF_BLOCK_CMD] = [](AstNode *root, CInter &i)
+    callbacks[ELIF_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        CircularList *jump = i.scope_tree[i.ScopeLevel() - 1];
+        CircularList *jump = i->scope_tree[i->ScopeLevel() - 1];
         size_t next = jump->Next();
-        bool prev_if_branch_ran = i.cur_stack_level.top() != i.scopes.Size();
+        bool prev_if_branch_ran = i->cur_stack_level.top() != i->scopes.Size();
         if (!prev_if_branch_ran)
         {
-            bool can_run = i.Table()->GetEntry(i.RunAst(root->GetFromLeftNodes()))->ToBool();
+            bool can_run = i->Table()->GetEntry(i->RunAst(root->GetFromLeftNodes()))->ToBool();
 
             if (can_run)
             {
-                i.CreateScope(GEN_SCOPE);
+                i->CreateScope(GEN_SCOPE);
             }
             else
             {
-                i.GoTo(next);
+                i->GoTo(next);
             }
         }
         else
         {
-            i.GoTo(next);
+            i->GoTo(next);
         }
 
         return EMPTY_VAR_NAME;
     };
 
-    callbacks[ELSE_BLOCK_CMD] = [](AstNode *root, CInter &i)
+    callbacks[ELSE_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        CircularList *jump = i.scope_tree[i.ScopeLevel() - 1];
+        CircularList *jump = i->scope_tree[i->ScopeLevel() - 1];
         size_t next = jump->Next();
-        bool prev_if_branch_ran = i.cur_stack_level.top() != i.scopes.Size();
+        bool prev_if_branch_ran = i->cur_stack_level.top() != i->scopes.Size();
         if (!prev_if_branch_ran)
         {
-            i.CreateScope(GEN_SCOPE);
+            i->CreateScope(GEN_SCOPE);
         }
         else
         {
-            i.GoTo(next);
+            i->GoTo(next);
         }
 
         return EMPTY_VAR_NAME;
     };
 
-    callbacks[WHILE_BLOCK_CMD] = [](AstNode *root, CInter &i)
+    callbacks[WHILE_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        CircularList *jump = i.scope_tree[i.ScopeLevel()];
+        CircularList *jump = i->scope_tree[i->ScopeLevel()];
         size_t next = jump->Next();
-        bool can_run = i.Table()->GetEntry(i.RunAst(root->GetFromLeftNodes()))->ToBool();
-        i.cur_stack_level.push(i.scopes.Size());
-        i.IncreaseScopeLevel();
+        bool can_run = i->Table()->GetEntry(i->RunAst(root->GetFromLeftNodes()))->ToBool();
+        i->cur_stack_level.push(i->scopes.Size());
+        i->IncreaseScopeLevel();
 
         if (can_run)
         {
-            i.CreateScope(GEN_SCOPE);
+            i->CreateScope(GEN_SCOPE);
         }
         else
         {
-            i.GoTo(next);
+            i->GoTo(next);
         }
 
         jump->PrevInfo(true).can_jump = can_run;
         return EMPTY_VAR_NAME;
     };
 
-    callbacks[START_BLOCK_CMD] = [](AstNode *root, CInter &i)
+    callbacks[START_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        i.CreateScope(GEN_SCOPE);
+        i->CreateScope(GEN_SCOPE);
         return EMPTY_VAR_NAME;
     };
 
-    callbacks[END_BLOCK_CMD] = [](AstNode *root, CInter &i)
+    callbacks[END_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        i.DecreaseScopeLevel();
-        CircularList *jump = i.scope_tree[i.ScopeLevel()];
+        i->DecreaseScopeLevel();
+        CircularList *jump = i->scope_tree[i->ScopeLevel()];
         JumpInfo info = jump->PrevInfo(true);
-        bool is_ctrl = i.ast_trees[info.jump_point]->Type() == CTRL_BLOCK_CMD;
-        bool is_while = is_ctrl && i.ast_trees[info.jump_point]->GetFromLeftNodes()->Type() == WHILE_BLOCK_CMD;
+        bool is_ctrl = i->ast_trees[info.jump_point]->Type() == CTRL_BLOCK_CMD;
+        bool is_while = is_ctrl && i->ast_trees[info.jump_point]->GetFromLeftNodes()->Type() == WHILE_BLOCK_CMD;
 
         if (is_while && info.can_jump)
         {
-            i.scope_tree.MoveToLastNode(i.ScopeLevel());
-            i.GoTo(jump->PrevInfo().jump_point);
+            i->scope_tree.MoveToLastNode(i->ScopeLevel());
+            i->GoTo(jump->PrevInfo().jump_point);
         }
         else
         {
             jump->Next();
         }
 
-        if (i.scopes.Size() > i.cur_stack_level.top())
+        if (i->scopes.Size() > i->cur_stack_level.top())
         {
-            i.DestroyScope();
+            i->DestroyScope();
         }
 
-        i.cur_stack_level.pop();
+        i->cur_stack_level.pop();
 
         return EMPTY_VAR_NAME;
     };
 
-    callbacks[END_SCOPE_CMD] = [](AstNode *root, CInter &i) {
-        i.DestroyScope();
+    callbacks[END_SCOPE_CMD] = [](AstNode *root, CInter i) {
+        i->DestroyScope();
         return EMPTY_VAR_NAME;
     };
 }
