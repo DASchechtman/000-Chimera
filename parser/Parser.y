@@ -466,30 +466,6 @@ void yyerror(const char* err) {
 #include <vector>
 using namespace std;
 
-template<class R, class ... cparams,  class ... params>
-void Test(R(*f)(cparams...), params ... p) {
-    vector<string> cor_p = {typeid(cparams).name()...};
-    vector<string> passed_p = {typeid(p).name()...};
-
-    bool input = false;
-    if (passed_p.size() == cor_p.size()) {
-        input = true;
-        for(size_t i = 0; i < passed_p.size(); i++) {
-            if (passed_p[i] != cor_p[i]) {
-                input = false;
-                break;
-            }
-        }
-    }
-
-    if (!input) {
-        cout << "Error: couldn't run func\n";
-    }
-    else {
-        //(*f)(p...);
-    }
-}
-
 int main(int argc, char *argv[]) {
     bool in_file_mode = false;
     FILE *file = nullptr;

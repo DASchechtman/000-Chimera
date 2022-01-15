@@ -4,16 +4,17 @@ EXE_NAME = main
 CWD := $(shell pwd)
 TEST_FILES = $(shell find "./tests/" -name '*.ch')
 FOR_TEST = $(foreach i,$(TEST_FILES),echo $(i); ./$(EXE_NAME) $(i); echo "";)
+BUILD_BISON_FLEX = "flex ./parser/Lexer.l && bison -d ./parser/Parser.y -o ./parser/Parser.cpp"
 
 build:
-	bison -d ./parser/Parser.y -o ./parser/Parser.cpp
 	flex ./parser/Lexer.l
+	bison -d ./parser/Parser.y -o ./parser/Parser.cpp
 	mv lex.yy.c ./parser/
 	g++ -std=c++11 -Wall ./parser/Parser.cpp ./parser/lex.yy.c $(PARSER_UTILS) $(SRCS) -o $(EXE_NAME)
 
 debug:
-	bison -d ./parser/Parser.y -o ./parser/Parser.cpp
 	flex ./parser/Lexer.l
+	bison -d ./parser/Parser.y -o ./parser/Parser.cpp
 	mv lex.yy.c ./parser/
 	g++ -g -Wall ./parser/Parser.cpp ./parser/lex.yy.c $(PARSER_UTILS) $(SRCS) -o $(EXE_NAME)
 
