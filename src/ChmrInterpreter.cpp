@@ -343,7 +343,7 @@ string ChmrInterpreter::CastVarTo(string var_id, string type)
         return EMPTY_VAR_NAME;
     }
 
-    return Table()->AddEntry("", var);
+    return Table()->AddEntry(EMPTY_VAR_NAME, var);
 }
 
 void ChmrInterpreter::GarbageCollect()
@@ -398,6 +398,7 @@ void ChmrInterpreter::EatAst(AstNode *root)
         {
             RunAst(ast_trees[cur_instruction]);
             cur_instruction++;
+            will_mutate_source = false;
             GarbageCollect();
         }
 
@@ -411,10 +412,7 @@ void ChmrInterpreter::EatAst(AstNode *root)
 
 string ChmrInterpreter::RunAst(AstNode *root)
 {
-    if (root->Type() < callbacks.size() && callbacks[root->Type()] != nullptr) {
-        return callbacks[root->Type()](root, this);
-    }
-    return EMPTY_VAR_NAME;
+    return callbacks[root->Type()](root, this);
 }
 
 // PUBLIC METHODS ABOVE -----------------------------------------------------------------------------
@@ -422,7 +420,10 @@ typedef ChmrInterpreter* CInter;
 
 void ChmrInterpreter::GenerateCallbacks()
 {
-    callbacks.resize(END_SCOPE_CMD + 1, nullptr);
+    auto Default = [](AstNode *root, CInter i) { return EMPTY_VAR_NAME; };
+    for(int i = 0; i < NUM_O_CALLBACK; i++) {
+        callbacks[i] = Default;
+    }
 
     callbacks[NO_CMD] = [](AstNode *node, CInter i)
     { return EMPTY_VAR_NAME; };
@@ -470,7 +471,7 @@ void ChmrInterpreter::GenerateCallbacks()
         }
         else if (root->Value().type == ID_NODE_TYPE)
         {
-            if (!i->Table()->Has(root->Value().s))
+            if (!i->Table()->Has(root->Value().s) || !i->will_mutate_source)
             {
                 data_name = root->Value().s;
             }
@@ -496,14 +497,6 @@ void ChmrInterpreter::GenerateCallbacks()
     {
         string to = i->RunAst(root->GetFromLeftNodes());
         string from = i->RunAst(root->GetFromRightNodes());
-
-        bool exists = i->Table()->Has(to);
-        bool is_child = i->Table()->CameFromVar(to);
-
-        if (exists && is_child)
-        {
-            to = i->Table()->GetParent(to);
-        }
 
         return i->Rebind(to, from);
     };
@@ -569,14 +562,14 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[PUT_IN_CONTAINER_CMD] = [](AstNode *root, CInter i)
     {
-        string list = i->Table()->GetParent(i->RunAst(root->GetFromLeftNodes()));
+        string list = i->RunAst(root->GetFromLeftNodes());
         string val = i->RunAst(root->GetFromRightNodes());
         return PutInArray(list, val, i->Table());
     };
 
     callbacks[PUT_IN_MAP_CMD] = [](AstNode *root, CInter i)
     {
-        string map = i->Table()->GetParent(i->RunAst(root->GetFromLeftNodes()));
+        string map = i->RunAst(root->GetFromLeftNodes());
         string key = i->RunAst(root->GetFromMiddleNodes());
         string val = i->RunAst(root->GetFromRightNodes());
         return PutInMap(map, key, val, i->Table());
@@ -591,7 +584,7 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[SET_IN_CONTAINER_CMD] = [](AstNode *root, CInter i)
     {
-        string container = i->Table()->GetParent(i->RunAst(root->GetFromLeftNodes()));
+        string container = i->RunAst(root->GetFromLeftNodes());
         string index = i->RunAst(root->GetFromMiddleNodes());
         string new_val = i->RunAst(root->GetFromRightNodes());
         return SetInContainer(container, index, new_val, i->Table());
@@ -605,6 +598,7 @@ void ChmrInterpreter::GenerateCallbacks()
 
     auto MathOpers = [](AstNode *root, CInter i)
     {
+        i->will_mutate_source = true;
         string left = i->RunAst(root->GetFromLeftNodes());
         string right = i->RunAst(root->GetFromRightNodes());
 
@@ -832,5 +826,23 @@ void ChmrInterpreter::GenerateCallbacks()
     callbacks[END_SCOPE_CMD] = [](AstNode *root, CInter i) {
         i->DestroyScope();
         return EMPTY_VAR_NAME;
+    };
+
+    callbacks[INC_CMD] = [](AstNode *root, CInter i) {
+        string var = i->RunAst(root->GetFromLeftNodes());
+        if (i->Table()->Has(var)) {
+            ChimeraObject *var_obj = i->Table()->GetEntry(var);
+            if (var_obj->IsNumber()) {
+                auto num = ((Number*)var_obj)->GetNumber() + 1;
+                var_obj->Set(num);
+            } 
+        }
+        return EMPTY_VAR_NAME;
+    };
+
+    callbacks[MOD_CMD] = [](AstNode *root, CInter i) {
+        string left = i->RunAst(root->GetFromLeftNodes());
+        string right = i->RunAst(root->GetFromRightNodes());
+        return Mod(left, right, i->Table()); 
     };
 }

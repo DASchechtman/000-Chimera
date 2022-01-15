@@ -75,6 +75,8 @@ extern char* yytext;
 %token WITH
 %token MULTI_WS 
 %token SINGLE_WS
+%token INC
+%token MOD
 
 %token <int_val> INT_VAL 
 %token <dou_val> DOUBLE_VAL 
@@ -153,16 +155,9 @@ whileStatement:                 whileHead line END {
                                 };
 
 forloopStatement:               forloopHead line END {
-
-                                    auto clone = $forloopHead->Copy();
-                                    clone->SaveAsExtraNode(MakeTermNode(1, INT_NODE_TYPE));
-                                    auto add_ast = MakeAddAst(clone);
-                                    auto rebind = MakeReassignAst($forloopHead, add_ast);
-                                   
-                                    i.EatAst(rebind);
+                                    i.EatAst(MakeIncAst($forloopHead));
                                     i.EatAst(MakeEndCtrlScopeAst());
-                                    i.EatAst(MakeEndScopeAst());
-                                    
+                                    i.EatAst(MakeEndScopeAst());  
                                 };
 
 ifStatement:                    ifBody END {
@@ -341,6 +336,14 @@ math_expr:                      '(' ADD exprList[left] opt_ws_or_nl')' {
                                 }
                                 | '(' POW exprList[left] opt_ws_or_nl ')' {
                                     Perform($$, $left, POW_CMD);
+                                    root = $$;
+                                }
+                                | '(' INC any_ws expr  opt_ws_or_nl ')' {
+                                    $$ = MakeIncAst($expr);
+                                    root = $$;
+                                }
+                                | '(' MOD any_ws expr[left] any_ws expr[right] opt_ws_or_nl ')' {
+                                    $$ = MakeModAst($left, $right);
                                     root = $$;
                                 }
                                 ;

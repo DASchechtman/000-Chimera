@@ -3,8 +3,10 @@
 #include "../DataStructs/SymbolTable.hpp"
 #include "../Types/ChimeraObject.hpp"
 #include "../Types/Number/Number.hpp"
+#include "../Types/Number/Derived/Double.hpp"
 #include "../Types/Text/Text.hpp"
 #include <string>
+#include <cmath>
 
 using namespace std;
 
@@ -15,3 +17,5 @@ int Subtract(string var_1, string var_2, SymbolTable *var_table);
 int Multiply(string var_1, string var_2, SymbolTable *var_table);
 int Divide(string var_1, string var_2, SymbolTable *var_table);
 int Pow(string var_1, string var_2, SymbolTable *var_table);
+int Inc(string var, SymbolTable *var_table);
+string Mod(string var_1, string var_2, SymbolTable *var_table);

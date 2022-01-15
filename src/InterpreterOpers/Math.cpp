@@ -99,3 +99,42 @@ int Pow(string var_1, string var_2, SymbolTable *var_table) {
         return ((Number *)obj_1)->Pow(*(Number*)obj_2);
     });
 }
+
+int Inc(string var, SymbolTable *var_table) {
+    if (!var_table->Has(var)) {
+        cout << "Error: Variable does not exist\n";
+        return FAIL;
+    }
+
+    ChimeraObject *var_obj = var_table->GetEntry(var);
+    if (var_obj->IsNumber()) {
+        long double num = ((Number*)var_obj)->GetNumber() + 1;
+        var_obj->Set(num);
+    }
+
+    cout << "Error: data isn't a number\n";
+    return FAIL;
+}
+
+string Mod(string var_1, string var_2, SymbolTable *var_table) {
+    if (!var_table->Has(var_1) || !var_table->Has(var_2)) {
+        cout << "Error: Variable doesn't exist\n";
+        return EMPTY_VAR_NAME;
+    }
+
+    ChimeraObject *var_1_obj = var_table->GetEntry(var_1);
+    ChimeraObject *var_2_obj = var_table->GetEntry(var_2);
+
+    if (var_1_obj->IsNumber() && var_2_obj->IsNumber()) {
+        long double val_1 = ((Number*)var_1_obj)->GetNumber();
+        long double val_2 = ((Number*)var_2_obj)->GetNumber();
+        if(val_2 == 0) {
+            cout << "Error: cannot get the results of " << val_1 << " % " << val_2 << '\n';
+            return EMPTY_VAR_NAME;
+        }
+        
+        return var_table->AddEntry(EMPTY_VAR_NAME, new Double(fmod(val_1, val_2)));
+    }
+
+    return EMPTY_VAR_NAME;
+}

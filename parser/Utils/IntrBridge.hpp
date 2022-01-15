@@ -48,6 +48,8 @@ AstNode* MakeGetFromCollectionAst(AstNode *id, AstNode *expr);
 AstNode* MakeSetInCollectionAst(AstNode *id, AstNode *index, AstNode *val);
 AstNode* MakeCollectionSizeAst(AstNode *id);
 AstNode* MakeAddAst(AstNode *node);
+AstNode* MakeIncAst(AstNode *node);
+AstNode* MakeModAst(AstNode *left, AstNode *right);
 
 AstNode* MakeTermNode(string data, DataType type);
 AstNode* MakeDataTypeNode(string type);

@@ -25,6 +25,10 @@ public:
     ChimeraUnion(vector<string> types, ChimeraObject *val);
     ~ChimeraUnion();
 
+    ChimeraObject* operator->() {
+        return m_var;
+    }
+
     int Set(int64 &data);
     int Set(float &data);
     int Set(long double &data);

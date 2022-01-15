@@ -57,6 +57,7 @@ exit                            { return EXIT; }
 (\*|mul)                        { return MUL; }
 (\/|div)                        { return DIV; }
 (\^|pow)                        { return POW; }
+(\%|mod)                        { return MOD; }
 addTo                           { return ADD_LIST; }
 put                             { return ADD_MAP; }
 set                             { return SET; }
@@ -71,6 +72,7 @@ while                           { return WHILE; }
 size                            { return SIZE; }
 repeat                          { return REPEAT; }
 with                            { return WITH; }
+inc                             { return INC; }
 
 true                            { yylval.bol_val = true; return BOOL_VAL; }
 false                           { yylval.bol_val = false; return BOOL_VAL; }

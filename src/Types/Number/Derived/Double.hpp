@@ -1,3 +1,4 @@
+#pragma once
 #include "../Number.hpp"
 
 class Double : public Number { 

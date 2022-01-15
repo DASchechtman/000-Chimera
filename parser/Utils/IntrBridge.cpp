@@ -367,6 +367,19 @@ AstNode* MakeAddAst(AstNode *node) {
     return add_ast;
 }
 
+AstNode* MakeIncAst(AstNode *node) {
+    AstNode* inc = MakeNode(INC_CMD);
+    inc->AddToLeftNodes(node);
+    return inc;
+}
+
+AstNode* MakeModAst(AstNode *left, AstNode *right) {
+    AstNode *mod = MakeNode(MOD_CMD);
+    mod->AddToLeftNodes(left);
+    mod->AddToRightNodes(right);
+    return mod;
+}
+
 AstNode* MakeTermNode(string data, DataType type) {
     return MakeNode(RAW_DATA_CMD, data, type);
 }

@@ -31,6 +31,8 @@ using namespace std;
 note: in the interpreter, if a string returning method returns an empty string. that means the string failed
 */
 
+#define NUM_O_CALLBACK END_SCOPE_CMD + 1
+
 class ChmrInterpreter
 {
 private:
@@ -42,7 +44,8 @@ private:
     ScopeTree scope_tree; 
     stack<size_t> cur_stack_level;
     size_t cur_jump_point = 0;
-    vector<string (*)(AstNode*, ChmrInterpreter*)> callbacks;
+    string (*callbacks[NUM_O_CALLBACK])(AstNode*, ChmrInterpreter*);
+    bool will_mutate_source = false;
 
     /* used to put a lot of boilerplate into one place for the assign/reassign actions */
     string MakeBind(string to, string from, string type);

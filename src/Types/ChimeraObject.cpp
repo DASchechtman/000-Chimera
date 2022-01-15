@@ -11,6 +11,40 @@ using namespace std;
 
 //PRIVATE METHOD BELOW ------------------------------------------------------------------------------------------------------------------------------
 
+void GetNumData(long double &num, ChimeraObject *obj) {
+    switch (obj->GetType())
+    {
+    case INT_DATA_TYPE: 
+    {
+        int64 val;
+        obj->Get(val);
+        num = val;
+        break;
+    }
+    case FLOAT_DATA_TYPE:
+    {
+        float val;
+        obj->Get(val);
+        num = val;
+        break;
+    }
+    case DOUBLE_DATA_TYPE:
+    {
+        obj->Get(num);
+        break;
+    }
+    case CHAR_DATA_TYPE:
+    {
+        char32_t val;
+        obj->Get(val);
+        num = val;
+        break;
+    }
+    
+    default: {}
+    }
+}
+
 bool ChimeraObject::PerformCompareOper(ChimeraObject *other, COMPARE_OPERS oper_code)
 {
     bool other_is_num = other->IsNumber();
@@ -24,14 +58,18 @@ bool ChimeraObject::PerformCompareOper(ChimeraObject *other, COMPARE_OPERS oper_
 
     if (other_is_num && self_is_num)
     {
-        long double self_val = ((Number *)this)->GetNumber();
-        long double other_val = ((Number *)other)->GetNumber();
+        long double self_val;
+        long double other_val;
+        GetNumData(self_val, this);
+        GetNumData(other_val, other);
         ret = Compare(self_val, other_val, oper_code);
     }
     else if (other_is_text && self_is_text)
     {
-        string self_text = ((Text *)this)->GetText();
-        string other_text = ((Text *)other)->GetText();
+        string self_text;
+        string other_text;
+        ((Text*)this)->Get(self_text);
+        ((Text*)other)->Get(other_text);
         ret = Compare(self_text, other_text, oper_code);
     }
     else if (other_is_bool && self_is_bool && oper_code == EQUAL_OPER)
@@ -46,6 +84,10 @@ bool ChimeraObject::PerformCompareOper(ChimeraObject *other, COMPARE_OPERS oper_
     }
 
     return ret;
+}
+
+ChimeraObject* ChimeraObject::operator->()  {
+    return this;
 }
 
 //PRIVATE METHODS ABOVE -----------------------------------------------------------------------------------------------------------------------------

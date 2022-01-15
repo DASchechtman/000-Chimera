@@ -93,15 +93,17 @@ extern int yydebug;
     WITH = 299,
     MULTI_WS = 300,
     SINGLE_WS = 301,
-    INT_VAL = 302,
-    DOUBLE_VAL = 303,
-    STRING_VAL = 304,
-    CHAR_VAL = 305,
-    BOOL_VAL = 306,
-    ELSE_IF = 307,
-    FLOAT_VAL = 308,
-    ID = 309,
-    UNKNOWN = 310
+    INC = 302,
+    MOD = 303,
+    INT_VAL = 304,
+    DOUBLE_VAL = 305,
+    STRING_VAL = 306,
+    CHAR_VAL = 307,
+    BOOL_VAL = 308,
+    ELSE_IF = 309,
+    FLOAT_VAL = 310,
+    ID = 311,
+    UNKNOWN = 312
   };
 #endif
 

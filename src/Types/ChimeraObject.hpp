@@ -153,6 +153,8 @@ public:
         return output;
     }
 
+    virtual ChimeraObject* operator->();
+
     virtual bool IsNumber();
     virtual bool IsText();
     virtual bool IsBool();
