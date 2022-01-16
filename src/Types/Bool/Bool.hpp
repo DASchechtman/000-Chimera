@@ -1,3 +1,4 @@
+#pragma once
 #include "../ChimeraObject.hpp"
 
 class Bool : public ChimeraObject {

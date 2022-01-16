@@ -10,7 +10,7 @@ string Less(string var_1, string var_2, SymbolTable *tbl) {
     ChimeraObject *obj_1 = tbl->GetEntry(var_1);
     ChimeraObject *obj_2 = tbl->GetEntry(var_2);
 
-    return tbl->AddEntry(EMPTY_VAR_NAME, new Bool(obj_1->Less(obj_2)));
+    return tbl->GetConstEntry(obj_1->Less(obj_2));
 }
 
 string LessEqual(string var_1, string var_2, SymbolTable *tbl) {
@@ -21,7 +21,7 @@ string LessEqual(string var_1, string var_2, SymbolTable *tbl) {
     ChimeraObject *obj_1 = tbl->GetEntry(var_1);
     ChimeraObject *obj_2 = tbl->GetEntry(var_2);
 
-    return tbl->AddEntry(EMPTY_VAR_NAME, new Bool(obj_1->LessEqual(obj_2)));
+    return tbl->GetConstEntry(obj_1->LessEqual(obj_2));
 }
 
 string Greater(string var_1, string var_2, SymbolTable *tbl) {
@@ -33,7 +33,7 @@ string Greater(string var_1, string var_2, SymbolTable *tbl) {
     ChimeraObject *obj_1 = tbl->GetEntry(var_1);
     ChimeraObject *obj_2 = tbl->GetEntry(var_2);
 
-    return tbl->AddEntry(EMPTY_VAR_NAME, new Bool(obj_1->Greater(obj_2)));
+    return tbl->GetConstEntry(obj_1->Greater(obj_2));
 }
 
 string GreaterEqual(string var_1, string var_2, SymbolTable *tbl) {
@@ -45,7 +45,7 @@ string GreaterEqual(string var_1, string var_2, SymbolTable *tbl) {
     ChimeraObject *obj_1 = tbl->GetEntry(var_1);
     ChimeraObject *obj_2 = tbl->GetEntry(var_2);
 
-    return tbl->AddEntry(EMPTY_VAR_NAME, new Bool(obj_1->GreaterEqual(obj_2)));
+    return tbl->GetConstEntry(obj_1->GreaterEqual(obj_2));
 }
 
 string Equal(string var_1, string var_2, SymbolTable *tbl) {
@@ -57,5 +57,5 @@ string Equal(string var_1, string var_2, SymbolTable *tbl) {
     ChimeraObject *obj_1 = tbl->GetEntry(var_1);
     ChimeraObject *obj_2 = tbl->GetEntry(var_2);
 
-    return tbl->AddEntry(EMPTY_VAR_NAME, new Bool(obj_1->Equal(obj_2)));
+    return tbl->GetConstEntry(obj_1->Equal(obj_2));
 }

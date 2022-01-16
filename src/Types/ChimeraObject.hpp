@@ -170,6 +170,7 @@ public:
     virtual int Set(char32_t &data);
     virtual int Set(bool &data);
     virtual int Set(string &data);
+    virtual int Set(ChimeraObject *other);
 
     virtual int Get(int64 &data);
     virtual int Get(float &data);

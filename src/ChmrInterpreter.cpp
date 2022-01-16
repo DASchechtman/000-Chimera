@@ -30,7 +30,6 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
 
     ChimeraObject *obj = Table()->GetEntry(from);
     string var_id = EMPTY_VAR_NAME;
-    string p = Table()->GetParent(to);
 
     switch (obj->GetType())
     {
@@ -214,20 +213,23 @@ string ChmrInterpreter::Bind(string to, string from, string type)
 
 string ChmrInterpreter::Rebind(string to, string from)
 {
-    if (!Table()->Has(to))
+    if (!Table()->Has(to) || !Table()->Has(from))
     {
         cout << "Error: couldn't clone var\n";
         return EMPTY_VAR_NAME;
     }
-    else
+    
+    ChimeraObject *obj = Table()->GetEntry(to);
+    ChimeraObject *obj_2 = Table()->GetEntry(from);
+    if (obj->GetGeneralType() == COLLECTION_DATA_TYPE)
     {
-        ChimeraObject *obj = Table()->GetEntry(to);
-        if (obj->GetGeneralType() == COLLECTION_DATA_TYPE)
-        {
-            return ReassignContainer(to, from, Table());
-        }
-        return MakeBind(to, from, Table()->GetEntry(to)->GetTypeName());
+        return ReassignContainer(to, from, Table());
     }
+
+    obj->Set(obj_2);
+    
+    return to;
+    
 }
 
 string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type)
@@ -434,27 +436,45 @@ void ChmrInterpreter::GenerateCallbacks()
 
         if (root->Value().type == INT_NODE_TYPE)
         {
-            data_name = i->CreateTmpVar(root->Value().i);
+            data_name = i->Table()->GetConstEntry(root->Value().i);
+            if(i->will_mutate_source) {
+                data_name = i->CreateTmpVar(root->Value().i);
+            }
         }
         else if (root->Value().type == FLOAT_NODE_TYPE)
         {
-            data_name = i->CreateTmpVar(root->Value().f);
+            data_name = i->Table()->GetConstEntry(root->Value().f);
+            if(i->will_mutate_source) {
+                data_name = i->CreateTmpVar(root->Value().f);
+            }
         }
         else if (root->Value().type == DOUBLE_NODE_TYPE)
         {
-            data_name = i->CreateTmpVar(root->Value().d);
+            data_name = i->Table()->GetConstEntry(root->Value().d);
+            if(i->will_mutate_source) {
+                data_name = i->CreateTmpVar(root->Value().d);
+            }
         }
         else if (root->Value().type == CHAR_NODE_TYPE)
         {
-            data_name = i->CreateTmpVar(root->Value().c);
+            data_name = i->Table()->GetConstEntry(root->Value().c);
+            if(i->will_mutate_source) {
+                data_name = i->CreateTmpVar(root->Value().c);
+            }
         }
         else if (root->Value().type == STRING_NODE_TYPE)
         {
-            data_name = i->CreateTmpVar(root->Value().s);
+            data_name = i->Table()->GetConstEntry(root->Value().s);
+            if(i->will_mutate_source) {
+                data_name = i->CreateTmpVar(root->Value().s);
+            }
         }
         else if (root->Value().type == BOOL_NODE_TYPE)
         {
-            data_name = i->CreateTmpVar(root->Value().b);
+            data_name = i->Table()->GetConstEntry(root->Value().b);
+            if(i->will_mutate_source) {
+                data_name = i->CreateTmpVar(root->Value().b);
+            }
         }
         else if (root->Value().type == ARRAY_NODE_TYPE)
         {
@@ -830,14 +850,8 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[INC_CMD] = [](AstNode *root, CInter i) {
         string var = i->RunAst(root->GetFromLeftNodes());
-        if (i->Table()->Has(var)) {
-            ChimeraObject *var_obj = i->Table()->GetEntry(var);
-            if (var_obj->IsNumber()) {
-                auto num = ((Number*)var_obj)->GetNumber() + 1;
-                var_obj->Set(num);
-            } 
-        }
-        return EMPTY_VAR_NAME;
+        Inc(var, i->Table());
+        return var;
     };
 
     callbacks[MOD_CMD] = [](AstNode *root, CInter i) {

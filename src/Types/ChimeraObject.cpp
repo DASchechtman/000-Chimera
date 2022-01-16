@@ -224,6 +224,60 @@ int ChimeraObject::Set(string &data)
     printf(m_set_err, GetTypeName().c_str(), STRING_TYPE_NAME.c_str());
     return FAIL;
 }
+
+int ChimeraObject::Set(ChimeraObject* other)
+{
+    int ret = FAIL;
+
+    switch(other->GetType())
+    {
+        case INT_DATA_TYPE: 
+        {
+            int64 val;
+            other->Get(val);
+            ret = Set(val);
+            break;
+        }
+        case FLOAT_DATA_TYPE: 
+        {
+            float val;
+            other->Get(val);
+            ret = Set(val);
+            break;
+        }
+        case DOUBLE_DATA_TYPE: 
+        {
+            dbl128 val;
+            other->Get(val);
+            ret = Set(val);
+            break;
+        }
+        case CHAR_DATA_TYPE: 
+        {
+            char32_t val;
+            other->Get(val);
+            ret = Set(val);
+            break;
+        }
+        case BOOL_DATA_TYPE: 
+        {
+            bool val;
+            other->Get(val);
+            ret = Set(val);
+            break;
+        }
+        case STRING_DATA_TYPE: 
+        {
+            string val;
+            other->Get(val);
+            ret = Set(val);
+            break;
+        }
+        default: {}
+    }
+
+    return ret;
+}
 //SET OVERRIDES ABOVE ----------------------------------------------------------------------------------------------------------------------------------------
 
 //GET OVERRIDES BELOW -----------------------------------------------------------------------------------------------------------------------------------------

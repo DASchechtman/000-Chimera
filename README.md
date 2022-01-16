@@ -278,6 +278,8 @@ currently can
 1. (mul [two or more numbers]): multiplies all the arguments
 1. (div [two or more numbers]): divides all the arguments
 1. (pow base exp)
+1. (mod exp1 exp2): gets the remainder 2 inputs exp1 % exp2
+1. (inc exp): will increase the value of a number type by 1
 
 Note: arguments are evaluated from left to right, and the left arguement has an operation performed on it using the right argument\
 Note: every argument after the first will be casted to the type of the first argument. So
@@ -288,12 +290,12 @@ print|(add 1 3.2 1.2)|
 ```
 
 ### Compare operators
-1. (less value value)
-1. (greater value value)
-1. (less-equal value value)
-1. (greater-equal value value)
-1. (equal value value)
-1. (not-equal value value)
+1. (less exp1 exp2)
+1. (greater exp1 exp2)
+1. (less-equal exp1 exp2)
+1. (greater-equal exp1 exp2)
+1. (equal exp1 exp2)
+1. (not-equal exp1 exp2)
 
 Note: when comparing values of different types, the result will always be false\
 Note: for bool types, every operator but 'equal' and 'not-equal' automatically returns false
@@ -304,7 +306,7 @@ Note: for bool types, every operator but 'equal' and 'not-equal' automatically r
 1. (not value)
 
 ### Misc operators
-1. (cast [one or more values] [type])
+1. (cast exp [type])
 
 <h2 id="loops">Loops</h2>
 

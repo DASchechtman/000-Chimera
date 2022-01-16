@@ -67,6 +67,7 @@ private:
     void DestroyScope();
     int PrintVar(string var_id, char end);
     string RunAst(AstNode* root);
+    string TestSwitchSpeed(AstNode *root);
 
     void GenerateCallbacks();
 

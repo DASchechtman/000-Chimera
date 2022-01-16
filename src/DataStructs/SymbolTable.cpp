@@ -75,9 +75,14 @@ string SymbolTable::AddEntry(string var_id, ChimeraObject *object) {
 
     if (var_id.empty()) {
         UpdateCurReg();
-        var_id = to_string(m_cur_reg).c_str();
+        var_id = to_string(m_cur_reg);
         is_tmp = true;
     }
+
+    while(is_tmp && Has(var_id)) {
+        UpdateCurReg();
+        var_id = to_string(m_cur_reg);
+   }
 
 
     if (!Has(var_id)) {
@@ -166,4 +171,20 @@ void SymbolTable::CopyTable(SymbolTable *old, bool full_copy) {
     for(auto start = m_table.begin(); start != m_table.end(); start++) {
         m_ref_counter[start->second.item] = old->m_ref_counter[start->second.item] + 1;
     }
+}
+
+string SymbolTable::KeyToString(int64 key) {
+    char first_letter[] = {'z', 'o', 't', 'r', 'f', 'i', 's', 'e', 'g', 'n'};
+    string str_key;
+
+    while(key >= 10) {
+        str_key += first_letter[abs(key%10)];
+        key /= 10;
+    }
+
+    if (key > 0 || str_key.empty()) {
+        str_key += first_letter[abs(key)];
+    }
+
+    return str_key + '!';
 }

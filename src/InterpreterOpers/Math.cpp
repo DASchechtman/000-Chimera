@@ -107,9 +107,13 @@ int Inc(string var, SymbolTable *var_table) {
     }
 
     ChimeraObject *var_obj = var_table->GetEntry(var);
+    if (var_table->GetParent(var).length() > 0) {
+        var_obj = var_table->GetEntry(var_table->GetParent(var));
+    }
     if (var_obj->IsNumber()) {
         long double num = ((Number*)var_obj)->GetNumber() + 1;
         var_obj->Set(num);
+        return SUCCEED;
     }
 
     cout << "Error: data isn't a number\n";

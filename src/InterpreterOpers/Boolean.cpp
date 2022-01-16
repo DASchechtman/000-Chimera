@@ -18,7 +18,7 @@ string And(string var_1, string var_2, SymbolTable *tbl) {
     ChimeraObject *obj_1 = tbl->GetEntry(var_1);
     ChimeraObject *obj_2 = tbl->GetEntry(var_2);
 
-    return tbl->AddEntry(EMPTY_VAR_NAME, new Bool(obj_1->ToBool() && obj_2->ToBool()));
+    return tbl->GetConstEntry(obj_1->ToBool() && obj_2->ToBool());
 }
 
 string Or(string var_1, string var_2, SymbolTable *tbl) {
@@ -30,7 +30,7 @@ string Or(string var_1, string var_2, SymbolTable *tbl) {
     ChimeraObject *obj_1 = tbl->GetEntry(var_1);
     ChimeraObject *obj_2 = tbl->GetEntry(var_2);
 
-    return tbl->AddEntry(EMPTY_VAR_NAME, new Bool(obj_1->ToBool() || obj_2->ToBool()));
+    return tbl->GetConstEntry(obj_1->ToBool() || obj_2->ToBool());
 }
 
 string Not(string var, SymbolTable *tbl) {
@@ -39,5 +39,5 @@ string Not(string var, SymbolTable *tbl) {
         return EMPTY_VAR_NAME;
     }
 
-    return tbl->AddEntry(EMPTY_VAR_NAME, new Bool(!tbl->GetEntry(var)->ToBool()));
+    return tbl->GetConstEntry(!tbl->GetEntry(var)->ToBool());
 }
