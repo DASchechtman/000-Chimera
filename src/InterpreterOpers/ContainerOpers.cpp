@@ -2,10 +2,19 @@
 #include "../Types/Containers/Lists/List.hpp"
 #include "../Types/Containers/Maps/Map.hpp"
 #include "../Types/Number/Derived/Int.hpp"
+#include "../Types/Composables/ComposableOr/ChimeraUnion.hpp"
 #include "DisplayErrors.hpp"
 #include <iostream>
 
 using namespace std;
+
+ChimeraObject* GetObjContents(ChimeraObject *data) {
+    ChimeraObject *address = data;
+    if (data->GetGeneralType() == UNION_DATA_TYPE) {
+        address = ((ChimeraUnion*)data)->GetObj();
+    }
+    return address;
+}
 
 VAR_TYPES TypeNameToType(string type_name) {
     VAR_TYPES type = UNDEFINED_DATA_TYPE;
@@ -99,7 +108,7 @@ string PutInArray(string container, string item, VarTbl tbl) {
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *obj = tbl->GetEntry(container);
+    ChimeraObject *obj = GetObjContents(tbl->GetEntry(container));
 
     if (obj->GetType() != LIST_DATA_TYPE) {
         cout << "Error: initializing array to unsupported type.\n";
@@ -107,7 +116,7 @@ string PutInArray(string container, string item, VarTbl tbl) {
     }
 
     List *array = (List*)obj;
-    ChimeraObject *item_obj = tbl->GetEntry(item);
+    ChimeraObject *item_obj = GetObjContents(tbl->GetEntry(item));
 
     if (array->PutItem(item_obj) == FAIL) {
         return EMPTY_VAR_NAME;
@@ -126,7 +135,7 @@ string PutInMap(string map, string key, string item, VarTbl tbl) {
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *container = tbl->GetEntry(map);
+    ChimeraObject *container = GetObjContents(tbl->GetEntry(map));
 
     if (container->GetType() != MAP_DATA_TYPE) {
         cout << "Error: cannot add data to map.\n";
@@ -134,8 +143,8 @@ string PutInMap(string map, string key, string item, VarTbl tbl) {
     }
 
     Map *map_obj = (Map*) container;
-    ChimeraObject *key_obj = tbl->GetEntry(key);
-    ChimeraObject *item_obj = tbl->GetEntry(item);
+    ChimeraObject *key_obj = GetObjContents(tbl->GetEntry(key));
+    ChimeraObject *item_obj = GetObjContents(tbl->GetEntry(item));
 
     string key_val = key_obj->ToStr();
 
@@ -152,8 +161,10 @@ string GetFromContainer(string container, string index, VarTbl tbl) {
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *data_struct = tbl->GetEntry(container);
-    ChimeraObject *index_obj = tbl->GetEntry(index);
+    ChimeraObject *data_struct = GetObjContents(tbl->GetEntry(container));
+    ChimeraObject *index_obj = GetObjContents(tbl->GetEntry(index));
+
+    
 
     if (data_struct->GetType() == LIST_DATA_TYPE) {
         int64 index_val;
@@ -184,7 +195,7 @@ string GetFromContainer(string container, string index, VarTbl tbl) {
         else if (data->GetGeneralType() == COLLECTION_DATA_TYPE) {
             return tbl->AddOrUpdateRef(container+index, data, true);
         }
-        
+
         return tbl->AddEntry(EMPTY_VAR_NAME, data->Clone());
     }
     cout << "Error: cannot get data from non-container.\n";
@@ -201,24 +212,24 @@ string SetInContainer(string container, string index, string item, VarTbl tbl) {
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *container_obj = tbl->GetEntry(container);
+    ChimeraObject *container_obj = GetObjContents(tbl->GetEntry(container));
 
     if (container_obj->GetType() == LIST_DATA_TYPE) {
         int64 index_val;
-        ChimeraObject *index_obj = tbl->GetEntry(index);
-        ChimeraObject *item_obj = tbl->GetEntry(item);
+        ChimeraObject *index_obj = GetObjContents(tbl->GetEntry(index));
+        ChimeraObject *item_obj = GetObjContents(tbl->GetEntry(item));
         index_obj->Get(index_val);
 
         int err = ((List*) container_obj)->SetItem(index_val, item_obj);
         return err == FAIL ? EMPTY_VAR_NAME : item;
     }
     else if (container_obj->GetType() == MAP_DATA_TYPE) {
-        ChimeraObject *index_obj = tbl->GetEntry(index);
+        ChimeraObject *index_obj = GetObjContents(tbl->GetEntry(index));
         if (((Map*) container_obj)->GetDeclaredType() != index_obj->GetType()) {
             return EMPTY_VAR_NAME;
         }
 
-        ChimeraObject *item_obj = tbl->GetEntry(item);
+        ChimeraObject *item_obj = GetObjContents(tbl->GetEntry(item));
         int err = ((Map*) container_obj)->SetItem(index_obj->ToStr(), item_obj);
         return err == FAIL ? EMPTY_VAR_NAME : item;
     }
@@ -233,8 +244,8 @@ string ReassignContainer(string old, string latest, VarTbl tbl) {
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *old_container = tbl->GetEntry(old);
-    ChimeraObject *new_container = tbl->GetEntry(latest);
+    ChimeraObject *old_container = GetObjContents(tbl->GetEntry(old));
+    ChimeraObject *new_container = GetObjContents(tbl->GetEntry(latest));
 
     if (
         old_container->GetGeneralType() == COLLECTION_DATA_TYPE
@@ -255,7 +266,7 @@ string GetContainerSize(string container, VarTbl tbl) {
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *container_obj = tbl->GetEntry(container);
+    ChimeraObject *container_obj = GetObjContents(tbl->GetEntry(container));
 
     if(container_obj->GetGeneralType() == COLLECTION_DATA_TYPE) {
         int64 size = (int64)((Container*) container_obj)->Size();

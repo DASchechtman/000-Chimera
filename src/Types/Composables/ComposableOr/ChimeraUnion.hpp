@@ -25,9 +25,10 @@ public:
     ChimeraUnion(vector<string> types, ChimeraObject *val);
     ~ChimeraUnion();
 
-    ChimeraObject* operator->() {
-        return m_var;
-    }
+
+    ChimeraObject* GetObj();
+    VAR_TYPES GetType();
+    string GetTypeName();
 
     int Set(int64 &data);
     int Set(float &data);
@@ -35,6 +36,7 @@ public:
     int Set(char32_t &data);
     int Set(bool &data);
     int Set(string &data);
+    int Set(ChimeraObject *data);
 
     int Get(int64 &data);
     int Get(float &data);
@@ -62,6 +64,7 @@ int ChimeraUnion::SetTo(VAR_TYPES type, string type_name, T &data) {
 
     bool has_type = m_allowable_types.find(type) != m_allowable_types.end();
     bool can_cast = false;
+
     if (has_type) {
         can_cast = m_allowable_types[type];
     }

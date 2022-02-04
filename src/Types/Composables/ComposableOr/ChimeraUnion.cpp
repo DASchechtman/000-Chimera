@@ -26,6 +26,12 @@ bool ChimeraUnion::IsAllowableType(VAR_TYPES cur_type, vector<string> allowed_ty
     else if (cur_type == BOOL_DATA_TYPE) {
         is_allowed = find(allowed_types.begin(), allowed_types.end(), BOOL_TYPE_NAME) != allowed_types.end();
     }
+    else if (cur_type == MAP_DATA_TYPE) {
+        is_allowed = find(allowed_types.begin(), allowed_types.end(), MAP_TYPE_NAME) != allowed_types.end();
+    }
+    else if (cur_type == LIST_DATA_TYPE) {
+        is_allowed = find(allowed_types.begin(), allowed_types.end(), LIST_TYPE_NAME) != allowed_types.end();
+    }
 
     return is_allowed;
 }
@@ -49,12 +55,25 @@ ChimeraUnion::ChimeraUnion(vector<string> types, ChimeraObject *val) {
     }
 
     m_type_list = types;
+    SetGeneralType(UNION_DATA_TYPE);
 }
 
 ChimeraUnion::~ChimeraUnion() {
     if (m_var != nullptr) {
         delete m_var;
     }
+}
+
+ChimeraObject* ChimeraUnion::GetObj() {
+    return m_var;
+}
+
+VAR_TYPES ChimeraUnion::GetType() {
+    return m_var->GetType();
+}
+
+string ChimeraUnion::GetTypeName() {
+    return m_var->GetTypeName();
 }
 
 int ChimeraUnion::Set(int64 &data) {
@@ -79,6 +98,24 @@ int ChimeraUnion::Set(bool &data) {
 
 int ChimeraUnion::Set(string &data) {
     return SetTo(STRING_DATA_TYPE, STRING_TYPE_NAME, data);
+}
+
+int ChimeraUnion::Set(ChimeraObject *data) {
+    bool can_cast = false;
+    bool has_type = m_allowable_types.find(data->GetType()) != m_allowable_types.end();
+
+    if (has_type) {
+        can_cast = m_allowable_types[data->GetType()];
+    }
+
+    if (can_cast) {
+        delete m_var;
+        m_var = data->Clone();
+        return SUCCEED;
+    }
+
+    cout << "Error cannot store " << data->GetTypeName() << " in union\n";
+    return FAIL;
 }
 
 int ChimeraUnion::Get(int64 &data) {
