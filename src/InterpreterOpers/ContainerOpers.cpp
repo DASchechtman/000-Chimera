@@ -166,10 +166,10 @@ string GetFromContainer(string container, string index, VarTbl tbl) {
             cout << "Error: item in list does not exist\n";
             return EMPTY_VAR_NAME;
         }
-
-        if (data->GetGeneralType() == COLLECTION_DATA_TYPE) {
+        else if (data->GetGeneralType() == COLLECTION_DATA_TYPE) {
             return tbl->AddOrUpdateRef(container+index, data, true);
         }
+
         return tbl->AddEntry(EMPTY_VAR_NAME, data->Clone());
     }
     else if (data_struct->GetType() == MAP_DATA_TYPE) {
@@ -181,10 +181,10 @@ string GetFromContainer(string container, string index, VarTbl tbl) {
             cout << "Error: item in map does not exist\n";
             return EMPTY_VAR_NAME;
         }
-
-        if (data->GetGeneralType() == COLLECTION_DATA_TYPE) {
+        else if (data->GetGeneralType() == COLLECTION_DATA_TYPE) {
             return tbl->AddOrUpdateRef(container+index, data, true);
         }
+        
         return tbl->AddEntry(EMPTY_VAR_NAME, data->Clone());
     }
     cout << "Error: cannot get data from non-container.\n";

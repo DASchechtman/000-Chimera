@@ -57,7 +57,7 @@ Then type ```make && make run``` in the terminal, wait for the program to compil
 
 [Table of Contents](#toc)
 
-int the running terminal type
+in the running terminal type
 ```
 print|"Hello world"|
 ```
@@ -76,7 +76,7 @@ print|x|
 ```
 see [Data Types](#dt) for more information on supported base types
 
-You can also do operations on data na store the results in a variable
+You can also do operations on data and store the results in a variable
 ```
 x: int = (mul 5 2)
 print|x|
@@ -110,15 +110,13 @@ exit||
 1. char: holds a single letter
 1. string: holds many letters
 1. bool: holds a true or false value
-1. list&lt;any type above&gt;
-1. map &lt;any type above -> any type above&gt;
+1. list
+1. map
 
 a character is a single letter surrounded by single quotes, whereas a string is one or more letters surrounded by double quotes
 
-**Note**: you can cast any type into any other type. In the case of casting a string to a number, if the string represents a number it will be converted to that represented number. Otherwise a hash of the string will be returned
+**Note**: you can cast any base type into any other type other base type (maps and lists can be converted to any of the other types but you can't convert any other types to a list or map at this time). In the case of casting a string to a number, if the string represents a number it will be converted to that represented number. Otherwise a hash of the string will be returned
 see [Operations](#opers) to learn how to cast
-
-**Note**: For container types like lists and maps, nested containers aren't supported yet. For example Chimera doesn't support 2d lists yet
 
 ### Union types
 a variable can be composed of one or more of the above base types. For example
@@ -197,24 +195,27 @@ print|x y|
 ### Containers
 #### ***List***
 
-chimera supports two types of container type currently. A list and a map. A list can contain one or more peices of data of the same type
+chimera supports two types of container type currently. A list and a map. A list can contain one or more peices of data
 
 ```
 # init list
-int_list: list<int> = []
+int_list: list = []
 # add item to list
-int_list.put|1 2 3 4 5|
+int_list.put|1|
+int_list.put|2|
+int_list.put|3|
+int_list.put|4|
+int_list.put|5|
 print|int_list|
+
 #Output: [1, 2, 3, 4, 5]
 ```
 
-Note: lists currently only support a single type at this point in time. So you can't set a list to store a Union type
+Note: unlike other types lists do not enforce any specific type that can be put into it. while all base types (like int, double, bool) can't be changed to another type. lists are ducktyped in that any data can be stored in them at any time
 
 ```
 # Get item and set item example
-int_list: list<int> = []
-
-int_list.put|1 2 3 4 5|
+int_list: list = [1 true 3 "hello" 5]
 
 # Get item from list
 print|int_list[0]|
@@ -232,32 +233,35 @@ print|int_list[0]|
 #Output: 77
 ```
 
-You can also make lists that can contain multiple types of data
-```
-multi_type_list: list<int | string | bool> = []
-multi_type_list.addTo|1|
-multi_type_list.addTo|"hello world"|
-multi_type_list.addTo|true|
-
-print|multi_type_list|
-# >>> [1, hello world, true]
-```
+**Note** that operations can fail just like if you tried to access them vai a variable, and do an illegal operation
 
 #### ***Map***
 Maps associate one type of data with another. for example a string value can be associated with a int value
 
 ```
-test_map: map<string -> int> = {}
+test_map: map = {}
 
 test_map.put|"hello ten" 10|
 test_map.put|"hello 20" 20|
 
-# expected output: 10 20
 print| test_map["hello ten"] test_map["hello 20"] |
+#Output: 10 20
 ```
 
-note maps currently only support non-union types as key and value types
-so you can't set `string|int` as either a string or value type
+Note: much like lists maps can also contain any type of data as either the key or value at any time
+
+```
+# init map with values
+test_map: map = {
+    |"hello" -> "world"|
+    |[1 2 3] -> "list"|
+    |true -> 'c'|
+}
+
+#or
+
+test_map_2: map = { |"hello" -> "world"| |[1 2 3] -> "list"| |true -> 'c'| }
+```
 
 #### ***Container Operations***
 currently can 
@@ -278,6 +282,7 @@ currently can
 1. (mul [two or more numbers]): multiplies all the arguments
 1. (div [two or more numbers]): divides all the arguments
 1. (pow base exp)
+1. (pow two or more number): (pow 1 2 3) = (pow 1 (pow 2 3))
 1. (mod exp1 exp2): gets the remainder 2 inputs exp1 % exp2
 1. (inc exp): will increase the value of a number type by 1
 
