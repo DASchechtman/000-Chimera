@@ -17,6 +17,7 @@ bool SymbolTable::DecreaseRefCount(ChimeraObject *object) {
         m_ref_counter.erase(object);
         return true;
     }
+
     return false;
 }
 
@@ -31,6 +32,7 @@ SymbolTable::~SymbolTable() {
     auto end = m_table.end();
 
     while (it != end) {
+        if (it->second.is_weak) { it++; continue; }
         DecreaseRefCount(it->second.item);
         it++;
     }
@@ -95,7 +97,7 @@ string SymbolTable::AddEntry(string var_id, ChimeraObject *object) {
     return var_id;
 }
 
-string SymbolTable::AddOrUpdateRef(string var_id, ChimeraObject *object) {
+string SymbolTable::AddOrUpdateRef(string var_id, ChimeraObject *object, bool is_weak_ref) {
 
     if (Has(var_id) && !m_table[var_id].is_ref) {
         return EMPTY_VAR_NAME;
@@ -114,7 +116,11 @@ string SymbolTable::AddOrUpdateRef(string var_id, ChimeraObject *object) {
     m_table[var_id].item = object;
     m_table[var_id].is_temp = is_tmp;
     m_table[var_id].is_ref = true;
-    m_ref_counter[object]++;
+    m_table[var_id].is_weak = is_weak_ref;
+
+    if (!is_weak_ref) {
+        m_ref_counter[object]++;
+    }
 
     return var_id;
 }

@@ -153,16 +153,14 @@ template<class T>
 int Map::SetData(T index, ChimeraObject *data, VAR_TYPES type, MapItem &item) {
     int ret_code = FAIL;
 
-    if (m_key_type == type) {
+    
         size_t hash = NonStrHash(index);
         ret_code =  MapData(hash, type, data, item);
         m_size = ret_code == SUCCEED ? m_size+1 : m_size;
-    }
-    else {
-        cout << "Error: key type does not match\n";
-    }
     
-    return ret_code;
+    
+    
+    return SUCCEED;
 }
 
 template<class T>

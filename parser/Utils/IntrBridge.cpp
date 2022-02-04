@@ -180,6 +180,21 @@ AstNode* MakeArrayTermAst(AstNode *data) {
     return arr;
 }
 
+AstNode* MakeMapTermAst(AstNode *data) {
+    AstNode *map = MakeTermNode(0, MAP_NODE_TYPE);
+
+    for(size_t i = 0; i < data->Extras(); i += 2) {
+        map->AddToLeftNodes(data->GetExtraNode(i));
+        map->AddToRightNodes(data->GetExtraNode(i+1));
+        data->NullExtraNode(i);
+        data->NullExtraNode(i+1);
+    }
+
+    delete data;
+
+    return map;
+}
+
 AstNode* MakeMapBindAst(AstNode* id, AstNode *key_type, AstNode *val_type) {
     AstNode *make_map_ast = MakeNode(MAKE_MAP_CMD);
 
@@ -385,7 +400,10 @@ AstNode* MakeTermNode(string data, DataType type) {
 }
 
 AstNode* MakeDataTypeNode(string type) {
-    return MakeNode(RAW_DATA_CMD, type, VAR_TYPE_NODE_TYPE);
+    AstNode *track = MakeNode(TRACK_TYPE_CMD);
+    AstNode *type_node = MakeNode(RAW_DATA_CMD, type, VAR_TYPE_NODE_TYPE);
+    track->AddToLeftNodes(type_node);
+    return track;
 }
 
 AstNode* MakeIDNode(string id) {

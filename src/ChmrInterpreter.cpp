@@ -77,14 +77,38 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
     }
     case LIST_DATA_TYPE:
     {
-        var_id = Table()->AddEntry(EMPTY_VAR_NAME, obj->Clone());
-        Table()->SetParent(var_id, from);
+        if (type != LIST_TYPE_NAME) {
+            cout << "Error: cannot assign '" << type << "' to list\n";
+            var_id = EMPTY_VAR_NAME;
+            break;
+        }
+
+        if (!Table()->Has(to)) {
+            to = Table()->AddEntry(to, obj->Clone());
+        }
+        else {
+            List *list_obj = (List*)Table()->GetEntry(to);
+            list_obj->SetToNewContainer((Container*)obj);
+        }
+
+        var_id = to;
+      
         break;
     }
     case MAP_DATA_TYPE:
     {
-        var_id = Table()->AddEntry(EMPTY_VAR_NAME, obj->Clone());
-        Table()->SetParent(var_id, from);
+        if (type != MAP_TYPE_NAME) {
+            cout << "Error: cannot assign '" << type << "' to map\n";
+            var_id = EMPTY_VAR_NAME;
+            break;
+        }
+        if (!Table()->Has(to)) {
+            to = Table()->AddEntry(to, obj->Clone());
+        }
+        else {
+            Map *map_obj = (Map*)Table()->GetEntry(to);
+            map_obj->SetToNewContainer((Container*)obj);
+        }
         break;
     }
     default:
@@ -150,7 +174,6 @@ void ChmrInterpreter::ProcessCtrlStructure(AstNode *node)
 
         jump_points.push_back(ji);
         cur_scope_level = ji.depth - 1;
-        ;
     }
 }
 
@@ -485,6 +508,15 @@ void ChmrInterpreter::GenerateCallbacks()
             }
             data_name = arr;
         }
+        else if (root->Value().type == MAP_NODE_TYPE) {
+            string map = MakeMap(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, UNKNOWN_TYPE_NAME, i->Table());
+            for(size_t iter = 0; iter < root->Size(AstNode::LEFT); iter++) {
+                string key = i->RunAst(root->GetFromLeftNodes(iter));
+                string val = i->RunAst(root->GetFromRightNodes(iter));
+                PutInMap(map, key, val, i->Table());
+            }
+            data_name = map;
+        }
         else if (root->Value().type == VAR_TYPE_NODE_TYPE)
         {
             data_name = root->Value().s;
@@ -493,6 +525,9 @@ void ChmrInterpreter::GenerateCallbacks()
         {
             if (!i->Table()->Has(root->Value().s) || !i->will_mutate_source)
             {
+                data_name = root->Value().s;
+            }
+            else if (i->Table()->Has(root->Value().s) && i->Table()->GetEntry(root->Value().s)->GetGeneralType() == COLLECTION_DATA_TYPE) {
                 data_name = root->Value().s;
             }
             else
@@ -510,6 +545,10 @@ void ChmrInterpreter::GenerateCallbacks()
         string to = i->RunAst(root->GetFromLeftNodes());
         string from = i->RunAst(root->GetFromRightNodes());
         string type = i->RunAst(root->GetFromMiddleNodes());
+       
+        if (type == LIST_TYPE_NAME) {
+            //return MakeArray(to, )
+        }
         return i->Bind(to, from, type);
     };
 
@@ -598,8 +637,16 @@ void ChmrInterpreter::GenerateCallbacks()
     callbacks[GET_FROM_CONTAINER_CMD] = [](AstNode *root, CInter i)
     {
         string container = i->RunAst(root->GetFromLeftNodes());
-        string index = i->RunAst(root->GetFromRightNodes());
-        return GetFromContainer(container, index, i->Table());
+        string list_index = i->RunAst(root->GetFromRightNodes());
+
+        string data_name = GetFromContainer(container, list_index, i->Table());
+
+        for(size_t index = 0; index < root->Size(AstNode::MIDDLE); index++) {
+            list_index = i->RunAst(root->GetFromMiddleNodes(index));
+            data_name = GetFromContainer(data_name, list_index, i->Table());
+        }
+
+        return data_name;
     };
 
     callbacks[SET_IN_CONTAINER_CMD] = [](AstNode *root, CInter i)
@@ -858,5 +905,9 @@ void ChmrInterpreter::GenerateCallbacks()
         string left = i->RunAst(root->GetFromLeftNodes());
         string right = i->RunAst(root->GetFromRightNodes());
         return Mod(left, right, i->Table()); 
+    };
+
+    callbacks[TRACK_TYPE_CMD] = [](AstNode *root, CInter i) {
+        return i->RunAst(root->GetFromLeftNodes());
     };
 }

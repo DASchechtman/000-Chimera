@@ -79,7 +79,7 @@ size_t Map::Hash(ChimeraObject *item)
 
 bool Map::MatchingDataTypes(VAR_TYPES key_type, VAR_TYPES val_type)
 {
-    return key_type == m_key_type && val_type == m_val_type;
+    return true;
 }
 
 void Map::ResizeIfNeeded(size_t new_size)
@@ -470,7 +470,7 @@ string Map::ToStr()
             }
 
             str_val << ": ";
-            switch (m_val_type)
+            switch (start->val->GetType())
             {
             case INT_DATA_TYPE:
             {
@@ -515,6 +515,7 @@ string Map::ToStr()
 
             default:
             {
+                str_val << start->val->ToStr();
             }
             }
 
@@ -528,7 +529,8 @@ string Map::ToStr()
 
     str_val << "}";
 
-    return str_val.str();
+    auto val = str_val.str();
+    return val;
 }
 
 int64 Map::ToInt()

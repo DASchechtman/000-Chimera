@@ -19,6 +19,7 @@ struct TableItem
     ChimeraObject *item;
     bool is_temp;
     bool is_ref;
+    bool is_weak;
     string created_from;
 
     TableItem(){};
@@ -67,7 +68,7 @@ public:
     void SetCopyStat(bool is_copying);
     string GetParent(string var_id);
     string AddEntry(string var_id, ChimeraObject *object);
-    string AddOrUpdateRef(string var_id, ChimeraObject *object);
+    string AddOrUpdateRef(string var_id, ChimeraObject *object, bool is_weak_ref = false);
     ChimeraObject *GetEntry(string var_id);
     void RemoveEntry(string var_id);
     void FreeTempItems();

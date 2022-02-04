@@ -375,10 +375,10 @@ static const flex_int16_t yy_accept[203] =
 
        53,   49,   25,   21,   48,   48,   48,   28,   48,   48,
        37,   48,   48,   48,   48,   34,   48,   45,    3,   48,
-       48,   12,   30,   27,   23,   29,   48,   32,   10,   48,
+       48,   12,   30,   27,   23,   29,   48,   32,   11,   48,
        33,   48,   48,   48,   26,   48,   48,   48,   48,   48,
         6,   13,    7,   48,   40,   48,   24,   48,   48,   48,
-       14,   11,    0,   48,   48,   42,   48,   48,   46,   48,
+       14,   10,    0,   48,   48,   42,   48,   48,   46,   48,
        48,   44,   31,   48,    0,   18,   47,    4,   48,    0,
         0,   20,   48,   36,   48,   48,   41,    5,    0,   48,
         0,    0,   43,    8,   48,   39,   15,    0,    0,    9,
@@ -907,17 +907,17 @@ YY_RULE_SETUP
 case 10:
 YY_RULE_SETUP
 #line 39 "./parser/Lexer.l"
-{ return REF; }
+{ yylval.types = yytext; return LIST; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 40 "./parser/Lexer.l"
-{ return LIST; }
+{ return REF; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 41 "./parser/Lexer.l"
-{ return MAP; }
+{ yylval.types = yytext; return MAP; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP

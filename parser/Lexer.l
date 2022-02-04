@@ -36,9 +36,9 @@ bool                            { yylval.types = yytext; return BOOL; }
 char                            { yylval.types = yytext; return CHAR; }
 string                          { yylval.types = yytext; return STRING; }
 unknown                         { yylval.types = yytext; return UNKNOWN; }
+list                            { yylval.types = yytext; return LIST; }
 ref                             { return REF; }
-list                            { return LIST; }
-map                             { return MAP; }
+map                             { yylval.types = yytext; return MAP; }
 
 cast                            { return CAST; }
 less                            { return LESS; }

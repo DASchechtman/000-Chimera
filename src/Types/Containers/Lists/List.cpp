@@ -4,25 +4,8 @@
 
 using namespace std;
 
-List::List(VAR_TYPES type)
+List::List()
 {
-    int offset = BOOL_DATA_TYPE - LIST_DATA_TYPE;
-    m_list_type.resize(offset + 1, UNDEFINED_DATA_TYPE);
-
-    if (type == UNKNOWN_DATA_TYPE)
-    {
-        for (int i = LIST_DATA_TYPE; i <= BOOL_DATA_TYPE; i++)
-        {
-            m_list_type[i - LIST_DATA_TYPE] = (VAR_TYPES)i;
-        }
-    }
-    else
-    {
-        m_list_type[type - LIST_DATA_TYPE] = type;
-    }
-
-    SetType(type);
-    m_list_type_name = GetTypeName();
     SetType(LIST_DATA_TYPE);
 }
 
@@ -38,16 +21,20 @@ List::List(vector<VAR_TYPES> types)
         auto index = find(types.begin(), types.end(), LIST_DATA_TYPE + i);
         if (index != types.end())
         {
-            m_list_type[i] = types[index - types.begin()];
+            auto var_type =  types[index - types.begin()];
+            m_list_type[i] = types[var_type];
 
             SetType(m_list_type[i]);
             if (index != types.end() - 1)
             {
-                m_list_type_name += GetTypeName() + " | ";
+                m_list_type_name += VarTypeToStr(var_type);
+                m_list_type_name.pop_back();
+                m_list_type_name += " | ";
             }
             else
             {
-                m_list_type_name += GetTypeName();
+                m_list_type_name += VarTypeToStr(var_type);
+                m_list_type_name.pop_back();
             }
         }
         else
@@ -74,23 +61,13 @@ bool List::IsCorrectType(VAR_TYPES type)
 
 int List::PutItem(ChimeraObject *item)
 {
-    if (!IsCorrectType(item->GetType()))
-    {
-        cout << "Error: cannot add '" << item->GetTypeName() << "' to list<" << m_list_type_name << ">\n";
-        return FAIL;
-    }
     m_list.push_back(item->Clone());
     return SUCCEED;
 }
 
 int List::SetItem(int64 index, ChimeraObject *item)
 {
-    if (!IsCorrectType(item->GetType()))
-    {
-        cout << "Error: cannot add '" << item->GetTypeName() << "' to list<" << m_list_type_name << ">\n";
-        return FAIL;
-    }
-    else if (index < 0 || (size_t)index >= m_list.size())
+    if (index < 0 || (size_t)index >= m_list.size())
     {
         cout << "Error: index out of bounds\n";
         return FAIL;
@@ -187,10 +164,10 @@ bool List::ToBool()
 
 ChimeraObject *List::Clone()
 {
-    List *list = new List(m_list_type);
+    List *list = new List();
     for (ChimeraObject *item : m_list)
     {
-        list->PutItem(item->Clone());
+        list->PutItem(item);
     }
     return list;
 }

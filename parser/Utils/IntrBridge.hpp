@@ -28,6 +28,7 @@ AstNode* MakeReassignAst(AstNode *id, AstNode *expr);
 AstNode* MakeRefAst(AstNode *id, AstNode *types, AstNode *expr);
 AstNode* MakeArrayBindAst(AstNode *id, AstNode *types);
 AstNode* MakeArrayTermAst(AstNode *data);
+AstNode* MakeMapTermAst(AstNode *data);
 AstNode* MakeMapBindAst(AstNode* id, AstNode *key_type, AstNode *val_type);
 AstNode* MakeArrayBindAst(AstNode *id, AstNode *types, AstNode *expr);
 AstNode* MakeRebindRefAst(AstNode *id, AstNode *expr);

@@ -16,7 +16,7 @@ private:
 protected:
 public:
 
-    List(VAR_TYPES type);
+    List();
     List(vector<VAR_TYPES> types);
     ~List();
 

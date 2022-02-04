@@ -87,7 +87,9 @@ extern char* yytext;
 %token <id> ID
 
 %type <tmp_id> term
-%type <tmp_id> terms 
+%type <tmp_id> terms
+%type <tmp_id> keyVals
+%type <tmp_id> keyValPairs
 %type <tmp_id> expr 
 %type <tmp_id> math_expr 
 %type <tmp_id> compare_expr 
@@ -96,7 +98,8 @@ extern char* yytext;
 %type <tmp_id> statement 
 %type <tmp_id> assign 
 %type <tmp_id> types 
-%type <tmp_id> id 
+%type <tmp_id> id
+%type <tmp_id> indexAccessor 
 %type <tmp_id> exprList 
 %type <tmp_id> forloopHead
 
@@ -180,6 +183,51 @@ terms:                          term { $$ = $1; }
                                 | terms[list] opt_newline term {$list->SaveAsExtraNode($term); $$ = $list; }
                                 ;
 
+keyValPairs:                    '|' opt_ws term[key] opt_ws POINTS_TO opt_ws term[val] opt_ws '|' {
+                                    $$ = new AstNode();
+                                    $$->SaveAsExtraNode($key);
+                                    $$->SaveAsExtraNode($val);
+                                }
+                                ;
+
+keyVals:                        keyValPairs[kp] NEWLINE opt_ws {
+                                    $$ = new AstNode();
+                                    $$->SaveAsExtraNode($kp->GetExtraNode());
+                                    $$->SaveAsExtraNode($kp->GetExtraNode(1));
+                                    $kp->NullExtraNode(0);
+                                    $kp->NullExtraNode(1);
+                                    delete $kp;
+                                    root = $$;
+                                }
+                                | keyValPairs[kp] any_ws {
+                                    $$ = new AstNode();
+                                    $$->SaveAsExtraNode($kp->GetExtraNode());
+                                    $$->SaveAsExtraNode($kp->GetExtraNode(1));
+                                    $kp->NullExtraNode(0);
+                                    $kp->NullExtraNode(1);
+                                    delete $kp;
+                                    root = $$;
+                                }
+                                | keyVals[prev] keyValPairs[kp] NEWLINE opt_ws {
+                                    $prev->SaveAsExtraNode($kp->GetExtraNode());
+                                    $prev->SaveAsExtraNode($kp->GetExtraNode(1));
+                                    $kp->NullExtraNode(0);
+                                    $kp->NullExtraNode(1);
+                                    delete $kp;
+                                    $$ = $prev;
+                                    root = $$;
+                                }
+                                | keyVals[prev] keyValPairs[kp] any_ws {
+                                    $prev->SaveAsExtraNode($kp->GetExtraNode());
+                                    $prev->SaveAsExtraNode($kp->GetExtraNode(1));
+                                    $kp->NullExtraNode(0);
+                                    $kp->NullExtraNode(1);
+                                    delete $kp;
+                                    $$ = $prev;
+                                    root = $$;
+                                }
+                                ; 
+
 term:                           INT_VAL         { 
                                        $$ = MakeTermNode($1, INT_NODE_TYPE);
                                        root = $$;             
@@ -216,6 +264,14 @@ term:                           INT_VAL         {
                                     $$ = MakeTermNode(0, ARRAY_NODE_TYPE);
                                     root = $$;
                                 }
+                                | '{' opt_ws_or_nl keyVals '}' {
+                                    $$ = MakeMapTermAst($keyVals);
+                                    root = $$;
+                                }
+                                | '{' '}' {
+                                    $$ = MakeTermNode(0, MAP_NODE_TYPE);
+                                    root = $$;
+                                }
                                 ;
 
 types:                          INT             { $$ = MakeDataTypeNode((string)$1); root = $$; }
@@ -224,6 +280,14 @@ types:                          INT             { $$ = MakeDataTypeNode((string)
                                 | BOOL          { $$ = MakeDataTypeNode((string)$1); root = $$; }
                                 | CHAR          { $$ = MakeDataTypeNode((string)$1); root = $$; }
                                 | STRING        { $$ = MakeDataTypeNode((string)$1); root = $$; }
+                                | LIST {
+                                    $$ = MakeDataTypeNode((string)$LIST);
+                                    root = $$;
+                                }
+                                | MAP {
+                                    $$ = MakeDataTypeNode((string)$MAP);
+                                    root = $$;
+                                }
                                 ;
 
 unionTypes:                     types[first] opt_ws '|' opt_ws types[other] {
@@ -267,21 +331,6 @@ assign:                         id ':' opt_ws types opt_ws '=' opt_ws expr {
                                     $$ = MakeRefAst($id, $types, $expr);
                                     root = $$;
                                 }
-                                | id ':' opt_ws MAP '<' types[key] opt_ws POINTS_TO opt_ws types[val] '>' opt_ws '=' opt_ws '{' '}' {
-                                    $$ = MakeMapBindAst($id, $key, $val);
-                                    root = $$;
-                                }
-                                | id ':' opt_ws LIST '<' types '>' opt_ws '=' opt_ws expr {
-                                    $$ = MakeArrayBindAst($id, $types, $expr);
-                                    root = $$;
-
-                                }
-                                | id ':' opt_ws LIST '<' unionTypes '>' opt_ws '=' opt_ws expr {
-                                    cout << "making union array\n";
-                                    $$ = MakeArrayBindAst($id, $unionTypes, $expr);
-                                    root = $$;
-
-                                }
                                 | id opt_ws '=' opt_ws expr '<' REF '>' {
                                     $$ = MakeRebindRefAst($id, $expr);
                                     root = $$;
@@ -318,7 +367,7 @@ statement:                      assign
 
 
 //MATH OPERS BELOW ---------------------------------------------------------------------------------------------------------------------------------------------------
-math_expr:                      '(' ADD exprList[left] opt_ws_or_nl')' {
+math_expr:                      '(' ADD exprList[left] ')' {
                                     Perform($$, $left, ADDITION_CMD);
                                     root = $$;
                                 }
@@ -394,6 +443,18 @@ boolExpr:                      '(' AND any_ws expr[first] any_ws expr[second] op
                                 ;
 //BOOL OPER ABOVE -----------------------------------------------------------------------------------------------------------------------------------------------------
 
+indexAccessor:                  id '[' opt_ws expr opt_ws ']' {
+                                    $$ = MakeGetFromCollectionAst($id, $expr);
+                                    root = $$;
+                                } 
+                                | indexAccessor[pre] '[' opt_ws expr opt_ws ']' {
+                                    $pre->AddToMiddleNodes($expr);
+                                    $$ = $pre;
+                                    root = $$;
+                                }
+                                
+                                ;
+
 expr:                           term {
                                     $$ = $term;
                                     root = $$;
@@ -414,23 +475,23 @@ expr:                           term {
                                     $$ = $boolExpr;
                                     root = $$;
                                 }
-                                | id[list] '.' ADD_LIST '|' opt_ws expr[item] opt_ws '|' {
+                                | expr[list] '.' ADD_LIST '|' opt_ws expr[item] opt_ws '|' {
                                      $$ = MakeAddToListAst($list, $item);
                                      root = $$;
                                 }
-                                | id[list] '.' ADD_MAP '|' opt_ws expr[key] any_ws expr[val] opt_ws '|' {
+                                | expr[list] '.' ADD_MAP '|' opt_ws expr[key] any_ws expr[val] opt_ws '|' {
                                     $$ = MakeAddToMapAst($list, $key, $val);
                                     root = $$;
                                 }
-                                | id[list] '[' opt_ws expr[index] opt_ws ']' {
-                                    $$ = MakeGetFromCollectionAst($list, $index);
+                                | indexAccessor {
+                                    $$ = $indexAccessor;
                                     root = $$;
                                 }
-                                | id[list] '.' SET '|' opt_ws expr[index] any_ws expr[new_val] opt_ws '|' {
+                                | expr[list] '.' SET '|' opt_ws expr[index] any_ws expr[new_val] opt_ws '|' {
                                     $$ = MakeSetInCollectionAst($list, $index, $new_val);
                                     root = $$;
                                 }
-                                | id[list] '.' SIZE '|' '|' {
+                                | expr[list] '.' SIZE {
                                     $$ = MakeCollectionSizeAst($list);
                                     root = $$;
                                 }
@@ -463,7 +524,6 @@ void PrintLineNo() {
 
 void yyerror(const char* err) {
     cout << err << '\n';
-    //cout << yytext << '\n';
 }
 
 #include <vector>

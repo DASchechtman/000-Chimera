@@ -46,7 +46,7 @@ string MakeArray(string list, string list_type, VarTbl tbl) {
         return EMPTY_VAR_NAME;
     }
 
-    List *new_list = new List(type);
+    List *new_list = new List();
     return tbl->AddEntry(list, new_list);
 }
 
@@ -160,17 +160,32 @@ string GetFromContainer(string container, string index, VarTbl tbl) {
         if (index_obj->Get(index_val) == FAIL) {
             return EMPTY_VAR_NAME;
         }
-        ChimeraObject *data = ((List*) data_struct)->GetItem(index_val)->Clone();
-        return tbl->AddEntry(EMPTY_VAR_NAME, data);
-    }
-    else if (data_struct->GetType() == MAP_DATA_TYPE) {
-        if (((Map*)data_struct)->GetDeclaredType() != index_obj->GetType()) {
-            cout << "Error: key not matching type\n";
+        ChimeraObject *data = ((List*) data_struct)->GetItem(index_val);
+
+        if (data == nullptr) {
+            cout << "Error: item in list does not exist\n";
             return EMPTY_VAR_NAME;
         }
+
+        if (data->GetGeneralType() == COLLECTION_DATA_TYPE) {
+            return tbl->AddOrUpdateRef(container+index, data, true);
+        }
+        return tbl->AddEntry(EMPTY_VAR_NAME, data->Clone());
+    }
+    else if (data_struct->GetType() == MAP_DATA_TYPE) {
+        
         string key = index_obj->ToStr();
-        ChimeraObject *data = ((Map*) data_struct)->GetItem(key)->Clone();
-        return tbl->AddEntry(EMPTY_VAR_NAME, data);
+        ChimeraObject *data = ((Map*) data_struct)->GetItem(key);
+        
+        if (data == nullptr) {
+            cout << "Error: item in map does not exist\n";
+            return EMPTY_VAR_NAME;
+        }
+
+        if (data->GetGeneralType() == COLLECTION_DATA_TYPE) {
+            return tbl->AddOrUpdateRef(container+index, data, true);
+        }
+        return tbl->AddEntry(EMPTY_VAR_NAME, data->Clone());
     }
     cout << "Error: cannot get data from non-container.\n";
     return EMPTY_VAR_NAME;

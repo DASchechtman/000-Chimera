@@ -16,7 +16,7 @@ private:
     string get_err_msg = "Error: cannot access item with index type of '%s'\n";
 
 protected:
-
+    vector<vector<bool>> m_storable_types;
 
 public:
 

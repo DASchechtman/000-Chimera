@@ -1,5 +1,8 @@
 #include "ChmrInterpreter.hpp"
 
+// this file is just here to time test an older version of the RunAst algorithm, can be removed if
+// desired
+
 string ChmrInterpreter::TestSwitchSpeed(AstNode *root) {
     switch (root->Type())
     {

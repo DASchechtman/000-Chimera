@@ -123,8 +123,7 @@ bool ChimeraObject::IsBool()
     return GetType() == BOOL_DATA_TYPE;
 }
 
-string ChimeraObject::GetTypeName()
-{
+string ChimeraObject::VarTypeToStr(VAR_TYPES m_type) {
     string type_name = UNDEFINED_TYPE_NAME;
 
     if (m_type == OBJECT_DATA_TYPE)
@@ -177,6 +176,11 @@ string ChimeraObject::GetTypeName()
     }
 
     return type_name;
+}
+
+string ChimeraObject::GetTypeName()
+{
+    return VarTypeToStr(m_type);
 }
 
 VAR_TYPES ChimeraObject::GetType()
