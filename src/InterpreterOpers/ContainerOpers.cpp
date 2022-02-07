@@ -193,7 +193,7 @@ string GetFromContainer(string container, string index, VarTbl tbl) {
             return EMPTY_VAR_NAME;
         }
         else if (data->GetGeneralType() == COLLECTION_DATA_TYPE) {
-            return tbl->AddOrUpdateRef(container+index, data, true);
+            return tbl->AddOrUpdateRef(container+key, data, true);
         }
 
         return tbl->AddEntry(EMPTY_VAR_NAME, data->Clone());
