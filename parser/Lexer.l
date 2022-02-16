@@ -4,10 +4,14 @@
 #include <iostream>
 #include <string.h>
 #include <string>
+#include <vector>
 using namespace std;
+
+vector<YYSTYPEs*> ptrs;
 
 char CharVal(const char* str);
 string TextVal(const char* str);
+void Init(YYSTYPEs *&data);
 %}
 
 %option nounput
@@ -19,9 +23,8 @@ DEC                     ({DIGIT}+[.]{DIGIT}+|[.]{DIGIT}+|{DIGIT}+d)
 FLOAT                   ({DEC}f|{DIGIT}+f)
 CHAR                    (\\.|[^\\"])
 SINGLE_CHAR_TOKS        [=:()+\-*/|^&\[\]<>.{}]
-NEWLINE_TOKS            [\n;]
-SEPERATOR               [ \t]{2,}
 SINGLE_SEP              [ \f\v\t]
+MULTI_SEP               {SINGLE_SEP}{2,}
 COMMENT                 #[^\n]*\n?
 MULTI_LN_COMMENT        $[^$]*$\n?
 
@@ -29,16 +32,16 @@ MULTI_LN_COMMENT        $[^$]*$\n?
 {COMMENT}                       { ; }
 {MULTI_LN_COMMENT}              { ; }
 
-int                             { yylval.types = yytext; return INT; }
-float                           { yylval.types = yytext; return FLOAT; }
-double                          { yylval.types = yytext; return DOUBLE; }
-bool                            { yylval.types = yytext; return BOOL; }
-char                            { yylval.types = yytext; return CHAR; }
-string                          { yylval.types = yytext; return STRING; }
-unknown                         { yylval.types = yytext; return UNKNOWN; }
-list                            { yylval.types = yytext; return LIST; }
+int                             { Init(yylval.data); yylval.data->types = yytext; return INT; }
+float                           { Init(yylval.data); yylval.data->types = yytext; return FLOAT; }
+double                          { Init(yylval.data); yylval.data->types = yytext; return DOUBLE; }
+bool                            { Init(yylval.data); yylval.data->types = yytext; return BOOL; }
+char                            { Init(yylval.data); yylval.data->types = yytext; return CHAR; }
+string                          { Init(yylval.data); yylval.data->types = yytext; return STRING; }
+unknown                         { Init(yylval.data); yylval.data->types = yytext; return UNKNOWN; }
+list                            { Init(yylval.data); yylval.data->types = yytext; return LIST; }
 ref                             { return REF; }
-map                             { yylval.types = yytext; return MAP; }
+map                             { Init(yylval.data); yylval.data->types = yytext; return MAP; }
 
 cast                            { return CAST; }
 less                            { return LESS; }
@@ -73,22 +76,23 @@ size                            { return SIZE; }
 repeat                          { return REPEAT; }
 with                            { return WITH; }
 inc                             { return INC; }
+suro                            { return SURO; }
 
-true                            { yylval.bol_val = true; return BOOL_VAL; }
-false                           { yylval.bol_val = false; return BOOL_VAL; }
-{ID}                            { yylval.id = yytext; return ID; }
--?{DEC}                         { yylval.dou_val = strtod(yytext, nullptr); return DOUBLE_VAL; }
--?{FLOAT}                       { yylval.flo_val = strtod(yytext, nullptr); return FLOAT_VAL; }
--?{DIGIT}+                      { yylval.int_val = strtod(yytext, nullptr); return INT_VAL; }
-\"{CHAR}*\"                     { yylval.str_val.SetWithOmittedEnds(TextVal(yytext).c_str()); return STRING_VAL; }
-\'{CHAR}\'                      { yylval.char_val = CharVal(yytext); return CHAR_VAL; }
+true                            { Init(yylval.data); yylval.data->bol_val = true; return BOOL_VAL; }
+false                           { Init(yylval.data); yylval.data->bol_val = false; return BOOL_VAL; }
+{ID}                            { Init(yylval.data); yylval.data->id = yytext; return ID; }
+-?{DEC}                         { Init(yylval.data); yylval.data->dou_val = strtod(yytext, nullptr); return DOUBLE_VAL; }
+-?{FLOAT}                       { Init(yylval.data); yylval.data->flo_val = strtod(yytext, nullptr); return FLOAT_VAL; }
+-?{DIGIT}+                      { Init(yylval.data); yylval.data->int_val = strtod(yytext, nullptr); return INT_VAL; }
+\"{CHAR}*\"                     { Init(yylval.data); yylval.data->str_val.SetWithOmittedEnds(TextVal(yytext).c_str()); return STRING_VAL; }
+\'{CHAR}\'                      { Init(yylval.data); yylval.data->char_val = CharVal(yytext); return CHAR_VAL; }
 
 {SINGLE_CHAR_TOKS}              { return yytext[0]; }
 (\n|\r\n|\r)                    { return NEWLINE; }
 ;                               { return SEMICOLON; }
 
 \t+                             { return MULTI_WS; }
-{SINGLE_SEP}{2,}                { return MULTI_WS; }
+{MULTI_SEP}                     { return MULTI_WS; }
 {SINGLE_SEP}                    { return SINGLE_WS; }
 
 <<EOF>>                         { return EOPU; }
@@ -137,6 +141,21 @@ string TextVal(const char* str) {
     }
 
     return ret_str;
+}
+
+void Init(YYSTYPEs *&data) {
+    if (data != nullptr) {
+        return;
+    }
+    data = new YYSTYPEs();
+    ptrs.push_back(data);
+}
+
+void Destroy() {
+    for(auto ptr : ptrs) {
+        delete ptr;
+    }
+    ptrs.resize(0);
 }
 
 int yywrap() {return 1;}

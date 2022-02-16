@@ -3,9 +3,11 @@
 #include <type_traits>
 #include <string>
 #include <iostream>
+#include <map>
 #include <vector>
 #include <queue>
 #include <stack>
+#include <memory>
 #include "Ast.hpp"
 #include "DataStructs/ScopeStack.hpp"
 #include "DataStructs/ScopeTree.hpp"
@@ -20,6 +22,7 @@
 #include "Types/Composables/ComposableOr/ChimeraUnion.hpp"
 #include "Types/Containers/Lists/List.hpp"
 #include "Types/Containers/Maps/Map.hpp"
+#include "Types/Functions/Funcs.hpp"
 #include "InterpreterOpers/Math.hpp"
 #include "InterpreterOpers/Boolean.hpp"
 #include "InterpreterOpers/ContainerOpers.hpp"
@@ -67,6 +70,7 @@ private:
     void DestroyScope();
     int PrintVar(string var_id, char end);
     string RunAst(AstNode* root);
+    string RunAst(shared_ptr<AstNode> &root);
     string TestSwitchSpeed(AstNode *root);
 
     void GenerateCallbacks();

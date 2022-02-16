@@ -14,8 +14,18 @@ ChmrInterpreter::ChmrInterpreter() {
 
 ChmrInterpreter::~ChmrInterpreter()
 {
+    struct deleted {
+        bool yes = false;
+    };
+    map<AstNode*, deleted> was_deleted;
+
     for (AstNode *node : ast_trees)
     {
+        if (was_deleted[node].yes) {
+            continue;
+        }
+
+        was_deleted[node].yes = true;
         delete node;
     }
 }
@@ -244,6 +254,10 @@ string ChmrInterpreter::Rebind(string to, string from)
     
     ChimeraObject *obj = Table()->GetEntry(to);
     ChimeraObject *obj_2 = Table()->GetEntry(from);
+    bool is_same_type = Table()->IsRef(to) && obj->GetType() == obj_2->GetType();
+    if (Table()->IsRef(to) && is_same_type) {
+        return RefBind(to, from);
+    }
     if (obj->GetGeneralType() == COLLECTION_DATA_TYPE)
     {
         return ReassignContainer(to, from, Table());
@@ -272,6 +286,10 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type)
     }
 
     ChimeraObject *obj = Table()->GetEntry(Table()->GetParent(var_id));
+
+    if (obj == nullptr) {
+        obj = Table()->GetEntry(var_id);
+    }
 
     // makes sure that the reference id is valid in cases
     // that a reference is being rebound
@@ -438,6 +456,10 @@ void ChmrInterpreter::EatAst(AstNode *root)
 string ChmrInterpreter::RunAst(AstNode *root)
 {
     return callbacks[root->Type()](root, this);
+}
+
+string ChmrInterpreter::RunAst(shared_ptr<AstNode> &root) {
+    return callbacks[root->Type()](root.get(), this);
 }
 
 // PUBLIC METHODS ABOVE -----------------------------------------------------------------------------
@@ -909,5 +931,44 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[TRACK_TYPE_CMD] = [](AstNode *root, CInter i) {
         return i->RunAst(root->GetFromLeftNodes());
+    };
+
+    callbacks[REBIND_REF_CMD] = [](AstNode *root, CInter i) {
+        string to = i->RunAst(root->GetFromLeftNodes());
+        string from = i->RunAst(root->GetFromRightNodes());
+        return i->RefBind(to, from);
+    };
+
+    callbacks[MAKE_FUNC_CMD] = [](AstNode *root, CInter i) {
+        string name = i->RunAst(root->GetFromLeftNodes());
+        string ret_type = i->RunAst(root->GetFromRightNodes());
+        AstNode *params = nullptr;
+
+        if (root->Size(AstNode::MIDDLE) > 0) {
+            params = root->GetFromMiddleNodes().get();
+        }
+        
+        ChmrFunc *func = new ChmrFunc(i->cur_instruction+1, ret_type, name);
+
+        bool is_valid_params = params != nullptr;
+
+        for(size_t index = 0; is_valid_params && index < params->Size(AstNode::LEFT); index++) {
+            string var_name = "arg" + to_string(index);
+            string var_type;
+
+            if (params->GetFromLeftNodes(index)->Size(AstNode::LEFT) > 0) {
+                var_name = i->RunAst(params->GetFromLeftNodes(index)->GetFromLeftNodes());
+            }
+
+            var_type = i->RunAst(params->GetFromLeftNodes(index)->GetFromRightNodes());
+            func->AddParam(var_name, var_type);
+
+        }
+
+        return i->Table()->AddEntry(name, func);
+    };
+
+    callbacks[CALL_FUNC_CMD] = [](AstNode *root, CInter i) {
+        return string();
     };
 }

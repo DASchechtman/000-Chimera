@@ -1,6 +1,9 @@
+#pragma once
+
 #include "StrWrapper.hpp"
 #include "../../src/Ast.hpp"
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -9,7 +12,7 @@ used to replace the default union structure bison provides because a union can't
 best it can store is a pointer to an object, and since a union can only hold one peice of data at a time
 I found a union too restrictive
 */
-struct YYSTYPE {
+struct YYSTYPEs {
     // internal values used by the parser to pass data
     // around
     StrWrapper types;
@@ -24,3 +27,5 @@ struct YYSTYPE {
     long double dou_val;
     bool bol_val;
 };
+
+void Destroy();

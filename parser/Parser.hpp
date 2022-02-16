@@ -43,6 +43,12 @@
 #if YYDEBUG
 extern int yydebug;
 #endif
+/* "%code requires" blocks.  */
+#line 2 "./parser/Parser.y"
+
+#include "Utils/UnionStruct.hpp"
+
+#line 52 "./parser/Parser.hpp"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -81,33 +87,49 @@ extern int yydebug;
     ADD_LIST = 287,
     ADD_MAP = 288,
     SET = 289,
-    GET = 290,
-    POINTS_TO = 291,
-    START = 292,
-    END = 293,
-    IF = 294,
-    ELSE = 295,
-    WHILE = 296,
-    SIZE = 297,
-    REPEAT = 298,
-    WITH = 299,
-    MULTI_WS = 300,
-    SINGLE_WS = 301,
-    INC = 302,
-    MOD = 303,
-    INT_VAL = 304,
-    DOUBLE_VAL = 305,
-    STRING_VAL = 306,
-    CHAR_VAL = 307,
-    BOOL_VAL = 308,
-    ELSE_IF = 309,
-    FLOAT_VAL = 310,
-    ID = 311,
-    UNKNOWN = 312
+    POINTS_TO = 290,
+    START = 291,
+    END = 292,
+    IF = 293,
+    ELSE = 294,
+    WHILE = 295,
+    SIZE = 296,
+    REPEAT = 297,
+    WITH = 298,
+    MULTI_WS = 299,
+    SINGLE_WS = 300,
+    INC = 301,
+    MOD = 302,
+    GET = 303,
+    SURO = 304,
+    INT_VAL = 305,
+    DOUBLE_VAL = 306,
+    STRING_VAL = 307,
+    CHAR_VAL = 308,
+    BOOL_VAL = 309,
+    ELSE_IF = 310,
+    FLOAT_VAL = 311,
+    ID = 312,
+    UNKNOWN = 313
   };
 #endif
 
 /* Value type.  */
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+union YYSTYPE
+{
+#line 34 "./parser/Parser.y"
+
+    YYSTYPEs *data;
+    AstNode *tmp_id;
+
+#line 127 "./parser/Parser.hpp"
+
+};
+typedef union YYSTYPE YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
+#endif
 
 
 extern YYSTYPE yylval;

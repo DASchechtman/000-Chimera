@@ -4,6 +4,7 @@
 #include <memory>
 #include <type_traits>
 #include <vector>
+#include <memory>
 #include "Cmds.hpp"
 #include "Types.hpp"
 
@@ -42,12 +43,11 @@ private:
     COMMANDS type;
     Data value;
     size_t index;
-    vector<AstNode*> left_nodes;
-    vector<AstNode*> middle_nodes;
-    vector<AstNode*> right_nodes;
-    vector<AstNode*> extra_nodes;
+    vector<shared_ptr<AstNode>> left_nodes;
+    vector<shared_ptr<AstNode>> middle_nodes;
+    vector<shared_ptr<AstNode>> right_nodes;
+    vector<shared_ptr<AstNode>> extra_nodes;
 
-    void DeleteNodeList(vector<AstNode*> &node_list);
 
 public:
 
@@ -57,25 +57,27 @@ public:
 
     ~AstNode();
     void AddToLeftNodes(AstNode *node);
-    void AddToLeftNodes(size_t index, AstNode *node);
     void AddToRightNodes(AstNode *node);
-    void AddToRightNodes(size_t index, AstNode *node);
     void AddToMiddleNodes(AstNode *node);
-    void AddToMiddleNodes(size_t index, AstNode *node);
+    void AddToLeftNodes(shared_ptr<AstNode> &node);
+    void AddToRightNodes(shared_ptr<AstNode> &node);
+    void AddToMiddleNodes(shared_ptr<AstNode> &node);
+
 
     void SaveAsExtraNode(AstNode *node);
-    AstNode* GetExtraNode(size_t index = 0);
+    void SaveAsExtraNode(shared_ptr<AstNode> &node);
+    shared_ptr<AstNode>& GetExtraNode(size_t index = 0);
     size_t Extras();
     void NullExtraNode(size_t index);
 
     COMMANDS& Type();
     Data& Value();
     size_t Size(int which);
-    AstNode* GetFromLeftNodes(size_t index = 0);
-    AstNode* GetFromMiddleNodes(size_t index = 0);
-    AstNode* GetFromRightNodes(size_t index = 0);
-    void CopyNodeList(vector<AstNode*> &to, vector<AstNode*> &from);
-    AstNode* Copy();
+    shared_ptr<AstNode>& GetFromLeftNodes(size_t index = 0);
+    shared_ptr<AstNode>& GetFromMiddleNodes(size_t index = 0);
+    shared_ptr<AstNode>& GetFromRightNodes(size_t index = 0);
+    void CopyNodeList(vector<shared_ptr<AstNode>> &to, vector<shared_ptr<AstNode>> &from);
+    AstNode* Copy(AstNode *old = nullptr);
 };
 
 AstNode* MakeNode(COMMANDS cmd, string data, DataType d_type);

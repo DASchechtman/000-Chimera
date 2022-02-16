@@ -1,10 +1,13 @@
 
+%code requires {
+#include "Utils/UnionStruct.hpp"
+}
+
 %{
 #include <iostream>
 #include <string>
 #include <unistd.h>
 #include <stdio.h>
-#include "Utils/UnionStruct.hpp"
 #include "../src/Ast.hpp"
 #include "../src/ChmrInterpreter.hpp"
 #include "Utils/IntrBridge.hpp"
@@ -28,15 +31,20 @@ extern char* yytext;
 
 %define parse.error verbose
 
+%union {
+    YYSTYPEs *data;
+    AstNode *tmp_id;
+}
+
 // variable types
-%token <types> INT 
-%token <types> FLOAT 
-%token <types> DOUBLE 
-%token <types> BOOL 
-%token <types> CHAR 
-%token <types> STRING 
-%token <types> LIST 
-%token <types> MAP
+%token <data> INT 
+%token <data> FLOAT 
+%token <data> DOUBLE 
+%token <data> BOOL 
+%token <data> CHAR 
+%token <data> STRING 
+%token <data> LIST 
+%token <data> MAP
 
 // keywords
 %token CAST 
@@ -63,7 +71,6 @@ extern char* yytext;
 %token ADD_LIST 
 %token ADD_MAP 
 %token SET 
-%token GET 
 %token POINTS_TO
 %token START 
 %token END 
@@ -77,14 +84,16 @@ extern char* yytext;
 %token SINGLE_WS
 %token INC
 %token MOD
+%token GET
+%token SURO
 
-%token <int_val> INT_VAL 
-%token <dou_val> DOUBLE_VAL 
-%token <str_val> STRING_VAL
-%token <char_val> CHAR_VAL 
-%token <bol_val> BOOL_VAL ELSE_IF
-%token <flo_val> FLOAT_VAL
-%token <id> ID
+%token <data> INT_VAL 
+%token <data> DOUBLE_VAL 
+%token <data> STRING_VAL
+%token <data> CHAR_VAL 
+%token <data> BOOL_VAL ELSE_IF
+%token <data> FLOAT_VAL
+%token <data> ID
 
 %type <tmp_id> term
 %type <tmp_id> terms
@@ -102,6 +111,9 @@ extern char* yytext;
 %type <tmp_id> indexAccessor 
 %type <tmp_id> exprList 
 %type <tmp_id> forloopHead
+%type <tmp_id> functionHead
+%type <tmp_id> paramList
+%type <tmp_id> functionDeclStatement
 
 %token UNKNOWN
 
@@ -148,6 +160,53 @@ forloopHead:                    REPEAT any_ws expr any_ws WITH any_ws id any_ws 
                                     $$ = $id->Copy();
                                 };
 
+paramList:                      id ':' opt_ws types {
+                                    auto param = new AstNode();
+                                    param->AddToLeftNodes($id);
+                                    param->AddToRightNodes($types);
+                                    auto list = new AstNode();
+                                    list->AddToLeftNodes(param);
+                                    $$ = list;
+
+                                }
+                                | types {
+                                    auto param = new AstNode();
+                                    param->AddToRightNodes($types);
+                                    auto list = new AstNode();
+                                    list->AddToLeftNodes(param);
+                                    $$ = list;
+                                }
+                                | paramList[list] any_ws id ':' opt_ws types {
+                                    auto param = new AstNode();
+                                    param->AddToLeftNodes($id);
+                                    param->AddToRightNodes($types);
+                                    $list->AddToLeftNodes(param);
+                                    $$ = $list;
+                                }
+                                | paramList[list] any_ws types {
+                                    auto param = new AstNode();
+                                    param->AddToRightNodes($types);
+                                    $list->AddToLeftNodes(param);
+                                    $$ = $list;
+                                }
+                                ;
+
+functionHead:                   SURO any_ws id opt_ws '|' '|' ':' opt_ws types any_ws START {
+                                    $$ = MakeNode(MAKE_FUNC_CMD);
+                                    $$->AddToLeftNodes($id);
+                                    $$->AddToRightNodes($types);
+                                    root = $$;
+                                }
+                                | SURO any_ws id opt_ws '|' paramList opt_ws '|' ':' opt_ws types any_ws START {
+                                    $$ = MakeNode(MAKE_FUNC_CMD);
+                                    auto p = $paramList;
+                                    $$->AddToLeftNodes($id);
+                                    $$->AddToMiddleNodes($paramList);
+                                    $$->AddToRightNodes($types);
+                                    root = $$;
+                                }
+                                ;
+
 ifBody:                         ifHead line;
 elseIfBody:                     elseIfHead line;
 elseBody:                       elseHead line;
@@ -174,6 +233,10 @@ ifStatement:                    ifBody END {
                                 }
                                 | ifBody elseBody END {
                                     i.EatAst(MakeEndCtrlScopeAst());
+                                };
+
+functionDeclStatement:          functionHead line END {
+                                    $$ = $functionHead;
                                 };
 
 newline:                        NEWLINE {i.EatAst(root); root = nullptr;} | SEMICOLON;
@@ -229,27 +292,27 @@ keyVals:                        keyValPairs[kp] NEWLINE opt_ws {
                                 ; 
 
 term:                           INT_VAL         { 
-                                       $$ = MakeTermNode($1, INT_NODE_TYPE);
+                                       $$ = MakeTermNode($1->int_val, INT_NODE_TYPE);
                                        root = $$;             
                                 }
                                 | DOUBLE_VAL    { 
-                                        $$ = MakeTermNode($1, DOUBLE_NODE_TYPE);
+                                        $$ = MakeTermNode($1->dou_val, DOUBLE_NODE_TYPE);
                                         root = $$;          
                                 }
                                 | FLOAT_VAL     { 
-                                        $$ = MakeTermNode($1, FLOAT_NODE_TYPE);
+                                        $$ = MakeTermNode($1->flo_val, FLOAT_NODE_TYPE);
                                         root = $$;            
                                 }
                                 | STRING_VAL    { 
-                                        $$ = MakeTermNode((string)$1, STRING_NODE_TYPE);
+                                        $$ = MakeTermNode((string)$1->str_val, STRING_NODE_TYPE);
                                         root = $$;                    
                                 }
                                 | CHAR_VAL      { 
-                                        $$ = MakeTermNode($1, CHAR_NODE_TYPE);
+                                        $$ = MakeTermNode($1->char_val, CHAR_NODE_TYPE);
                                         root = $$;
                                 }
                                 | BOOL_VAL      { 
-                                        $$ = MakeTermNode($1, BOOL_NODE_TYPE);
+                                        $$ = MakeTermNode($1->bol_val, BOOL_NODE_TYPE);
                                         root = $$;
                                 }
                                 | id            { 
@@ -274,18 +337,18 @@ term:                           INT_VAL         {
                                 }
                                 ;
 
-types:                          INT             { $$ = MakeDataTypeNode((string)$1); root = $$; }
-                                | FLOAT         { $$ = MakeDataTypeNode((string)$1); root = $$; }
-                                | DOUBLE        { $$ = MakeDataTypeNode((string)$1); root = $$; }
-                                | BOOL          { $$ = MakeDataTypeNode((string)$1); root = $$; }
-                                | CHAR          { $$ = MakeDataTypeNode((string)$1); root = $$; }
-                                | STRING        { $$ = MakeDataTypeNode((string)$1); root = $$; }
+types:                          INT             { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
+                                | FLOAT         { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
+                                | DOUBLE        { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
+                                | BOOL          { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
+                                | CHAR          { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
+                                | STRING        { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
                                 | LIST {
-                                    $$ = MakeDataTypeNode((string)$LIST);
+                                    $$ = MakeDataTypeNode((string)$LIST->types);
                                     root = $$;
                                 }
                                 | MAP {
-                                    $$ = MakeDataTypeNode((string)$MAP);
+                                    $$ = MakeDataTypeNode((string)$MAP->types);
                                     root = $$;
                                 }
                                 ;
@@ -307,7 +370,7 @@ any_ws:                         MULTI_WS | SINGLE_WS;
 opt_ws:                         any_ws | %empty;
 
 id:                             ID {
-                                    $$ = MakeTermNode($1, ID_NODE_TYPE);
+                                    $$ = MakeTermNode((string)$1->id, ID_NODE_TYPE);
                                     root = $$; 
                                 };
 
@@ -362,7 +425,7 @@ statement:                      assign
                                     $$ = MakePrintAst($exprList);
                                     root = $$;
                                 }
-                                | EXIT '|' opt_ws '|'{ return 0; }
+                                | EXIT '|' opt_ws '|'{ Destroy(); return 0; }
                                 ;
 
 
@@ -495,12 +558,16 @@ expr:                           term {
                                     $$ = MakeCollectionSizeAst($list);
                                     root = $$;
                                 }
+                                | functionDeclStatement {
+                                    $$ = $functionDeclStatement;
+                                    root = $$;
+                                }
                                 ;
 
 prog:                           expr newline 
-                                | expr EOPU
+                                | expr EOPU { Destroy(); }
                                 | statement newline
-                                | statement EOPU
+                                | statement EOPU { Destroy(); }
                                 | newline
                                 | ifStatement
                                 | whileStatement
@@ -508,6 +575,7 @@ prog:                           expr newline
                                 | start line end
                                 | EOPU { 
                                     i.EatAst(root);
+                                    Destroy();
                                     return 0 ;
                                 }
                                 | any_ws  

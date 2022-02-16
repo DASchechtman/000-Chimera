@@ -221,7 +221,7 @@ AstNode* MakeArrayBindAst(AstNode *id, AstNode *types, AstNode *expr) {
 }
 
 AstNode* MakeRebindRefAst(AstNode *id, AstNode *expr) {
-    AstNode *rebind_ref_ast = MakeNode(REBIND_CMD);
+    AstNode *rebind_ref_ast = MakeNode(REBIND_REF_CMD);
     
     rebind_ref_ast->AddToLeftNodes(id);
     rebind_ref_ast->AddToRightNodes(expr);
@@ -393,6 +393,23 @@ AstNode* MakeModAst(AstNode *left, AstNode *right) {
     mod->AddToLeftNodes(left);
     mod->AddToRightNodes(right);
     return mod;
+}
+
+AstNode* MakeFuncAst(AstNode *name, AstNode *params, AstNode *ret_type) {
+    AstNode *func_call = new AstNode();
+    func_call->AddToLeftNodes(name);
+    func_call->AddToMiddleNodes(params);
+    func_call->AddToRightNodes(ret_type);
+    return func_call;
+}
+
+AstNode* MakeFuncParamAst(AstNode *name, AstNode *type) {
+    AstNode *param = new AstNode();
+    if (name != nullptr) {
+        param->AddToLeftNodes(name);
+    }
+    param->AddToRightNodes(type);
+    return param;
 }
 
 AstNode* MakeTermNode(string data, DataType type) {
