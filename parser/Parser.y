@@ -80,8 +80,6 @@ extern char* yytext;
 %token SIZE 
 %token REPEAT 
 %token WITH
-%token MULTI_WS 
-%token SINGLE_WS
 %token INC
 %token MOD
 %token GET
@@ -114,10 +112,13 @@ extern char* yytext;
 %type <tmp_id> functionHead
 %type <tmp_id> paramList
 %type <tmp_id> functionDeclStatement
+%type <tmp_id> functionCall
 
 %token UNKNOWN
 
 %start line
+
+%left MULTI_WS SINGLE_WS
 
 %%
 
@@ -126,12 +127,10 @@ start:                          START { i.EatAst(MakeStartAst()); };
 end:                            END { i.EatAst(MakeEndScopeAst()); };
 
 ifHead:                         IF any_ws expr any_ws START {
-                                    root = nullptr;
                                     i.EatAst(MakeIfDeclAst($expr));
                                 };
 
 elseIfHead:                     ELSE_IF any_ws expr any_ws START {
-                                    root = nullptr;
                                     i.EatAst(MakeElifDeclAst($expr));
                                 };
 
@@ -140,7 +139,6 @@ elseHead:                       ELSE any_ws START{
                                 };
 
 whileHead:                      WHILE any_ws expr any_ws START {
-                                    root = nullptr;
                                     i.EatAst(MakeWhileDeclAst($expr));
                                 };
 
@@ -154,9 +152,7 @@ forloopHead:                    REPEAT any_ws expr any_ws WITH any_ws id any_ws 
 
                                     auto less = MakeLessCompAst($id->Copy(), $expr);
                                     auto while_ast = MakeWhileDeclAst(less);
-                                    i.EatAst(while_ast);
-                                    
-                                    root = nullptr;
+                                    i.EatAst(while_ast);   
                                     $$ = $id->Copy();
                                 };
 
@@ -195,15 +191,27 @@ functionHead:                   SURO any_ws id opt_ws '|' '|' ':' opt_ws types a
                                     $$ = MakeNode(MAKE_FUNC_CMD);
                                     $$->AddToLeftNodes($id);
                                     $$->AddToRightNodes($types);
-                                    root = $$;
+                                    i.EatAst($$);
                                 }
                                 | SURO any_ws id opt_ws '|' paramList opt_ws '|' ':' opt_ws types any_ws START {
                                     $$ = MakeNode(MAKE_FUNC_CMD);
-                                    auto p = $paramList;
                                     $$->AddToLeftNodes($id);
                                     $$->AddToMiddleNodes($paramList);
                                     $$->AddToRightNodes($types);
-                                    root = $$;
+                                    i.EatAst($$);
+                                }
+                                ;
+
+functionCall:                   id opt_ws '|' '|' {
+                                    auto func_call = MakeNode(CALL_FUNC_CMD);
+                                    func_call->AddToLeftNodes($id);
+                                    $$ = func_call;
+                                }
+                                | id opt_ws '|' exprList opt_ws_or_nl '|' {
+                                    auto func_call = MakeNode(CALL_FUNC_CMD);
+                                    func_call->AddToLeftNodes($id);
+                                    func_call->AddToRightNodes($exprList);
+                                    $$ = func_call;
                                 }
                                 ;
 
@@ -236,10 +244,11 @@ ifStatement:                    ifBody END {
                                 };
 
 functionDeclStatement:          functionHead line END {
-                                    $$ = $functionHead;
-                                };
+                                    $$ = MakeNode(FUNC_RETR_CMD);
+                                }
+                                ;
 
-newline:                        NEWLINE {i.EatAst(root); root = nullptr;} | SEMICOLON;
+newline:                        NEWLINE | SEMICOLON;
 
 terms:                          term { $$ = $1; } 
                                 | terms[list] any_ws term { $list->SaveAsExtraNode($term); $$ = $list; }
@@ -260,7 +269,6 @@ keyVals:                        keyValPairs[kp] NEWLINE opt_ws {
                                     $kp->NullExtraNode(0);
                                     $kp->NullExtraNode(1);
                                     delete $kp;
-                                    root = $$;
                                 }
                                 | keyValPairs[kp] any_ws {
                                     $$ = new AstNode();
@@ -269,7 +277,6 @@ keyVals:                        keyValPairs[kp] NEWLINE opt_ws {
                                     $kp->NullExtraNode(0);
                                     $kp->NullExtraNode(1);
                                     delete $kp;
-                                    root = $$;
                                 }
                                 | keyVals[prev] keyValPairs[kp] NEWLINE opt_ws {
                                     $prev->SaveAsExtraNode($kp->GetExtraNode());
@@ -278,7 +285,6 @@ keyVals:                        keyValPairs[kp] NEWLINE opt_ws {
                                     $kp->NullExtraNode(1);
                                     delete $kp;
                                     $$ = $prev;
-                                    root = $$;
                                 }
                                 | keyVals[prev] keyValPairs[kp] any_ws {
                                     $prev->SaveAsExtraNode($kp->GetExtraNode());
@@ -287,81 +293,65 @@ keyVals:                        keyValPairs[kp] NEWLINE opt_ws {
                                     $kp->NullExtraNode(1);
                                     delete $kp;
                                     $$ = $prev;
-                                    root = $$;
                                 }
                                 ; 
 
 term:                           INT_VAL         { 
-                                       $$ = MakeTermNode($1->int_val, INT_NODE_TYPE);
-                                       root = $$;             
+                                       $$ = MakeTermNode($1->int_val, INT_NODE_TYPE);            
                                 }
                                 | DOUBLE_VAL    { 
-                                        $$ = MakeTermNode($1->dou_val, DOUBLE_NODE_TYPE);
-                                        root = $$;          
+                                        $$ = MakeTermNode($1->dou_val, DOUBLE_NODE_TYPE);          
                                 }
                                 | FLOAT_VAL     { 
-                                        $$ = MakeTermNode($1->flo_val, FLOAT_NODE_TYPE);
-                                        root = $$;            
+                                        $$ = MakeTermNode($1->flo_val, FLOAT_NODE_TYPE);            
                                 }
                                 | STRING_VAL    { 
-                                        $$ = MakeTermNode((string)$1->str_val, STRING_NODE_TYPE);
-                                        root = $$;                    
+                                        $$ = MakeTermNode((string)$1->str_val, STRING_NODE_TYPE);                   
                                 }
                                 | CHAR_VAL      { 
                                         $$ = MakeTermNode($1->char_val, CHAR_NODE_TYPE);
-                                        root = $$;
                                 }
                                 | BOOL_VAL      { 
                                         $$ = MakeTermNode($1->bol_val, BOOL_NODE_TYPE);
-                                        root = $$;
                                 }
                                 | id            { 
-                                        $$ = $1;
-                                        root = $$;         
+                                        $$ = $1;       
                                 }
                                 | '[' opt_ws_or_nl terms  opt_ws_or_nl ']' {
                                     $$ = MakeArrayTermAst($terms);
-                                    root = $$;
                                 }
                                 | '[' ']' {
                                     $$ = MakeTermNode(0, ARRAY_NODE_TYPE);
-                                    root = $$;
                                 }
                                 | '{' opt_ws_or_nl keyVals '}' {
                                     $$ = MakeMapTermAst($keyVals);
-                                    root = $$;
                                 }
                                 | '{' '}' {
                                     $$ = MakeTermNode(0, MAP_NODE_TYPE);
-                                    root = $$;
                                 }
                                 ;
 
-types:                          INT             { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
-                                | FLOAT         { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
-                                | DOUBLE        { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
-                                | BOOL          { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
-                                | CHAR          { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
-                                | STRING        { $$ = MakeDataTypeNode((string)$1->types); root = $$; }
+types:                          INT             { $$ = MakeDataTypeNode((string)$1->types); }
+                                | FLOAT         { $$ = MakeDataTypeNode((string)$1->types); }
+                                | DOUBLE        { $$ = MakeDataTypeNode((string)$1->types); }
+                                | BOOL          { $$ = MakeDataTypeNode((string)$1->types); }
+                                | CHAR          { $$ = MakeDataTypeNode((string)$1->types); }
+                                | STRING        { $$ = MakeDataTypeNode((string)$1->types); }
                                 | LIST {
                                     $$ = MakeDataTypeNode((string)$LIST->types);
-                                    root = $$;
                                 }
                                 | MAP {
                                     $$ = MakeDataTypeNode((string)$MAP->types);
-                                    root = $$;
                                 }
                                 ;
 
 unionTypes:                     types[first] opt_ws '|' opt_ws types[other] {
                                    $$ = $first;
                                    $$->SaveAsExtraNode($other);
-                                   root = $$;
                                 }
                                 | unionTypes[prev] opt_ws '|' opt_ws types {
                                     $$ = $prev;
                                     $$->SaveAsExtraNode($types);
-                                    root = $$;
                                 }
                                 ;
 
@@ -371,32 +361,25 @@ opt_ws:                         any_ws | %empty;
 
 id:                             ID {
                                     $$ = MakeTermNode((string)$1->id, ID_NODE_TYPE);
-                                    root = $$; 
                                 };
 
-assign:                         id ':' opt_ws types opt_ws '=' opt_ws expr {
+assign:                         '(' '=' opt_ws id opt_ws ':' opt_ws types any_ws expr opt_ws ')' {
                                     $$ = MakeAssignAst($id, $types, $expr);
-                                    root = $$;
                                 }
-                                | id ':' opt_ws UNKNOWN opt_ws '=' opt_ws expr {
+                                | '(' '=' opt_ws id opt_ws ':' opt_ws UNKNOWN any_ws expr opt_ws ')' {
                                     $$ = MakeUnionAst($id, $expr);
-                                    root = $$;
                                 }
-                                | id ':' opt_ws unionTypes opt_ws '=' opt_ws expr {
+                                | '(' '=' opt_ws id opt_ws ':' opt_newline unionTypes any_ws expr opt_ws ')' {
                                     $$ = MakeUnionAst($id, $unionTypes, $expr);
-                                    root = $$;
                                 }
-                                | id opt_ws '=' opt_ws expr {
+                                | '(' '=' opt_ws id any_ws expr opt_ws ')' {
                                    $$ = MakeReassignAst($id, $expr);
-                                   root = $$;
                                 }
-                                | id ':' opt_ws types '<' REF '>' opt_ws '=' opt_ws expr {
+                                | '(' '=' opt_ws id opt_ws ':' opt_ws types opt_ws '<' REF '>' any_ws expr opt_ws ')' {
                                     $$ = MakeRefAst($id, $types, $expr);
-                                    root = $$;
                                 }
-                                | id opt_ws '=' opt_ws expr '<' REF '>' {
+                                | '(' '=' opt_ws id any_ws expr opt_ws '<' REF '>' opt_ws ')' {
                                     $$ = MakeRebindRefAst($id, $expr);
-                                    root = $$;
                                 }
                                 ;
 
@@ -423,40 +406,32 @@ opt_ws_or_nl:                opt_ws | opt_newline;
 statement:                      assign
                                 | PRINT opt_ws '|' exprList opt_ws_or_nl'|' { 
                                     $$ = MakePrintAst($exprList);
-                                    root = $$;
                                 }
-                                | EXIT '|' opt_ws '|'{ Destroy(); return 0; }
+                                | EXIT '|' opt_ws '|'{ Destroy(); return 0; $$ = nullptr; }
                                 ;
 
 
 //MATH OPERS BELOW ---------------------------------------------------------------------------------------------------------------------------------------------------
 math_expr:                      '(' ADD exprList[left] ')' {
                                     Perform($$, $left, ADDITION_CMD);
-                                    root = $$;
                                 }
                                 | '(' SUB exprList[left] opt_ws_or_nl')' {
                                     Perform($$, $left, SUBTRACTION_CMD);
-                                    root = $$;
                                 }
                                 | '(' MUL exprList[left] opt_ws_or_nl ')' {
                                     Perform($$, $left, MULTIPLY_CMD);
-                                    root = $$;
                                 }
                                 | '(' DIV exprList[left] opt_ws_or_nl ')' {
                                     Perform($$, $left, DIVIDE_CMD);
-                                    root = $$;
                                 }
                                 | '(' POW exprList[left] opt_ws_or_nl ')' {
                                     Perform($$, $left, POW_CMD);
-                                    root = $$;
                                 }
                                 | '(' INC any_ws expr  opt_ws_or_nl ')' {
                                     $$ = MakeIncAst($expr);
-                                    root = $$;
                                 }
                                 | '(' MOD any_ws expr[left] any_ws expr[right] opt_ws_or_nl ')' {
                                     $$ = MakeModAst($left, $right);
-                                    root = $$;
                                 }
                                 ;
 //MATH OPER ABOVE ------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -465,27 +440,21 @@ math_expr:                      '(' ADD exprList[left] ')' {
 
 compare_expr:                   '(' LESS any_ws expr[first] any_ws expr[second] opt_ws ')' {
                                     $$ = MakeLessCompAst($first, $second);
-                                    root = $$;
                                 }
                                 | '(' GREATER any_ws expr[first] any_ws expr[second] opt_ws ')' {
                                     $$ = MakeGreaterCompAst($first, $second);
-                                    root = $$;
                                 }
                                 | '(' LESS_EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')'{
                                     $$ = MakeLessEqualCompAst($first, $second);
-                                    root = $$;
                                 }
                                 | '(' GREATER_EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')' {
                                     $$ = MakeGreaterEqualCompAst($first, $second);
-                                    root = $$;
                                 }
                                 | '('EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')' {
                                     $$ = MakeEqualCompAst($first, $second);
-                                    root = $$;
                                 }
                                 | '(' NOT_EQUAL any_ws expr[first] any_ws expr[second] opt_ws ')' {
                                     $$ = MakeNotEqualCompAst($first, $second);
-                                    root = $$;
                                 }
                                 ;
 //COMPARE OPER ABOVE ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -493,95 +462,73 @@ compare_expr:                   '(' LESS any_ws expr[first] any_ws expr[second] 
 //BOOL OPERS BELOW ---------------------------------------------------------------------------------------------------------------------------------------------------
 boolExpr:                      '(' AND any_ws expr[first] any_ws expr[second] opt_ws ')' {
                                     $$ = MakeAndAst($first, $second);
-                                    root = $$;
                                 }
                                 | '(' NOT any_ws expr opt_ws ')' {
                                     $$ = MakeNotAst($expr);
-                                    root = $$;
                                 }
                                 | '(' OR any_ws expr[first] any_ws expr[second] opt_ws ')' {
                                     $$ = MakeOrAst($first, $second);
-                                    root = $$;
                                 }
                                 ;
 //BOOL OPER ABOVE -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-indexAccessor:                  id '[' opt_ws expr opt_ws ']' {
+indexAccessor:                  '(' GET any_ws id any_ws expr ')' {
                                     $$ = MakeGetFromCollectionAst($id, $expr);
-                                    root = $$;
                                 } 
-                                | indexAccessor[pre] '[' opt_ws expr opt_ws ']' {
-                                    $pre->AddToMiddleNodes($expr);
-                                    $$ = $pre;
-                                    root = $$;
-                                }
                                 
                                 ;
 
 expr:                           term {
                                     $$ = $term;
-                                    root = $$;
                                 }
                                 | math_expr {
                                     $$ = $math_expr;
-                                    root = $$;
                                 }
                                 | '(' CAST any_ws expr[val] any_ws types opt_ws_or_nl ')' {
                                     $$ = MakeCastAst($val, $types);
-                                    root = $$;
                                 }
                                 | compare_expr {
                                    $$ = $compare_expr;
-                                   root = $$;
                                 }
                                 | boolExpr {
                                     $$ = $boolExpr;
-                                    root = $$;
                                 }
                                 | expr[list] '.' ADD_LIST '|' opt_ws expr[item] opt_ws '|' {
                                      $$ = MakeAddToListAst($list, $item);
-                                     root = $$;
                                 }
                                 | expr[list] '.' ADD_MAP '|' opt_ws expr[key] any_ws expr[val] opt_ws '|' {
                                     $$ = MakeAddToMapAst($list, $key, $val);
-                                    root = $$;
                                 }
                                 | indexAccessor {
                                     $$ = $indexAccessor;
-                                    root = $$;
                                 }
                                 | expr[list] '.' SET '|' opt_ws expr[index] any_ws expr[new_val] opt_ws '|' {
                                     $$ = MakeSetInCollectionAst($list, $index, $new_val);
-                                    root = $$;
                                 }
                                 | expr[list] '.' SIZE {
                                     $$ = MakeCollectionSizeAst($list);
-                                    root = $$;
                                 }
                                 | functionDeclStatement {
                                     $$ = $functionDeclStatement;
-                                    root = $$;
                                 }
                                 ;
 
-prog:                           expr newline 
-                                | expr EOPU { Destroy(); }
-                                | statement newline
-                                | statement EOPU { Destroy(); }
-                                | newline
+prog:                           expr { i.EatAst($expr); }
+                                | statement { i.EatAst($statement); }
                                 | ifStatement
                                 | whileStatement
                                 | forloopStatement
+                                | functionCall { i.EatAst($functionCall); }
                                 | start line end
-                                | EOPU { 
-                                    i.EatAst(root);
+                                | any_ws
+                                | newline
+                                | EOPU {
                                     Destroy();
-                                    return 0 ;
+                                    return 0;
                                 }
-                                | any_ws  
                                 | error { return 0; };
 
-line:                           prog | line prog;
+line:                            prog | line prog;
 %%
 
 

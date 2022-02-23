@@ -122,16 +122,16 @@ string SymbolTable::GetConstEntry(T data, false_type) {
     }
     if (is_same<T, dbl128>::value)
     {
-        int64 before_dec = data;
-        dbl128 dec = data - before_dec;
-
-        while(fmod(dec, 1))
-        {
-            dec *= 10;
+        char first_letter[] = {'z', 'o', 't', 'r', 'f', 'i', 's', 'e', 'g', 'n'};
+        string val = to_string(data);
+        for (const char c : val) {
+            if (c == '.') {
+                continue;
+            }
+            key += first_letter[stoi(string(&c))];
         }
-
-        key = KeyToString(before_dec) + KeyToString(dec);
-
+        
+        key += '!';
     }
     if (is_same<T, char32_t>::value)
     {

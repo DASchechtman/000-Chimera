@@ -113,7 +113,7 @@ public:
 
     int PutItem(ChimeraObject *data);
     size_t Size();
-    void SetToNewContainer(Container *new_container);
+    int SetToNewContainer(Container *new_container);
     void SetDeclaredType(VAR_TYPES type);
     VAR_TYPES GetDeclaredType();
 

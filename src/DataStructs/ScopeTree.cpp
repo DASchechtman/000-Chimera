@@ -7,7 +7,7 @@ ScopeTree::~ScopeTree() {
 }
 
 void ScopeTree::MoveToLevel(size_t level) {
-    while(level != cur_block->m_depth) {
+    while(cur_block && level != cur_block->m_depth) {
         if (level > cur_block->m_depth) {
             if (cur_block->m_children.empty()) {
                 break;

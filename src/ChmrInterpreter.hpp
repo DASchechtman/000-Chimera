@@ -49,13 +49,14 @@ private:
     size_t cur_jump_point = 0;
     string (*callbacks[NUM_O_CALLBACK])(AstNode*, ChmrInterpreter*);
     bool will_mutate_source = false;
+    ChmrFunc *cur_func_running = nullptr;
 
     /* used to put a lot of boilerplate into one place for the assign/reassign actions */
     string MakeBind(string to, string from, string type);
     SymbolTable* Table();
     void ProcessCtrlStructure(AstNode *node);
     void ConvertJumpPointsToScopeTree();
-    void GoTo(size_t jump_point);
+    void GoTo(size_t jump_point, bool adjust_val = true);
     size_t ScopeLevel();
     void IncreaseScopeLevel();
     void DecreaseScopeLevel();
@@ -71,7 +72,7 @@ private:
     int PrintVar(string var_id, char end);
     string RunAst(AstNode* root);
     string RunAst(shared_ptr<AstNode> &root);
-    string TestSwitchSpeed(AstNode *root);
+    void RunCurInstruction(size_t end = 0);
 
     void GenerateCallbacks();
 

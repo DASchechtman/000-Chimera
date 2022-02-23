@@ -144,6 +144,10 @@ void SymbolTable::RemoveEntry(string var_id) {
 }
 
 void SymbolTable::FreeTempItems() {
+    if (m_table.size() == 0) {
+        return;
+    }
+    
     auto it = m_table.begin();
     vector<string> item_names;
 

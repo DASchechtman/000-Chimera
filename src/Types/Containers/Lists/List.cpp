@@ -93,7 +93,7 @@ size_t List::Size()
     return m_list.size();
 }
 
-void List::SetToNewContainer(Container *new_list)
+int List::SetToNewContainer(Container *new_list)
 {
     m_list.resize(new_list->Size());
 
@@ -102,9 +102,11 @@ void List::SetToNewContainer(Container *new_list)
         int completed = SetItem((int64)i, new_list->GetItem((int64)i));
         if (completed == FAIL)
         {
-            break;
+            return FAIL;
         }
     }
+
+    return SUCCEED;
 }
 
 string List::ToStr()

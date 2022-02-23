@@ -24,7 +24,7 @@ public:
     int SetItem(int64 index, ChimeraObject *item);
     ChimeraObject* GetItem(int64 index);
     size_t Size();
-    void SetToNewContainer(Container *new_container);
+    int SetToNewContainer(Container *new_container);
 
     string ToStr();
     int64 ToInt();

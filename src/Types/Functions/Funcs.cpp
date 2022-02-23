@@ -10,6 +10,7 @@ ChmrFunc::ChmrFunc(
 
     ChimeraObject *default_val = new Int();
     ret_val = default_val->ConvertTo(ret_type);
+    SetType(FUNC_DATA_TYPE);
     delete default_val;
 }
 
@@ -25,12 +26,34 @@ size_t ChmrFunc::GetEndPoint() {
     return m_call_point;
 }
 
+ChimeraObject* ChmrFunc::GetRet() {
+    return ret_val;
+}
+
 void ChmrFunc::SetEndPoint(size_t new_end_point) {
     m_call_point = new_end_point;
 }
 
 void ChmrFunc::AddParam(string name, string type) {
-    m_param_type_list[name] = type;
+    m_param_type_list.insert(m_param_type_list.end(), {name, type});
+}
+
+void ChmrFunc::SetRetDest(ChimeraObject *dest) {
+    ret_val = dest;
+}
+
+void ChmrFunc::StoreValInRet(ChimeraObject *ret) {
+    if (ret_val != nullptr && ret != nullptr) {
+        ret_val->Set(ret);
+    }
+}
+
+string ChmrFunc::GetParamData(size_t index) {
+    return m_param_type_list[index];
+}
+
+size_t ChmrFunc::ParamNums() {
+    return m_param_type_list.size();
 }
 
 int ChmrFunc::Get(int64 &data) {

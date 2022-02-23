@@ -2,13 +2,14 @@
 #include "../ChimeraObject.hpp"
 #include "../Number/Derived/Int.hpp"
 #include <map>
+#include <vector>
 #include <string>
 
 using namespace std;
 
 class ChmrFunc : public ChimeraObject {
 private:
-    map<string, string> m_param_type_list;
+    vector<string> m_param_type_list;
     string m_func_name;
     size_t m_start_point;
     size_t m_call_point;
@@ -27,8 +28,13 @@ public:
 
     size_t GetStartPoint();
     size_t GetEndPoint();
+    ChimeraObject* GetRet();
     void SetEndPoint(size_t new_end_point);
     void AddParam(string name, string type);
+    void SetRetDest(ChimeraObject *dest);
+    void StoreValInRet(ChimeraObject *ret);
+    string GetParamData(size_t index);
+    size_t ParamNums();
 
     int Get(int64 &data);
     int Get(float &data);

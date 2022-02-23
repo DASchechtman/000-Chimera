@@ -46,6 +46,8 @@ void Perform(AstNode *&root, AstNode *node, COMMANDS type)
         oper->AddToLeftNodes(node->GetExtraNode(index));
         oper->AddToRightNodes(node->GetExtraNode(index + 1));
         root->AddToRightNodes(oper_ptr);
+        node->NullExtraNode(index);
+        node->NullExtraNode(index+1);
     }
 
     for(size_t i = 0; i < node->Extras(); i++) {

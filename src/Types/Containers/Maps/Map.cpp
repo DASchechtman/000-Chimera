@@ -27,7 +27,7 @@ int Map::PutItem(ChimeraObject *obj)
     return FAIL;
 }
 
-void Map::SetToNewContainer(Container *new_container)
+int Map::SetToNewContainer(Container *new_container)
 {
     if (new_container->GetType() == MAP_DATA_TYPE)
     {
@@ -60,6 +60,8 @@ void Map::SetToNewContainer(Container *new_container)
             index++;
         }
     }
+
+    return SUCCEED;
 }
 
 void Map::SetDeclaredType(VAR_TYPES type) {

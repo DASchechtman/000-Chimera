@@ -6,6 +6,8 @@
 #include "Number/Derived/Char.hpp"
 #include "Bool/Bool.hpp"
 #include <stdio.h>
+#include "Containers/Lists/List.hpp"
+#include "Containers/Maps/Map.hpp"
 
 using namespace std;
 
@@ -277,7 +279,26 @@ int ChimeraObject::Set(ChimeraObject* other)
             ret = Set(val);
             break;
         }
-        default: {}
+        case LIST_DATA_TYPE: 
+        {
+            if (GetType() != LIST_DATA_TYPE) {
+                goto err_msg;
+            }
+
+            ret = ((Container*)this)->SetToNewContainer((Container*)other);
+            break;
+        }
+        case MAP_DATA_TYPE: {
+            if (GetType() != MAP_DATA_TYPE) {
+                goto err_msg;
+            }
+
+            ret = ((Container*)this)->SetToNewContainer((Container*)other);
+            break;
+        }
+        default: {
+            err_msg: cout << "Error: cannot set " << other->GetTypeName() << " in " << GetTypeName() << '\n';
+        }
     }
 
     return ret;

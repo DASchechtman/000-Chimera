@@ -28,6 +28,9 @@ void ScopeStack::SetNextScopeRunStat(bool is_runnable) {
 }
 
 SymbolTable* ScopeStack::GetTable() {
+    if (m_stack.size() == 0) {
+        return nullptr;
+    }
     return m_stack.top()->GetTable();
 }
 

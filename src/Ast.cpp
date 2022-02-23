@@ -64,7 +64,7 @@ size_t AstNode::Extras() {
 }
 
 void AstNode::NullExtraNode(size_t index) {
-    extra_nodes[index] = nullptr;
+    extra_nodes.erase(extra_nodes.begin() + index);
 }
 
 COMMANDS& AstNode::Type() {

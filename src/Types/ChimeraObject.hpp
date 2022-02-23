@@ -6,6 +6,7 @@
 #include "../Types.hpp"
 #include "../DataTypes.hpp"
 
+
 using namespace std;
 
 enum COMPARE_OPERS {
@@ -68,20 +69,12 @@ public:
             case FLOAT_DATA_TYPE: {
                 float data = 0;
                 obj.Get(data);
-                if ((data - floor(data)) != 0) {
-                    output.precision(8);
-                    output << fixed;
-                }
                 output << data;
                 break;
             }
             case DOUBLE_DATA_TYPE: {
                 dbl128 data = 0;
                 obj.Get(data); 
-                if (data - floor(data) != 0) {
-                    output.precision(15);
-                    output << fixed;
-                }
                 output << data;
                 break;
             }
