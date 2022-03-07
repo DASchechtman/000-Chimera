@@ -77,6 +77,7 @@ repeat                          { return REPEAT; }
 with                            { return WITH; }
 inc                             { return INC; }
 suro                            { return SURO; }
+call                            { return CALL; }
 
 true                            { Init(yylval.data); yylval.data->bol_val = true; return BOOL_VAL; }
 false                           { Init(yylval.data); yylval.data->bol_val = false; return BOOL_VAL; }

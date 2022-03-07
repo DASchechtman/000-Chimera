@@ -84,6 +84,7 @@ extern char* yytext;
 %token MOD
 %token GET
 %token SURO
+%token CALL
 
 %token <data> INT_VAL 
 %token <data> DOUBLE_VAL 
@@ -203,15 +204,13 @@ functionHead:                   SURO any_ws id opt_ws '|' '|' ':' opt_ws types a
                                 }
                                 ;
 
-functionCall:                   id opt_ws '|' '|' {
+functionCall:                   '(' CALL any_ws id opt_ws ')' {
                                     auto func_call = MakeNode(CALL_FUNC_CMD);
                                     func_call->AddToLeftNodes($id);
                                     $$ = func_call;
                                 }
-                                | id opt_ws '|' exprList opt_ws_or_nl '|' {
+                                | '(' CALL any_ws id any_ws exprList opt_ws_or_nl ')' {
                                     auto func_call = MakeNode(CALL_FUNC_CMD);
-                                    auto list = $exprList;
-                                    auto id = $id;
                                     func_call->AddToLeftNodes($id);
                                     auto end = $exprList->Extras();
                                     for(size_t iter = 0; iter < end; iter++) {
