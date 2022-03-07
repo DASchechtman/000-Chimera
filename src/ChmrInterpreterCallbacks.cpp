@@ -1,11 +1,11 @@
 #include "ChmrInterpreter.hpp"
 
 /*
-* this file consists of a single function meant to initialize all the callbacks for the interpreter
-* the reason this function is in a seperate file is because the callbacks consist of a lot of code
-* therefore it makes the project more readable as a whole if I place this specific function in a seperate
-* file of its own so I can keep ChmrInterpreter.cpp a bit more readable
-*/
+ * this file consists of a single function meant to initialize all the callbacks for the interpreter
+ * the reason this function is in a seperate file is because the callbacks consist of a lot of code
+ * therefore it makes the project more readable as a whole if I place this specific function in a seperate
+ * file of its own so I can keep ChmrInterpreter.cpp a bit more readable
+ */
 
 typedef ChmrInterpreter *CInter;
 
@@ -13,7 +13,7 @@ void ChmrInterpreter::GenerateCallbacks()
 {
     auto Default = [](AstNode *root, CInter i)
     { return EMPTY_VAR_NAME; };
-    
+
     for (int i = 0; i < NUM_O_CALLBACK; i++)
     {
         callbacks[i] = Default;
@@ -254,27 +254,31 @@ void ChmrInterpreter::GenerateCallbacks()
     {
         i->will_mutate_source = true;
         string left = i->RunAst(root->GetFromLeftNodes());
-        string right = i->RunAst(root->GetFromRightNodes());
 
-        if (root->Type() == ADDITION_CMD)
+        for (size_t iter = 1; iter < root->Size(AstNode::LEFT); iter++)
         {
-            Add(left, right, i->Table());
-        }
-        else if (root->Type() == SUBTRACTION_CMD)
-        {
-            Subtract(left, right, i->Table());
-        }
-        else if (root->Type() == MULTIPLY_CMD)
-        {
-            Multiply(left, right, i->Table());
-        }
-        else if (root->Type() == DIVIDE_CMD)
-        {
-            Divide(left, right, i->Table());
-        }
-        else if (root->Type() == POW_CMD)
-        {
-            Pow(left, right, i->Table());
+            string right = i->RunAst(root->GetFromLeftNodes(iter));
+
+            if (root->Type() == ADDITION_CMD)
+            {
+                Add(left, right, i->Table());
+            }
+            else if (root->Type() == SUBTRACTION_CMD)
+            {
+                Subtract(left, right, i->Table());
+            }
+            else if (root->Type() == MULTIPLY_CMD)
+            {
+                Multiply(left, right, i->Table());
+            }
+            else if (root->Type() == DIVIDE_CMD)
+            {
+                Divide(left, right, i->Table());
+            }
+            else if (root->Type() == POW_CMD)
+            {
+                Pow(left, right, i->Table());
+            }
         }
 
         return left;
@@ -521,7 +525,7 @@ void ChmrInterpreter::GenerateCallbacks()
             params = root->GetFromMiddleNodes().get();
         }
 
-        ChmrFunc *func = new ChmrFunc(i->cur_instruction + 1, ret_type, func_name);
+        ChmrFunc *func = new ChmrFunc(i->CurInstruction() + 1, ret_type, func_name);
 
         bool is_valid_params = params != nullptr;
 
@@ -569,7 +573,8 @@ void ChmrInterpreter::GenerateCallbacks()
             return EMPTY_VAR_NAME;
         }
 
-        struct param {
+        struct param
+        {
             ChimeraObject *obj;
             string name;
         };
@@ -596,14 +601,15 @@ void ChmrInterpreter::GenerateCallbacks()
 
             param p;
             p.obj = obj;
-            p.name = func->GetParamData(param_type_index-1);
+            p.name = func->GetParamData(param_type_index - 1);
             params.push_back(p);
 
             param_type_index += 2;
         }
 
-        i->CreateScope(GEN_SCOPE);
-        for(auto p : params) {
+        i->CreateScope("func scope");
+        for (auto p : params)
+        {
             i->Table()->AddOrUpdateRef(p.name, p.obj, true);
         }
 
@@ -613,11 +619,13 @@ void ChmrInterpreter::GenerateCallbacks()
             instr++;
         }
 
-        func->SetEndPoint(i->cur_instruction+1);
-        i->cur_func_running = func;
-        i->GoTo(func->GetStartPoint(), false);
+        i->run_time_context.push(Context(func->GetStartPoint(), func->ToStr(), func));
 
-        i->RunCurInstruction(instr+1);
+        func->SetEndPoint(i->CurInstruction() + 1);
+
+        i->GoTo(func->GetStartPoint(), false);
+        i->RunCurInstruction(instr + 1, false);
+        i->run_time_context.pop();
 
         i->Table()->AddOrUpdateRef(func_name + "ret", func->GetRet(), true);
 
@@ -626,12 +634,12 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[FUNC_RETR_CMD] = [](AstNode *root, CInter i)
     {
-        if (i->cur_func_running == nullptr)
+        if (i->run_time_context.top().func == nullptr)
         {
             cout << "Error: cannot return outside a function\n";
             return EMPTY_VAR_NAME;
         }
-        string func_name = i->cur_func_running->ToStr();
+        string func_name = i->run_time_context.top().func->ToStr();
 
         if (root->Size(AstNode::LEFT) > 0)
         {
@@ -646,9 +654,12 @@ void ChmrInterpreter::GenerateCallbacks()
             ChimeraObject *obj = i->Table()->GetEntry(ret_name);
             i->cur_func_running->StoreValInRet(obj);
         }
-        i->ast_trees.push_back(MakeNode(NO_CMD));
-        i->GoTo(i->cur_func_running->GetEndPoint());
-        i->cur_func_running = nullptr;
+
+        if (i->run_time_context.top().func->GetEndPoint() > i->ast_trees.size())
+        {
+            i->ast_trees.push_back(MakeNode(NO_CMD));
+        }
+
         i->DestroyScope();
         return func_name;
     };

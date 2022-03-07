@@ -13,14 +13,16 @@ double String::Hash() {
     return sum;
 }
 
-String::String() {
+String::String(bool is_const) {
     m_data.str = new string();
     SetType(STRING_DATA_TYPE);
+    this->is_const = is_const;
 }
 
-String::String(string data) {
+String::String(string data, bool is_const) {
     m_data.str = new string(data);
     SetType(STRING_DATA_TYPE);
+    this->is_const = is_const;
 }
 
 String::~String() {
@@ -28,11 +30,18 @@ String::~String() {
 }
 
 int String::Set(string &data) {
+    if (is_const) {
+        return SUCCEED;
+    }
     m_data.str->assign(data);
     return SUCCEED;
 }
 
 int String::Set(char32_t &data) {
+    if (is_const) {
+        return SUCCEED;
+    }
+
     char *c_str = new char[2];
     c_str[0] = data;
     c_str[1] = '\0';
@@ -47,6 +56,9 @@ int String::Get(string &data) {
 }
 
 int String::Add(Text &other) {
+    if (is_const) {
+        return SUCCEED;
+    }
     m_data.str->append(other.GetText());
     return SUCCEED;
 }

@@ -10,6 +10,7 @@ using namespace std;
 
 ChmrInterpreter::ChmrInterpreter()
 {
+    run_time_context.push(Context(0, "base", nullptr));
     GenerateCallbacks();
 }
 
@@ -154,7 +155,7 @@ void ChmrInterpreter::GoTo(size_t jump_point, bool adjust_val)
             break;
         }
     }
-    cur_instruction = jump_point - adjust_val;
+    CurInstruction() = jump_point - adjust_val;
 }
 
 size_t ChmrInterpreter::ScopeLevel()
@@ -187,7 +188,7 @@ void ChmrInterpreter::ProcessCtrlStructure(AstNode *node)
     }
     else if (node->Type() == FUNC_RETR_CMD && cur_scope_level == SIZE_MAX) {
         cur_scope_level = 0;
-        cur_instruction++;
+        CurInstruction()++;
     }
     else if (node->Type() == END_BLOCK_CMD)
     {
@@ -460,7 +461,7 @@ void ChmrInterpreter::EatAst(AstNode *root)
     }
     else if (cur_scope_level == SIZE_MAX)
     {
-        cur_instruction++;
+        CurInstruction()++;
     }
 }
 
@@ -474,23 +475,28 @@ string ChmrInterpreter::RunAst(shared_ptr<AstNode> &root)
     return callbacks[root->Type()](root.get(), this);
 }
 
-void ChmrInterpreter::RunCurInstruction(size_t end)
+void ChmrInterpreter::RunCurInstruction(size_t end, bool is_base_call)
 {
     if (end == 0 || end >= ast_trees.size()) {
         end = ast_trees.size();
     }
 
-    size_t cur_i = cur_instruction;
-
-    while (cur_i < end)
+    while (CurInstruction() < end)
     {
-        RunAst(ast_trees[cur_i]);
-        cur_i++;
+        AstNode *node = ast_trees[CurInstruction()];
+        RunAst(node);
+        CurInstruction()++;
+
         will_mutate_source = false;
         GarbageCollect();
     }
+}
 
-    cur_instruction = cur_i;
+size_t &ChmrInterpreter::CurInstruction() {
+    if (run_time_context.size() == 0) {
+        run_time_context.push(Context(0, "base", nullptr));
+    }
+    return run_time_context.top().cur_instruction;
 }
 
 // PUBLIC METHODS ABOVE -----------------------------------------------------------------------------

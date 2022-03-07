@@ -7,47 +7,8 @@ using namespace std;
 void Perform(AstNode *&root, AstNode *node, COMMANDS type)
 {
     root = MakeNode(type);
-    root->AddToLeftNodes(node);
-
-    if(node->Extras() == 0) {
-        if (type == ADDITION_CMD || type == SUBTRACTION_CMD) {
-            node->SaveAsExtraNode(MakeNode(RAW_DATA_CMD, 0, INT_NODE_TYPE));
-        }
-        else {
-            node->SaveAsExtraNode(MakeNode(RAW_DATA_CMD, 1, INT_NODE_TYPE));
-        }
-    }
-
-    if (node->Extras() < 2)
-    {
-        root->AddToRightNodes(node->GetExtraNode());
-    }
-    else if (node->Extras() == 2)
-    {
-        AstNode *oper = MakeNode(type);
-        oper->AddToLeftNodes(node->GetExtraNode());
-        oper->AddToRightNodes(node->GetExtraNode(1));
-        root->AddToRightNodes(oper);
-    }
-    else
-    {
-        AstNode *oper = MakeNode(type);
-        AstNode *oper_ptr = oper;
-        size_t index = 0;
-        for (; index < node->Extras() - 2; index++)
-        {
-            AstNode *tmp = MakeNode(type);
-            oper->AddToLeftNodes(node->GetExtraNode(index));
-            oper->AddToRightNodes(tmp);
-            oper = tmp;
-            node->NullExtraNode(index);
-        }
-
-        oper->AddToLeftNodes(node->GetExtraNode(index));
-        oper->AddToRightNodes(node->GetExtraNode(index + 1));
-        root->AddToRightNodes(oper_ptr);
-        node->NullExtraNode(index);
-        node->NullExtraNode(index+1);
+    for(size_t i = 0; i < node->Extras(); i++) {
+        root->AddToLeftNodes(node->GetExtraNode(i));
     }
 
     for(size_t i = 0; i < node->Extras(); i++) {
@@ -234,11 +195,8 @@ AstNode* MakeRebindRefAst(AstNode *id, AstNode *expr) {
 AstNode* MakePrintAst(AstNode *exprs) {
     AstNode *print_ast = MakeNode(PRINT_CMD);
 
-    print_ast->AddToLeftNodes(exprs);
-
     for(size_t i = 0; i < exprs->Extras(); i++) {
         print_ast->AddToLeftNodes(exprs->GetExtraNode(i));
-        exprs->NullExtraNode(i);
     }
 
     return print_ast;

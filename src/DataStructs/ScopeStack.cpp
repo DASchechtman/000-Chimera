@@ -2,6 +2,7 @@
 
 ScopeStack::ScopeStack() {
     m_stack.push(new GenScope());
+    base = m_stack.top()->GetTable();
 }
 
 ScopeStack::~ScopeStack() {
@@ -12,7 +13,14 @@ ScopeStack::~ScopeStack() {
 }
 
 void ScopeStack::CreateScope(string type) {
-    Scope *n_scope = new GenScope(GetTable(), m_stack.top());
+    Scope *n_scope = nullptr;
+    if (type == GEN_SCOPE) {
+        n_scope = new GenScope(GetTable(), m_stack.top());
+    }
+    else {
+        n_scope = new GenScope(base, m_stack.top());
+    }
+
     m_override = false;
     n_scope->SetRunnableState(true);
     m_stack.push(n_scope);

@@ -93,6 +93,7 @@ string SymbolTable::GetConstEntry(T data, true_type) {
         
         ChimeraObject *val = new String();
         val->Set(data);
+        val->SetConst(true);
         AddEntry(key, val);
     }
 
@@ -178,6 +179,7 @@ string SymbolTable::GetConstEntry(T data, false_type) {
         }
 
         val->Set(data);
+        val->SetConst(true);
         AddEntry(key, val);
     }
 

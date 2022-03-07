@@ -50,6 +50,7 @@ private:
 
 protected:
     ObjectData m_data;
+    bool is_const = false;
     virtual void SetType(VAR_TYPES new_type);
     virtual void SetGeneralType(VAR_TYPES new_type);
     virtual string VarTypeToStr(VAR_TYPES type);
@@ -147,6 +148,8 @@ public:
     virtual bool Greater(ChimeraObject* other);
     virtual bool GreaterEqual(ChimeraObject* other);
     virtual bool Equal(ChimeraObject* other);
+
+    virtual void SetConst(bool is_const);
 
     virtual string ToStr() = 0;
     virtual int64 ToInt() = 0;

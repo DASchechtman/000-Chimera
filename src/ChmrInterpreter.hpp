@@ -27,6 +27,7 @@
 #include "InterpreterOpers/Boolean.hpp"
 #include "InterpreterOpers/ContainerOpers.hpp"
 #include "InterpreterOpers/CompareOper.hpp"
+#include "Context.hpp"
 
 using namespace std;
 
@@ -42,14 +43,14 @@ private:
     ScopeStack scopes;
     vector<AstNode*> ast_trees;
     size_t cur_scope_level = 0;
-    size_t cur_instruction = 0;
     vector<JumpInfo> jump_points;
     ScopeTree scope_tree; 
     stack<size_t> cur_stack_level;
     size_t cur_jump_point = 0;
     string (*callbacks[NUM_O_CALLBACK])(AstNode*, ChmrInterpreter*);
     bool will_mutate_source = false;
-    ChmrFunc *cur_func_running = nullptr;
+    ChmrFunc *cur_func_running = nullptr; 
+    stack<Context> run_time_context;
 
     /* used to put a lot of boilerplate into one place for the assign/reassign actions */
     string MakeBind(string to, string from, string type);
@@ -72,7 +73,8 @@ private:
     int PrintVar(string var_id, char end);
     string RunAst(AstNode* root);
     string RunAst(shared_ptr<AstNode> &root);
-    void RunCurInstruction(size_t end = 0);
+    void RunCurInstruction(size_t end = 0, bool is_base_call = true);
+    size_t &CurInstruction();
 
     void GenerateCallbacks();
 

@@ -401,4 +401,8 @@ bool ChimeraObject::Equal(ChimeraObject *other)
     return PerformCompareOper(other, EQUAL_OPER);
 }
 
+void ChimeraObject::SetConst(bool is_const) {
+    this->is_const = is_const;
+}
+
 //PUBLIC METHODS ABOVE ------------------------------------------------------------------------------------------------------------------------------

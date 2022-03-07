@@ -15,8 +15,8 @@ protected:
 
 public:
 
-    String();
-    String(string data);
+    String(bool is_const = false);
+    String(string data, bool is_const = false);
     ~String();
 
     int Set(string &data);

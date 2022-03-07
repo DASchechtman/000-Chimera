@@ -199,6 +199,7 @@ functionHead:                   SURO any_ws id opt_ws '|' '|' ':' opt_ws types a
                                     $$->AddToMiddleNodes($paramList);
                                     $$->AddToRightNodes($types);
                                     i.EatAst($$);
+                                    $$ = nullptr;
                                 }
                                 ;
 
@@ -209,8 +210,13 @@ functionCall:                   id opt_ws '|' '|' {
                                 }
                                 | id opt_ws '|' exprList opt_ws_or_nl '|' {
                                     auto func_call = MakeNode(CALL_FUNC_CMD);
+                                    auto list = $exprList;
+                                    auto id = $id;
                                     func_call->AddToLeftNodes($id);
-                                    func_call->AddToRightNodes($exprList);
+                                    auto end = $exprList->Extras();
+                                    for(size_t iter = 0; iter < end; iter++) {
+                                        func_call->AddToRightNodes($exprList->GetExtraNode(iter));
+                                    }
                                     $$ = func_call;
                                 }
                                 ;
@@ -369,7 +375,7 @@ assign:                         '(' '=' opt_ws id opt_ws ':' opt_ws types any_ws
                                 | '(' '=' opt_ws id opt_ws ':' opt_ws UNKNOWN any_ws expr opt_ws ')' {
                                     $$ = MakeUnionAst($id, $expr);
                                 }
-                                | '(' '=' opt_ws id opt_ws ':' opt_newline unionTypes any_ws expr opt_ws ')' {
+                                | '(' '=' opt_ws id opt_ws ':' opt_ws '[' unionTypes ']' any_ws expr opt_ws ')' {
                                     $$ = MakeUnionAst($id, $unionTypes, $expr);
                                 }
                                 | '(' '=' opt_ws id any_ws expr opt_ws ')' {
@@ -385,10 +391,12 @@ assign:                         '(' '=' opt_ws id opt_ws ':' opt_ws types any_ws
 
 
 exprList:                      opt_ws expr {
-                                    $$ = $expr;
+                                    $$ = new AstNode();
+                                    $$->SaveAsExtraNode($expr);
                                 } 
                                 | opt_newline expr {
-                                    $$ = $expr;
+                                    $$ = new AstNode();
+                                    $$->SaveAsExtraNode($expr);
                                 }
                                 | exprList[prev] any_ws expr {  
                                     $prev->SaveAsExtraNode($expr);
@@ -513,12 +521,12 @@ expr:                           term {
                                 }
                                 ;
 
-prog:                           expr { i.EatAst($expr); }
-                                | statement { i.EatAst($statement); }
+prog:                           expr { i.EatAst($expr); $expr = nullptr; }
+                                | statement { i.EatAst($statement); $statement = nullptr; }
                                 | ifStatement
                                 | whileStatement
                                 | forloopStatement
-                                | functionCall { i.EatAst($functionCall); }
+                                | functionCall { i.EatAst($functionCall); $functionCall = nullptr; }
                                 | start line end
                                 | any_ws
                                 | newline

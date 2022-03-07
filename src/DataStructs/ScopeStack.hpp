@@ -19,6 +19,7 @@ const string PLACE_HOLDER_NAME = "#";
 class ScopeStack {
 private:
     stack<Scope*> m_stack;
+    SymbolTable *base = nullptr;
 
     // the state a new scope should have
     bool m_next_scope_runnable = true;
