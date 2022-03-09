@@ -64,6 +64,7 @@ public:
     bool Has(string var_id);
     bool CameFromVar(string var_id);
     bool IsRef(string var_id);
+    bool IsTemp(string var_id);
     void SetParent(string var_id, string parent_id);
     void SetCopyStat(bool is_copying);
     string GetParent(string var_id);
@@ -93,7 +94,7 @@ string SymbolTable::GetConstEntry(T data, true_type) {
         
         ChimeraObject *val = new String();
         val->Set(data);
-        val->SetConst(true);
+        val->SetConstStatus(true);
         AddEntry(key, val);
     }
 
@@ -179,7 +180,7 @@ string SymbolTable::GetConstEntry(T data, false_type) {
         }
 
         val->Set(data);
-        val->SetConst(true);
+        val->SetConstStatus(true);
         AddEntry(key, val);
     }
 

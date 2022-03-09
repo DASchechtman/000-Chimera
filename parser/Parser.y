@@ -158,7 +158,7 @@ forloopHead:                    REPEAT any_ws expr any_ws WITH any_ws id any_ws 
                                 };
 
 paramList:                      id ':' opt_ws types {
-                                    auto param = new AstNode();
+                                    auto param = MakeNode(FUNC_PARAM_CMD);
                                     param->AddToLeftNodes($id);
                                     param->AddToRightNodes($types);
                                     auto list = new AstNode();
@@ -167,21 +167,21 @@ paramList:                      id ':' opt_ws types {
 
                                 }
                                 | types {
-                                    auto param = new AstNode();
+                                    auto param = MakeNode(FUNC_PARAM_CMD);
                                     param->AddToRightNodes($types);
                                     auto list = new AstNode();
                                     list->AddToLeftNodes(param);
                                     $$ = list;
                                 }
                                 | paramList[list] any_ws id ':' opt_ws types {
-                                    auto param = new AstNode();
+                                    auto param = MakeNode(FUNC_PARAM_CMD);
                                     param->AddToLeftNodes($id);
                                     param->AddToRightNodes($types);
                                     $list->AddToLeftNodes(param);
                                     $$ = $list;
                                 }
                                 | paramList[list] any_ws types {
-                                    auto param = new AstNode();
+                                    auto param = MakeNode(FUNC_PARAM_CMD);
                                     param->AddToRightNodes($types);
                                     $list->AddToLeftNodes(param);
                                     $$ = $list;

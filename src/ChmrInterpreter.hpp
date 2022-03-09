@@ -28,6 +28,7 @@
 #include "InterpreterOpers/ContainerOpers.hpp"
 #include "InterpreterOpers/CompareOper.hpp"
 #include "Context.hpp"
+#include "InterpreterOpers/FuncOpers.hpp"
 
 using namespace std;
 
@@ -127,7 +128,7 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
         new_var_name = tbl->AddEntry(var_id, new Bool());
     }
     else {
-        cout << "Error: cannot not make data of type " << type << '\n';
+        cout << "Error: cannot not make data of type " << type << endl;
         return EMPTY_VAR_NAME;
     }
 
@@ -137,7 +138,7 @@ string ChmrInterpreter::Create(string var_id, string type, T data)
     {
         if (new_var_name.empty())
         {
-            cout << "Error: created variable with unsupported type '" << type << "'\n";
+            cout << "Error: created variable with unsupported type '" << type << endl;
         }
         else
         {

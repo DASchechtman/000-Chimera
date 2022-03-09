@@ -54,6 +54,10 @@ bool SymbolTable::IsRef(string var_id) {
     return Has(var_id) && m_table[var_id].is_ref;
 }
 
+bool SymbolTable::IsTemp(string var_id) {
+    return Has(var_id) && m_table[var_id].is_temp;
+}
+
 void SymbolTable::SetParent(string var_id, string parent_id) {
     if (Has(var_id)) {
         m_table[var_id].created_from = parent_id;

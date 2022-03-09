@@ -1836,7 +1836,7 @@ yyreduce:
   case 9:
 #line 160 "./parser/Parser.y"
                                                     {
-                                    auto param = new AstNode();
+                                    auto param = MakeNode(FUNC_PARAM_CMD);
                                     param->AddToLeftNodes((yyvsp[-3].tmp_id));
                                     param->AddToRightNodes((yyvsp[0].tmp_id));
                                     auto list = new AstNode();
@@ -1850,7 +1850,7 @@ yyreduce:
   case 10:
 #line 169 "./parser/Parser.y"
                                         {
-                                    auto param = new AstNode();
+                                    auto param = MakeNode(FUNC_PARAM_CMD);
                                     param->AddToRightNodes((yyvsp[0].tmp_id));
                                     auto list = new AstNode();
                                     list->AddToLeftNodes(param);
@@ -1862,7 +1862,7 @@ yyreduce:
   case 11:
 #line 176 "./parser/Parser.y"
                                                                              {
-                                    auto param = new AstNode();
+                                    auto param = MakeNode(FUNC_PARAM_CMD);
                                     param->AddToLeftNodes((yyvsp[-3].tmp_id));
                                     param->AddToRightNodes((yyvsp[0].tmp_id));
                                     (yyvsp[-5].tmp_id)->AddToLeftNodes(param);
@@ -1874,7 +1874,7 @@ yyreduce:
   case 12:
 #line 183 "./parser/Parser.y"
                                                                {
-                                    auto param = new AstNode();
+                                    auto param = MakeNode(FUNC_PARAM_CMD);
                                     param->AddToRightNodes((yyvsp[0].tmp_id));
                                     (yyvsp[-2].tmp_id)->AddToLeftNodes(param);
                                     (yyval.tmp_id) = (yyvsp[-2].tmp_id);

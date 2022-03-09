@@ -297,7 +297,7 @@ int ChimeraObject::Set(ChimeraObject* other)
             break;
         }
         default: {
-            err_msg: cout << "Error: cannot set " << other->GetTypeName() << " in " << GetTypeName() << '\n';
+            err_msg: cout << "Error: cannot set " << other->GetTypeName() << " in " << GetTypeName() << endl;
         }
     }
 
@@ -371,7 +371,7 @@ ChimeraObject *ChimeraObject::ConvertTo(string type)
     }
     else
     {
-        cout << "Error: invalid conversion to type " << type << '\n';
+        cout << "Error: invalid conversion to type " << type << endl;
         return nullptr;
     }
 }
@@ -401,8 +401,12 @@ bool ChimeraObject::Equal(ChimeraObject *other)
     return PerformCompareOper(other, EQUAL_OPER);
 }
 
-void ChimeraObject::SetConst(bool is_const) {
+void ChimeraObject::SetConstStatus(bool is_const) {
     this->is_const = is_const;
+}
+
+bool ChimeraObject::GetConstStatus() {
+    return this->is_const;
 }
 
 //PUBLIC METHODS ABOVE ------------------------------------------------------------------------------------------------------------------------------

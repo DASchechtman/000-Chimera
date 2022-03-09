@@ -133,7 +133,7 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
     }
     default:
     {
-        cout << "Error: cannot create var of type " << type << "\n";
+        cout << "Error: cannot create var of type " << type << endl;
     }
     }
 
@@ -275,7 +275,7 @@ string ChmrInterpreter::Rebind(string to, string from)
     }
 
     if (obj->Set(obj_2) == FAIL) {
-        cout << "Error: could not bind " << obj->GetTypeName() << " to " << obj_2->GetTypeName() << "\n";
+        cout << "Error: could not bind " << obj->GetTypeName() << " to " << obj_2->GetTypeName() << endl;
         to = EMPTY_VAR_NAME;
     }
 
@@ -326,7 +326,7 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type)
     }
     else if (obj->GetGeneralType() == UNION_DATA_TYPE)
     {
-        cout << "Error: cannot make a reference to dynamic types 'unions'\n";
+        cout << "Error: cannot make a reference to dynamic types 'unions'" << endl;
         return EMPTY_VAR_NAME;
     }
 
@@ -396,7 +396,7 @@ string ChmrInterpreter::CastVarTo(string var_id, string type)
 
     if (var == nullptr)
     {
-        cout << "Error: trying to convert to non-supported type " << type << '\n';
+        cout << "Error: trying to convert to non-supported type " << type << endl;
         return EMPTY_VAR_NAME;
     }
 

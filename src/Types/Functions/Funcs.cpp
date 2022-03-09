@@ -30,7 +30,7 @@ ChimeraObject* ChmrFunc::GetRet() {
     return ret_val;
 }
 
-void ChmrFunc::SetEndPoint(size_t new_end_point) {
+void ChmrFunc::SetReturnPoint(size_t new_end_point) {
     m_call_point = new_end_point;
 }
 
@@ -42,10 +42,12 @@ void ChmrFunc::SetRetDest(ChimeraObject *dest) {
     ret_val = dest;
 }
 
-void ChmrFunc::StoreValInRet(ChimeraObject *ret) {
+int ChmrFunc::StoreValInRet(ChimeraObject *ret) {
+    int store_res = FAIL;
     if (ret_val != nullptr && ret != nullptr) {
-        ret_val->Set(ret);
+        store_res = ret_val->Set(ret);
     }
+    return store_res;
 }
 
 string ChmrFunc::GetParamData(size_t index) {

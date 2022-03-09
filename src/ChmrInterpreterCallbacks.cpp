@@ -26,50 +26,26 @@ void ChmrInterpreter::GenerateCallbacks()
         if (root->Value().type == INT_NODE_TYPE)
         {
             data_name = i->Table()->GetConstEntry(root->Value().i);
-            if (i->will_mutate_source)
-            {
-                data_name = i->CreateTmpVar(root->Value().i);
-            }
         }
         else if (root->Value().type == FLOAT_NODE_TYPE)
         {
             data_name = i->Table()->GetConstEntry(root->Value().f);
-            if (i->will_mutate_source)
-            {
-                data_name = i->CreateTmpVar(root->Value().f);
-            }
         }
         else if (root->Value().type == DOUBLE_NODE_TYPE)
         {
             data_name = i->Table()->GetConstEntry(root->Value().d);
-            if (i->will_mutate_source)
-            {
-                data_name = i->CreateTmpVar(root->Value().d);
-            }
         }
         else if (root->Value().type == CHAR_NODE_TYPE)
         {
             data_name = i->Table()->GetConstEntry(root->Value().c);
-            if (i->will_mutate_source)
-            {
-                data_name = i->CreateTmpVar(root->Value().c);
-            }
         }
         else if (root->Value().type == STRING_NODE_TYPE)
         {
             data_name = i->Table()->GetConstEntry(root->Value().s);
-            if (i->will_mutate_source)
-            {
-                data_name = i->CreateTmpVar(root->Value().s);
-            }
         }
         else if (root->Value().type == BOOL_NODE_TYPE)
         {
             data_name = i->Table()->GetConstEntry(root->Value().b);
-            if (i->will_mutate_source)
-            {
-                data_name = i->CreateTmpVar(root->Value().b);
-            }
         }
         else if (root->Value().type == ARRAY_NODE_TYPE)
         {
@@ -252,12 +228,33 @@ void ChmrInterpreter::GenerateCallbacks()
 
     auto MathOpers = [](AstNode *root, CInter i)
     {
-        i->will_mutate_source = true;
+        auto CloneToAvoidBadDataMutation = [](string &arg_name, SymbolTable *tbl) {
+            if (!tbl->Has(arg_name)) {
+                cout << "Error: cannot do math oper on non-existent " << arg_name << endl;
+                arg_name = EMPTY_VAR_NAME;
+                return;
+            }
+
+            bool will_mutate_badly = (
+                !tbl->IsTemp(arg_name)
+                || tbl->GetEntry(arg_name)->GetConstStatus()
+                || tbl->IsRef(arg_name)
+            );
+
+            if (will_mutate_badly) {
+                arg_name = tbl->AddEntry(EMPTY_VAR_NAME, tbl->GetEntry(arg_name)->Clone());
+            }
+
+            return;
+        };
+
         string left = i->RunAst(root->GetFromLeftNodes());
+        CloneToAvoidBadDataMutation(left, i->Table());
 
         for (size_t iter = 1; iter < root->Size(AstNode::LEFT); iter++)
         {
             string right = i->RunAst(root->GetFromLeftNodes(iter));
+            CloneToAvoidBadDataMutation(right, i->Table());
 
             if (root->Type() == ADDITION_CMD)
             {
@@ -355,7 +352,7 @@ void ChmrInterpreter::GenerateCallbacks()
             string print_data = i->RunAst(root->GetFromLeftNodes(iters));
             i->PrintVar(print_data, ' ');
         }
-        cout << '\n';
+        cout << endl;
         return EMPTY_VAR_NAME;
     };
 
@@ -516,30 +513,46 @@ void ChmrInterpreter::GenerateCallbacks()
     callbacks[MAKE_FUNC_CMD] = [](AstNode *root, CInter i)
     {
         i->cur_scope_level = SIZE_MAX;
+        size_t cur_instruction = i->run_time_context.top().cur_instruction;
         string func_name = i->RunAst(root->GetFromLeftNodes());
         string ret_type = i->RunAst(root->GetFromRightNodes());
+
         AstNode *params = nullptr;
 
-        if (root->Size(AstNode::MIDDLE) > 0)
+        bool has_params = root->Size(AstNode::MIDDLE) > 0;
+        size_t params_list_size = 0;
+        if (has_params)
         {
             params = root->GetFromMiddleNodes().get();
+            params_list_size = params->Size(AstNode::LEFT);
         }
 
-        ChmrFunc *func = new ChmrFunc(i->CurInstruction() + 1, ret_type, func_name);
+        ChmrFunc *func = new ChmrFunc(cur_instruction + 1, ret_type, func_name);
 
-        bool is_valid_params = params != nullptr;
 
-        for (size_t index = 0; is_valid_params && index < params->Size(AstNode::LEFT); index++)
+        for (size_t index = 0; params && index < params_list_size; index++)
         {
-            string var_name = "arg" + to_string(index);
-            string var_type;
+            auto param_from_list = params->GetFromLeftNodes(index);
+            bool has_name = params->GetFromLeftNodes(index)->Size(AstNode::LEFT) > 0;
+            string var_name;
+            string var_type = i->RunAst(param_from_list->GetFromRightNodes());
 
-            if (params->GetFromLeftNodes(index)->Size(AstNode::LEFT) > 0)
+            if (has_name)
             {
-                var_name = i->RunAst(params->GetFromLeftNodes(index)->GetFromLeftNodes());
+                var_name = i->RunAst(param_from_list->GetFromLeftNodes());
+            }
+            else
+            {
+                var_name = "arg" + to_string(index);
             }
 
-            var_type = i->RunAst(params->GetFromLeftNodes(index)->GetFromRightNodes());
+            bool not_enough_param_data = var_type == EMPTY_VAR_NAME || var_name == EMPTY_VAR_NAME;
+            if (not_enough_param_data)
+            {
+                cout << "Error: couldn't get param name or type\n";
+                return EMPTY_VAR_NAME;
+            }
+
             func->AddParam(var_name, var_type);
         }
 
@@ -550,7 +563,8 @@ void ChmrInterpreter::GenerateCallbacks()
     {
         string func_name = i->RunAst(root->GetFromLeftNodes());
 
-        if (!i->Table()->Has(func_name))
+        bool func_exists = i->Table()->Has(func_name);
+        if (!func_exists)
         {
             cout << "Error: " << func_name << " does not exist\n";
             return EMPTY_VAR_NAME;
@@ -558,16 +572,21 @@ void ChmrInterpreter::GenerateCallbacks()
 
         ChimeraObject *obj = i->Table()->GetEntry(func_name);
 
-        if (obj->GetType() != FUNC_DATA_TYPE)
+        bool is_func = obj->GetType() == FUNC_DATA_TYPE;
+        if (!is_func)
         {
             cout << "Error: " << func_name << " is not a function\n";
             return EMPTY_VAR_NAME;
         }
 
-        ChmrFunc *func = (ChmrFunc *)obj;
-        size_t passed_params = root->Size(AstNode::RIGHT) * 2;
+        ChmrFunc *func = (ChmrFunc *)obj; 
+        size_t num_o_passed_params = root->Size(AstNode::RIGHT);
 
-        if (func->ParamNums() != passed_params)
+        // multipled by two because the ParamNums will always return a list of [name, type, name, type, etc]
+        // so since only arguments are being passed and not their corrisponding types, the multiplication
+        // accounts for that
+        bool correct_num_of_params = func->ParamNums() == num_o_passed_params * 2;
+        if (!correct_num_of_params)
         {
             cout << "Error: incorrect number of parameters passed\n";
             return EMPTY_VAR_NAME;
@@ -575,56 +594,70 @@ void ChmrInterpreter::GenerateCallbacks()
 
         struct param
         {
-            ChimeraObject *obj;
-            string name;
+            ChimeraObject *p_obj = nullptr;
+            string p_name;
+            bool cant_reference = false;
+
+            param(ChimeraObject *obj, string name) : p_obj(obj), p_name(name) {}
         };
-        vector<param> params;
+
+        vector<param> func_args;
 
         size_t param_type_index = 1;
-        for (size_t iter = 0; iter < passed_params / 2; iter++)
+        for (size_t iter = 0; iter < num_o_passed_params; iter++)
         {
-            string param_name = i->RunAst(root->GetFromRightNodes(iter));
+            string param_value = i->RunAst(root->GetFromRightNodes(iter));
 
-            if (!i->Table()->Has(param_name))
+            bool has_param_expression = i->Table()->Has(param_value);
+            if (!has_param_expression)
             {
-                cout << "Error: param " << param_name << " does not exist\n";
+                cout << "Error: param " << param_value << " does not exist\n";
                 return EMPTY_VAR_NAME;
             }
 
-            ChimeraObject *obj = i->Table()->GetEntry(param_name);
+            ChimeraObject *expression = i->Table()->GetEntry(param_value);
 
-            if (obj->GetTypeName() != func->GetParamData(param_type_index))
+            bool correct_param_type = expression->GetTypeName() == func->GetParamData(param_type_index);
+            if (!correct_param_type)
             {
-                cout << "Error: param " << *obj << " is a " << obj->GetTypeName() << ". Expected " << func->GetParamData(param_type_index) << '\n';
+                cout << "Error: param " << *expression << " is a " << expression->GetTypeName() << ". Expected " << func->GetParamData(param_type_index) << endl;
                 return EMPTY_VAR_NAME;
             }
 
-            param p;
-            p.obj = obj;
-            p.name = func->GetParamData(param_type_index - 1);
-            params.push_back(p);
-
+            string param_name = func->GetParamData(param_type_index - 1);
+            param p(expression, param_name);
+            p.cant_reference = expression->GetConstStatus() || i->Table()->IsTemp(param_value);
+            func_args.push_back(p);
             param_type_index += 2;
         }
 
         i->CreateScope("func scope");
-        for (auto p : params)
+
+        for (auto arg : func_args)
         {
-            i->Table()->AddOrUpdateRef(p.name, p.obj, true);
+            if (arg.cant_reference)
+            {
+                ChimeraObject *obj = arg.p_obj->Clone();
+                obj->SetConstStatus(false);
+                i->Table()->AddEntry(arg.p_name, obj);
+                continue;
+            }
+
+            i->Table()->AddOrUpdateRef(arg.p_name, arg.p_obj, true);
         }
 
-        size_t instr = func->GetStartPoint();
-        while (i->ast_trees[instr]->Type() != FUNC_RETR_CMD)
+        size_t func_end_point = func->GetStartPoint();
+        while (i->ast_trees[func_end_point]->Type() != FUNC_RETR_CMD)
         {
-            instr++;
+            func_end_point++;
         }
 
         i->run_time_context.push(Context(func->GetStartPoint(), func->ToStr(), func));
 
-        func->SetEndPoint(i->CurInstruction() + 1);
-
+        func->SetReturnPoint(i->CurInstruction() + 1);
         i->GoTo(func->GetStartPoint(), false);
-        i->RunCurInstruction(instr + 1, false);
+        i->RunCurInstruction(func_end_point + 1, false);
+
         i->run_time_context.pop();
 
         i->Table()->AddOrUpdateRef(func_name + "ret", func->GetRet(), true);
@@ -641,7 +674,8 @@ void ChmrInterpreter::GenerateCallbacks()
         }
         string func_name = i->run_time_context.top().func->ToStr();
 
-        if (root->Size(AstNode::LEFT) > 0)
+        bool has_ret_val = root->Size(AstNode::LEFT) > 0;
+        if (has_ret_val)
         {
             string ret_name = i->RunAst(root->GetFromLeftNodes());
             if (!i->Table()->Has(ret_name))
@@ -652,12 +686,8 @@ void ChmrInterpreter::GenerateCallbacks()
             }
 
             ChimeraObject *obj = i->Table()->GetEntry(ret_name);
-            i->cur_func_running->StoreValInRet(obj);
-        }
-
-        if (i->run_time_context.top().func->GetEndPoint() > i->ast_trees.size())
-        {
-            i->ast_trees.push_back(MakeNode(NO_CMD));
+            ChmrFunc *func = i->run_time_context.top().func;
+            func_name = func->StoreValInRet(obj) == FAIL ? EMPTY_VAR_NAME : func_name;
         }
 
         i->DestroyScope();

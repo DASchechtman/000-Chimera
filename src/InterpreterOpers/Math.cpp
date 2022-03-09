@@ -133,7 +133,7 @@ string Mod(string var_1, string var_2, SymbolTable *var_table) {
         long double val_1 = ((Number*)var_1_obj)->GetNumber();
         long double val_2 = ((Number*)var_2_obj)->GetNumber();
         if(val_2 == 0) {
-            cout << "Error: cannot get the results of " << val_1 << " % " << val_2 << '\n';
+            cout << "Error: cannot get the results of " << val_1 << " % " << val_2 << endl;
             return EMPTY_VAR_NAME;
         }
         

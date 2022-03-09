@@ -78,7 +78,7 @@ int ChimeraUnion::SetTo(VAR_TYPES type, string type_name, T &data) {
         }
     }
     else {
-        cout << "Error: attempt to set union to non-allowable type '" << type_name << "'\n";
+        cout << "Error: attempt to set union to non-allowable type '" << type_name << endl;
         return FAIL;
     }
 

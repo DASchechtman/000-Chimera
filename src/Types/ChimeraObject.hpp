@@ -149,7 +149,8 @@ public:
     virtual bool GreaterEqual(ChimeraObject* other);
     virtual bool Equal(ChimeraObject* other);
 
-    virtual void SetConst(bool is_const);
+    virtual void SetConstStatus(bool is_const);
+    virtual bool GetConstStatus();
 
     virtual string ToStr() = 0;
     virtual int64 ToInt() = 0;
