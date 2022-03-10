@@ -1,7 +1,16 @@
 #include "Math.hpp"
+#include "../Types/composables/ComposableOr/ChimeraUnion.hpp"
 
 typedef int (*operFunc)(ChimeraObject*, ChimeraObject*, bool);
 typedef ChimeraObject ChrO;
+
+ChrO *UnionObjSafeGaurd(ChrO *obj) {
+    ChrO *ret_obj = obj;
+    while (ret_obj->GetGeneralType() == UNION_DATA_TYPE) {
+        ret_obj = ((ChimeraUnion*)obj)->GetObj();
+    }
+    return ret_obj;
+}
 
 int DoMath(string var_1, string var_2, OPER_CODE code, SymbolTable *tbl, operFunc oper) {
     if (!tbl->Has(var_1) || !tbl->Has(var_2))
@@ -10,8 +19,8 @@ int DoMath(string var_1, string var_2, OPER_CODE code, SymbolTable *tbl, operFun
         return FAIL;
     }
 
-    ChimeraObject *obj_1 = tbl->GetEntry(var_1);
-    ChimeraObject *obj_2 = tbl->GetEntry(var_2);
+    ChimeraObject *obj_1 = UnionObjSafeGaurd(tbl->GetEntry(var_1));
+    ChimeraObject *obj_2 = UnionObjSafeGaurd(tbl->GetEntry(var_2));
 
     int err = FAIL;
 

@@ -1,4 +1,4 @@
-res_msg: string = "result: "
+(= res_msg: string "result: ")
 
 # add operator test
 print| "should: 10" (+ res_msg (cast (+ 5 5) string)) |

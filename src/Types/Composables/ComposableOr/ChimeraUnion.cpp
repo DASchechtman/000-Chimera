@@ -69,11 +69,17 @@ ChimeraObject* ChimeraUnion::GetObj() {
 }
 
 VAR_TYPES ChimeraUnion::GetType() {
-    return m_var->GetType();
+    if (m_var != nullptr) {
+        return m_var->GetType();
+    }
+    return UNDEFINED_DATA_TYPE;
 }
 
 string ChimeraUnion::GetTypeName() {
-    return m_var->GetTypeName();
+    if (m_var != nullptr) {
+        return m_var->GetTypeName();
+    }
+    return EMPTY_VAR_NAME;
 }
 
 int ChimeraUnion::Set(int64 &data) {
@@ -110,7 +116,12 @@ int ChimeraUnion::Set(ChimeraObject *data) {
 
     if (can_cast) {
         delete m_var;
-        m_var = data->Clone();
+        if (data->GetGeneralType() == UNION_DATA_TYPE) {
+            m_var = ((ChimeraUnion*)data)->GetObj()->Clone();
+        }
+        else {
+            m_var = data->Clone();
+        }
         return SUCCEED;
     }
 

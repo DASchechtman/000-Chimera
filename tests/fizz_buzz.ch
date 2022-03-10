@@ -1,6 +1,6 @@
-repeat 100 with i start
+repeat 16 with i start
 
-    (= output:string|int "")
+    (= output:[string | int] "")
 
     if (equal (mod i 3) 0) start
         (= output (add output "fizz"))

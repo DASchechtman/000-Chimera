@@ -1990,7 +1990,7 @@ yyreduce:
 
   case 31:
 #line 258 "./parser/Parser.y"
-                                     { (yyval.tmp_id) = (yyvsp[0].tmp_id); }
+                                     { (yyval.tmp_id) = new AstNode(); (yyval.tmp_id)->SaveAsExtraNode((yyvsp[0].tmp_id)); }
 #line 1995 "./parser/Parser.cpp"
     break;
 

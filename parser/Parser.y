@@ -255,7 +255,7 @@ functionDeclStatement:          functionHead line END {
 
 newline:                        NEWLINE | SEMICOLON;
 
-terms:                          term { $$ = $1; } 
+terms:                          term { $$ = new AstNode(); $$->SaveAsExtraNode($term); } 
                                 | terms[list] any_ws term { $list->SaveAsExtraNode($term); $$ = $list; }
                                 | terms[list] opt_newline term {$list->SaveAsExtraNode($term); $$ = $list; }
                                 ;

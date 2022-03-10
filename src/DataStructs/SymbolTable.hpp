@@ -106,77 +106,52 @@ string SymbolTable::GetConstEntry(T data, false_type) {
     
     string key;
 
-    if (is_same<T, int64>::value)
-    {
-        key = KeyToString(data);
-    }
-    if (is_same<T, float>::value)
-    {
-        int64 before_dec = data;
-        dbl128 dec = data - before_dec;
-
-        while(fmod(dec, 1))
-        {
-            dec *= 10;
-        }
-
-        key = KeyToString(before_dec) + KeyToString(dec);
-    }
-    if (is_same<T, dbl128>::value)
-    {
-        char first_letter[] = {'z', 'o', 't', 'r', 'f', 'i', 's', 'e', 'g', 'n'};
-        string val = to_string(data);
-        for (const char c : val) {
-            if (c == '.') {
-                continue;
-            }
-            key += first_letter[stoi(string(&c))];
-        }
-        
-        key += '!';
-    }
-    if (is_same<T, char32_t>::value)
-    {
-        key = KeyToString(data);
-    }
     if (is_same<T, bool>::value)
     {
-        if (data == true)
-        {
-            key = "t";
-        }
-        else
-        {
-            key = "f";
-        }
+        key = data ? "true!" : "false!";
+    }
+    else {
+        key = to_string(data) + '!';
     }
 
     if (!Has(key))
     {
         ChimeraObject *val = nullptr;
-        if (is_same<T, int64>::value)
-        {
-            val = new Int();
-        }
-        else if (is_same<T, float>::value)
-        {
-            val = new Float();
-        }
-        else if (is_same<T, dbl128>::value)
-        {
-            val = new Double();
-        }
-        else if (is_same<T, char32_t>::value)
-        {
-            val = new Char();
-        }
-        else if (is_same<T, bool>::value)
-        {
-            val = new Bool();
-        }
-        else if (is_same<T, string>::value)
-        {
-            val = new String();
+        const int INT_BRANCH = 1;
+        const int FLOAT_BRANCH = 2;
+        const int DOUBLE_BRANCH = 3;
+        const int CHAR_BRANCH = 4;
+        const int BOOL_BRANCH = 5;
+        int branch = 0;
+
+        branch += INT_BRANCH * is_same<T, int64>::value;
+        branch += FLOAT_BRANCH * is_same<T, float>::value;
+        branch += DOUBLE_BRANCH * is_same<T, dbl128>::value;
+        branch += CHAR_BRANCH * is_same<T, char32_t>::value;
+        branch += BOOL_BRANCH * is_same<T, bool>::value;
+
+        switch(branch) {
+            case INT_BRANCH: {
+                val = new Int();
+                break;
+            }
+            case FLOAT_BRANCH: {
+                val = new Float();
+                break;
+            }
+            case DOUBLE_BRANCH: {
+                val = new Double();
+                break;
+            }
+            case CHAR_BRANCH: {
+                val = new Char();
+                break;
+            }
+            case BOOL_BRANCH: {
+                val = new Bool();
+                break;
+            }
+            default: {}
         }
 
         val->Set(data);

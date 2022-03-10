@@ -1,5 +1,6 @@
-suro foo|int|: int start
-    print|"arg0 is now" arg0|
+suro addInts|int int|: int start
+    (= x:int (add arg0 arg1))
+    print|"sum is" x|
 end
 
-(call foo (add 5 10))
+(call addInts 5 10)

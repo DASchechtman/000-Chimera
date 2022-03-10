@@ -10,10 +10,6 @@ void Perform(AstNode *&root, AstNode *node, COMMANDS type)
     for(size_t i = 0; i < node->Extras(); i++) {
         root->AddToLeftNodes(node->GetExtraNode(i));
     }
-
-    for(size_t i = 0; i < node->Extras(); i++) {
-        node->NullExtraNode(i);
-    }
 }
 
 AstNode* MakeStartAst() {
@@ -84,7 +80,6 @@ AstNode* MakeUnionAst(AstNode *id, AstNode *types, AstNode *expr) {
 
     for(size_t i = 0; i < types->Extras(); i++) {
         make_union_ast->AddToMiddleNodes(types->GetExtraNode(i));
-        types->NullExtraNode(i);
     }
 
     make_union_ast->AddToRightNodes(expr);
@@ -127,7 +122,6 @@ AstNode* MakeArrayBindAst(AstNode *id, AstNode *types) {
 
     for(size_t i = 0; i < types->Extras(); i++) {
         array_bind_ast->AddToRightNodes(types->GetExtraNode(i));
-        types->NullExtraNode(i);
     }
 
     return array_bind_ast;
@@ -135,10 +129,9 @@ AstNode* MakeArrayBindAst(AstNode *id, AstNode *types) {
 
 AstNode* MakeArrayTermAst(AstNode *data) {
     AstNode *arr = MakeTermNode(0, ARRAY_NODE_TYPE);
-    arr->AddToLeftNodes(data);
+    
     for(size_t i = 0; i < data->Extras(); i++) {
         arr->AddToLeftNodes(data->GetExtraNode(i));
-        data->NullExtraNode(i);
     }
     return arr;
 }
@@ -149,8 +142,6 @@ AstNode* MakeMapTermAst(AstNode *data) {
     for(size_t i = 0; i < data->Extras(); i += 2) {
         map->AddToLeftNodes(data->GetExtraNode(i));
         map->AddToRightNodes(data->GetExtraNode(i+1));
-        data->NullExtraNode(i);
-        data->NullExtraNode(i+1);
     }
 
     delete data;
@@ -177,7 +168,6 @@ AstNode* MakeArrayBindAst(AstNode *id, AstNode *types, AstNode *expr) {
 
     for(size_t i = 0; i < types->Extras(); i++) {
         make_array_ast->AddToRightNodes(types->GetExtraNode(i));
-        types->NullExtraNode(i);
     }
 
     return make_array_ast;
