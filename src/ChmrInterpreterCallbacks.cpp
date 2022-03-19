@@ -586,11 +586,12 @@ void ChmrInterpreter::GenerateCallbacks()
 
         // multipled by two because the ParamNums will always return a list of [name, type, name, type, etc]
         // so since only arguments are being passed and not their corrisponding types, the multiplication
-        // accounts for that
+        // accounts for the lacking type info
         bool correct_num_of_params = func->ParamNums() == num_o_passed_params * 2;
         if (!correct_num_of_params)
         {
             cout << "Error: incorrect number of parameters passed\n";
+            cout << "Expected: " << func->ParamNums()/2 << " Given: " << num_o_passed_params << "\n";
             return EMPTY_VAR_NAME;
         }
 
@@ -600,7 +601,7 @@ void ChmrInterpreter::GenerateCallbacks()
             string p_name;
             bool cant_reference = false;
 
-            param(ChimeraObject *obj, string name) : p_obj(obj), p_name(name) {}
+            param(ChimeraObject *obj, string name, bool referable) : p_obj(obj), p_name(name), cant_reference(referable) {}
         };
 
         vector<param> func_args;
@@ -627,8 +628,8 @@ void ChmrInterpreter::GenerateCallbacks()
             }
 
             string param_name = func->GetParamData(param_type_index - 1);
-            param p(expression, param_name);
-            p.cant_reference = expression->GetConstStatus() || i->Table()->IsTemp(param_value);
+            bool referable = expression->GetConstStatus() || i->Table()->IsTemp(param_value);
+            param p(expression, param_name, referable);
             func_args.push_back(p);
             param_type_index += 2;
         }
