@@ -101,17 +101,18 @@ extern int yydebug;
     GET = 301,
     SURO = 302,
     CALL = 303,
-    INT_VAL = 304,
-    DOUBLE_VAL = 305,
-    STRING_VAL = 306,
-    CHAR_VAL = 307,
-    BOOL_VAL = 308,
-    ELSE_IF = 309,
-    FLOAT_VAL = 310,
-    ID = 311,
-    UNKNOWN = 312,
-    MULTI_WS = 313,
-    SINGLE_WS = 314
+    ASSIGN = 304,
+    INT_VAL = 305,
+    DOUBLE_VAL = 306,
+    STRING_VAL = 307,
+    CHAR_VAL = 308,
+    BOOL_VAL = 309,
+    ELSE_IF = 310,
+    FLOAT_VAL = 311,
+    ID = 312,
+    UNKNOWN = 313,
+    MULTI_WS = 314,
+    SINGLE_WS = 315
   };
 #endif
 
@@ -124,7 +125,7 @@ union YYSTYPE
     YYSTYPEs *data;
     AstNode *tmp_id;
 
-#line 128 "./parser/Parser.hpp"
+#line 129 "./parser/Parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

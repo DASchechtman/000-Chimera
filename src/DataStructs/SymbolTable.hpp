@@ -87,7 +87,7 @@ string SymbolTable::GetConstEntry(T data)
 
 template<class T>
 string SymbolTable::GetConstEntry(T data, true_type) {
-    string key = data.empty() ? "empty" : data + '!';
+    string key = data.empty() ? "empty" : "str-" + data + '!';
 
     if (!Has(key))
     {

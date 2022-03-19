@@ -41,12 +41,7 @@ note: in the interpreter, if a string returning method returns an empty string. 
 class ChmrInterpreter
 {
 private:
-    ScopeStack scopes;
     vector<AstNode*> ast_trees;
-    size_t cur_scope_level = 0;
-    vector<JumpInfo> jump_points;
-    ScopeTree scope_tree; 
-    stack<size_t> cur_stack_level;
     size_t cur_jump_point = 0;
     string (*callbacks[NUM_O_CALLBACK])(AstNode*, ChmrInterpreter*);
     bool will_mutate_source = false;
@@ -76,6 +71,11 @@ private:
     string RunAst(shared_ptr<AstNode> &root);
     void RunCurInstruction(size_t end = 0, bool is_base_call = true);
     size_t &CurInstruction();
+    ScopeTree &CurScopeTree();
+    vector<JumpInfo> &CurJumpPoints();
+    size_t &CurScopeLevel();
+    stack<size_t> &ScopesRan();
+    ScopeStack &CurScopes();
 
     void GenerateCallbacks();
 

@@ -363,9 +363,9 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[IF_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        CircularList *jump_points = i->scope_tree[i->ScopeLevel()];
+        CircularList *jump_points = i->CurScopeTree()[i->ScopeLevel()];
         size_t next_jump_point = jump_points->Next();
-        i->cur_stack_level.push(i->scopes.Size());
+        i->ScopesRan().push(i->CurScopes().Size());
         bool can_run = i->Table()->GetEntry(i->RunAst(root->GetFromLeftNodes()))->ToBool();
         i->IncreaseScopeLevel();
 
@@ -382,9 +382,9 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[ELIF_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        CircularList *jump = i->scope_tree[i->ScopeLevel() - 1];
+        CircularList *jump = i->CurScopeTree()[i->ScopeLevel() - 1];
         size_t next = jump->Next();
-        bool prev_if_branch_ran = i->cur_stack_level.top() != i->scopes.Size();
+        bool prev_if_branch_ran = i->run_time_context.top().NewScopeEntered();
         if (!prev_if_branch_ran)
         {
             bool can_run = i->Table()->GetEntry(i->RunAst(root->GetFromLeftNodes()))->ToBool();
@@ -408,9 +408,9 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[ELSE_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        CircularList *jump = i->scope_tree[i->ScopeLevel() - 1];
+        CircularList *jump = i->CurScopeTree()[i->ScopeLevel() - 1];
         size_t next = jump->Next();
-        bool prev_if_branch_ran = i->cur_stack_level.top() != i->scopes.Size();
+        bool prev_if_branch_ran = i->run_time_context.top().NewScopeEntered();
         if (!prev_if_branch_ran)
         {
             i->CreateScope(GEN_SCOPE);
@@ -425,10 +425,12 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[WHILE_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
-        CircularList *jump = i->scope_tree[i->ScopeLevel()];
+        CircularList *jump = i->CurScopeTree()[i->ScopeLevel()];
         size_t next = jump->Next();
-        bool can_run = i->Table()->GetEntry(i->RunAst(root->GetFromLeftNodes()))->ToBool();
-        i->cur_stack_level.push(i->scopes.Size());
+        auto type = root->GetFromLeftNodes()->Type();
+        string var_id = i->RunAst(root->GetFromLeftNodes());
+        bool can_run = i->Table()->GetEntry(var_id)->ToBool();
+        i->ScopesRan().push(i->CurScopes().Size());
         i->IncreaseScopeLevel();
 
         if (can_run)
@@ -453,14 +455,14 @@ void ChmrInterpreter::GenerateCallbacks()
     callbacks[END_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
         i->DecreaseScopeLevel();
-        CircularList *jump = i->scope_tree[i->ScopeLevel()];
+        CircularList *jump = i->CurScopeTree()[i->ScopeLevel()];
         JumpInfo info = jump->PrevInfo(true);
         bool is_ctrl = i->ast_trees[info.jump_point]->Type() == CTRL_BLOCK_CMD;
         bool is_while = is_ctrl && i->ast_trees[info.jump_point]->GetFromLeftNodes()->Type() == WHILE_BLOCK_CMD;
 
         if (is_while && info.can_jump)
         {
-            i->scope_tree.MoveToLastNode(i->ScopeLevel());
+            i->CurScopeTree().MoveToLastNode(i->ScopeLevel());
             i->GoTo(jump->PrevInfo().jump_point);
         }
         else
@@ -468,12 +470,12 @@ void ChmrInterpreter::GenerateCallbacks()
             jump->Next();
         }
 
-        if (i->scopes.Size() > i->cur_stack_level.top())
+        if (i->run_time_context.top().ScopeWasExecuted())
         {
             i->DestroyScope();
         }
 
-        i->cur_stack_level.pop();
+        i->ScopesRan().pop();
 
         return EMPTY_VAR_NAME;
     };
@@ -512,7 +514,7 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[MAKE_FUNC_CMD] = [](AstNode *root, CInter i)
     {
-        i->cur_scope_level = SIZE_MAX;
+        i->CurScopeLevel() = SIZE_MAX;
         size_t cur_instruction = i->run_time_context.top().cur_instruction;
         string func_name = i->RunAst(root->GetFromLeftNodes());
         string ret_type = i->RunAst(root->GetFromRightNodes());
@@ -630,8 +632,10 @@ void ChmrInterpreter::GenerateCallbacks()
             func_args.push_back(p);
             param_type_index += 2;
         }
-
-        i->CreateScope("func scope");
+        
+        ScopeStack &old = i->CurScopes();
+        i->run_time_context.push(Context(func->GetStartPoint(), func->ToStr(), func));
+        i->CurScopes().CopyScopeBaseSymbolTable(old);
 
         for (auto arg : func_args)
         {
@@ -652,13 +656,12 @@ void ChmrInterpreter::GenerateCallbacks()
             func_end_point++;
         }
 
-        i->run_time_context.push(Context(func->GetStartPoint(), func->ToStr(), func));
-
         func->SetReturnPoint(i->CurInstruction() + 1);
         i->GoTo(func->GetStartPoint(), false);
         i->RunCurInstruction(func_end_point + 1, false);
 
         i->run_time_context.pop();
+        i->DestroyScope();
 
         i->Table()->AddOrUpdateRef(func_name + "ret", func->GetRet(), true);
 
@@ -690,7 +693,7 @@ void ChmrInterpreter::GenerateCallbacks()
             func_name = func->StoreValInRet(obj) == FAIL ? EMPTY_VAR_NAME : func_name;
         }
 
-        i->DestroyScope();
+        
         return func_name;
     };
 }

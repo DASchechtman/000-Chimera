@@ -61,6 +61,7 @@ exit                            { return EXIT; }
 (\/|div)                        { return DIV; }
 (\^|pow)                        { return POW; }
 (\%|mod)                        { return MOD; }
+(var)                           { return ASSIGN; }
 addTo                           { return ADD_LIST; }
 put                             { return ADD_MAP; }
 set                             { return SET; }

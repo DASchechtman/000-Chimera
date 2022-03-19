@@ -3,7 +3,7 @@
 #include "Scopes/Scope.hpp"
 #include "Scopes/GenScope.hpp"
 #include "SymbolTable.hpp"
-#include <stack>
+#include <vector>
 #include <string>
 
 using namespace std;
@@ -18,7 +18,7 @@ const string PLACE_HOLDER_NAME = "#";
 
 class ScopeStack {
 private:
-    stack<Scope*> m_stack;
+    vector<Scope*> m_stack;
     SymbolTable *base = nullptr;
 
     // the state a new scope should have
@@ -32,13 +32,13 @@ protected:
 public:
 
     ScopeStack();
+    ScopeStack(const ScopeStack &old);
     ~ScopeStack();
 
     void CreateScope(string type);
     void DestroyScope();
+    void CopyScopeBaseSymbolTable(const ScopeStack &other);
 
-    // depricated function, will be removed in further development
-    void SetNextScopeRunStat(bool runnable);
     SymbolTable* GetTable();
 
     string GetScopeType();

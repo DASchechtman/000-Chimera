@@ -1,12 +1,12 @@
-(= x:list [1 2 3 4 5])
-print|x|
+(var t:char 'a')
 
-x.addTo|["hello" "world"]|
+suro foo|int|: int start
+    repeat arg0 with i start
+         print|"in func:" i t|
+    end
+end
 
-(= y:int (get x 3))
-(= y (get x 2))
-print|y|
-
-(= y (add y 1))
-(= z:int (add (get x 0) 1))
-print|y x z|
+repeat 10 with i start
+    print|"in loop"|
+    (call foo (add i 1))
+end

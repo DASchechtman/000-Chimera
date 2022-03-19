@@ -85,6 +85,7 @@ extern char* yytext;
 %token GET
 %token SURO
 %token CALL
+%token ASSIGN
 
 %token <data> INT_VAL 
 %token <data> DOUBLE_VAL 
@@ -368,19 +369,19 @@ id:                             ID {
                                     $$ = MakeTermNode((string)$1->id, ID_NODE_TYPE);
                                 };
 
-assign:                         '(' '=' opt_ws id opt_ws ':' opt_ws types any_ws expr opt_ws ')' {
+assign:                         '(' ASSIGN opt_ws id opt_ws ':' opt_ws types any_ws expr opt_ws ')' {
                                     $$ = MakeAssignAst($id, $types, $expr);
                                 }
-                                | '(' '=' opt_ws id opt_ws ':' opt_ws UNKNOWN any_ws expr opt_ws ')' {
+                                | '(' ASSIGN opt_ws id opt_ws ':' opt_ws UNKNOWN any_ws expr opt_ws ')' {
                                     $$ = MakeUnionAst($id, $expr);
                                 }
-                                | '(' '=' opt_ws id opt_ws ':' opt_ws '[' unionTypes ']' any_ws expr opt_ws ')' {
+                                | '(' ASSIGN opt_ws id opt_ws ':' opt_ws '[' unionTypes ']' any_ws expr opt_ws ')' {
                                     $$ = MakeUnionAst($id, $unionTypes, $expr);
                                 }
                                 | '(' '=' opt_ws id any_ws expr opt_ws ')' {
                                    $$ = MakeReassignAst($id, $expr);
                                 }
-                                | '(' '=' opt_ws id opt_ws ':' opt_ws types opt_ws '<' REF '>' any_ws expr opt_ws ')' {
+                                | '(' ASSIGN opt_ws id opt_ws ':' opt_ws types opt_ws '<' REF '>' any_ws expr opt_ws ')' {
                                     $$ = MakeRefAst($id, $types, $expr);
                                 }
                                 | '(' '=' opt_ws id any_ws expr opt_ws '<' REF '>' opt_ws ')' {

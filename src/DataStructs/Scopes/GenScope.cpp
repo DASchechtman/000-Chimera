@@ -42,6 +42,10 @@ string GenScope::GetType() {
     return scope_type;
 }
 
+Scope *GenScope::GetParent() {
+    return m_parent;
+}
+
 size_t GenScope::NumOfScopeMembers() {
     return 1;
 }

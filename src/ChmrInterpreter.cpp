@@ -8,6 +8,14 @@ using namespace std;
 
 // PRIVATE METHODS BELOW ---------------------------------------------------------------------------
 
+void FillEmptyStack(stack<Context> &context_stack)
+{
+    if (context_stack.size() == 0)
+    {
+        context_stack.push(Context(0, "base", nullptr));
+    }
+}
+
 ChmrInterpreter::ChmrInterpreter()
 {
     run_time_context.push(Context(0, "base", nullptr));
@@ -142,14 +150,14 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
 
 SymbolTable *ChmrInterpreter::Table()
 {
-    return scopes.GetTable();
+    return CurScopes().GetTable();
 }
 
 void ChmrInterpreter::GoTo(size_t jump_point, bool adjust_val)
 {
-    for (size_t i = 0; i < jump_points.size(); i++)
+    for (size_t i = 0; i < CurJumpPoints().size(); i++)
     {
-        if (jump_points[i].jump_point == jump_point)
+        if (CurJumpPoints()[i].jump_point == jump_point)
         {
             cur_jump_point = i;
             break;
@@ -160,50 +168,54 @@ void ChmrInterpreter::GoTo(size_t jump_point, bool adjust_val)
 
 size_t ChmrInterpreter::ScopeLevel()
 {
-    return cur_scope_level;
+    return CurScopeLevel();
 }
 
 void ChmrInterpreter::IncreaseScopeLevel()
 {
-    cur_scope_level++;
+    CurScopeLevel()++;
 }
 
 void ChmrInterpreter::DecreaseScopeLevel()
 {
-    cur_scope_level--;
+    CurScopeLevel()--;
 }
 
 void ChmrInterpreter::ProcessCtrlStructure(AstNode *node)
 {
-    if (node->Type() == CTRL_BLOCK_CMD)
+    if (node->Type() == CTRL_BLOCK_CMD && CurScopeLevel() != SIZE_MAX)
     {
         bool is_start = (node->GetFromLeftNodes()->Type() == IF_BLOCK_CMD || node->GetFromLeftNodes()->Type() == WHILE_BLOCK_CMD);
-        cur_scope_level = is_start ? cur_scope_level + 1 : cur_scope_level;
+        CurScopeLevel() = CurScopeLevel() + is_start;
 
         JumpInfo ji;
-        ji.jump_point = ast_trees.size() - 1;
-        ji.depth = cur_scope_level;
+        ji.jump_point = CurInstruction();
+        ji.depth = CurScopeLevel();
 
-        jump_points.push_back(ji);
+        CurJumpPoints().push_back(ji);
     }
-    else if (node->Type() == FUNC_RETR_CMD && cur_scope_level == SIZE_MAX) {
-        cur_scope_level = 0;
-        CurInstruction()++;
+    else if (node->Type() == FUNC_RETR_CMD && CurScopeLevel() == SIZE_MAX)
+    {
+        CurScopeLevel() = 0;
     }
-    else if (node->Type() == END_BLOCK_CMD)
+    else if (node->Type() == MAKE_FUNC_CMD)
+    {
+        CurScopeLevel() = SIZE_MAX;
+    }
+    else if (node->Type() == END_BLOCK_CMD && CurScopeLevel() != SIZE_MAX)
     {
         JumpInfo ji;
-        ji.jump_point = ast_trees.size() - 1;
-        ji.depth = cur_scope_level;
+        ji.jump_point = CurInstruction();
+        ji.depth = CurScopeLevel();
 
-        jump_points.push_back(ji);
-        cur_scope_level = ji.depth - 1;
+        CurJumpPoints().push_back(ji);
+        CurScopeLevel() = ji.depth - 1;
     }
 }
 
 void ChmrInterpreter::ConvertJumpPointsToScopeTree()
 {
-    for (JumpInfo point : jump_points)
+    for (JumpInfo point : CurJumpPoints())
     {
         AstNode *point_type = ast_trees[point.jump_point];
 
@@ -212,24 +224,24 @@ void ChmrInterpreter::ConvertJumpPointsToScopeTree()
             if (
                 point_type->GetFromLeftNodes()->Type() == IF_BLOCK_CMD || point_type->GetFromLeftNodes()->Type() == WHILE_BLOCK_CMD)
             {
-                bool is_if_stmt_outside_other_scopes = (point_type->GetFromLeftNodes()->Type() == IF_BLOCK_CMD && scope_tree.Size() == 0);
+                bool is_if_stmt_outside_other_scopes = (point_type->GetFromLeftNodes()->Type() == IF_BLOCK_CMD && CurScopeTree().Size() == 0);
 
-                scope_tree.CreateNewBlock(is_if_stmt_outside_other_scopes);
-                scope_tree.AddJpToBlock(point.jump_point);
+                CurScopeTree().CreateNewBlock(is_if_stmt_outside_other_scopes);
+                CurScopeTree().AddJpToBlock(point.jump_point);
             }
             else if (
                 point_type->GetFromLeftNodes()->Type() == ELIF_BLOCK_CMD || point_type->GetFromLeftNodes()->Type() == ELSE_BLOCK_CMD)
             {
-                scope_tree.AddJpToBlock(point.jump_point);
-                scope_tree.CloseBlock();
-                scope_tree.CreateNewBlock(true);
-                scope_tree.AddJpToBlock(point.jump_point);
+                CurScopeTree().AddJpToBlock(point.jump_point);
+                CurScopeTree().CloseBlock();
+                CurScopeTree().CreateNewBlock(true);
+                CurScopeTree().AddJpToBlock(point.jump_point);
             }
         }
         else if (point_type->Type() == END_BLOCK_CMD)
         {
-            scope_tree.AddJpToBlock(point.jump_point);
-            scope_tree.CloseBlock();
+            CurScopeTree().AddJpToBlock(point.jump_point);
+            CurScopeTree().CloseBlock();
         }
     }
 }
@@ -268,13 +280,14 @@ string ChmrInterpreter::Rebind(string to, string from)
 
     ChimeraObject *obj = Table()->GetEntry(to);
     ChimeraObject *obj_2 = Table()->GetEntry(from);
-    
+
     if (obj->GetGeneralType() == COLLECTION_DATA_TYPE)
     {
         return ReassignContainer(to, from, Table());
     }
 
-    if (obj->Set(obj_2) == FAIL) {
+    if (obj->Set(obj_2) == FAIL)
+    {
         cout << "Error: could not bind " << obj->GetTypeName() << " to " << obj_2->GetTypeName() << endl;
         to = EMPTY_VAR_NAME;
     }
@@ -410,12 +423,12 @@ void ChmrInterpreter::GarbageCollect()
 
 void ChmrInterpreter::CreateScope(string type)
 {
-    scopes.CreateScope(type);
+    CurScopes().CreateScope(type);
 }
 
 void ChmrInterpreter::DestroyScope()
 {
-    scopes.DestroyScope();
+    CurScopes().DestroyScope();
 }
 
 int ChmrInterpreter::PrintVar(string var_id, char end)
@@ -441,28 +454,7 @@ void ChmrInterpreter::EatAst(AstNode *root)
     }
 
     ast_trees.push_back(root);
-
-    ProcessCtrlStructure(root);
-
-    if (cur_scope_level == 0)
-    {
-        if (jump_points.size() > 0)
-        {
-            ConvertJumpPointsToScopeTree();
-        }
-
-        RunCurInstruction();
-
-        if (jump_points.size() > 0)
-        {
-            jump_points.clear();
-            scope_tree.Clear();
-        }
-    }
-    else if (cur_scope_level == SIZE_MAX)
-    {
-        CurInstruction()++;
-    }
+    RunCurInstruction();
 }
 
 string ChmrInterpreter::RunAst(AstNode *root)
@@ -477,26 +469,115 @@ string ChmrInterpreter::RunAst(shared_ptr<AstNode> &root)
 
 void ChmrInterpreter::RunCurInstruction(size_t end, bool is_base_call)
 {
-    if (end == 0 || end >= ast_trees.size()) {
+    if (end == 0 || end >= ast_trees.size())
+    {
         end = ast_trees.size();
     }
+
+    
+    size_t cur_scope_size = CurScopeLevel();
+
+
+    const int NOTHING_PROCESSED = -1;
+    const int IN_PROCESS = 1;
+    const int DONE_PROCESSING = 0;
+    auto ComputeScopeTree = [&](AstNode *&node, ChmrInterpreter *i, size_t end)
+    {
+
+        if (CurJumpPoints().size() > 0 && CurScopeLevel() != 0 && CurScopeTree().Size() > 0) {
+            return -1;
+        }
+
+        i->ProcessCtrlStructure(node);
+        
+
+        while (true)
+        {
+            if (node->Type() == MAKE_FUNC_CMD)
+            {
+                i->RunAst(node);
+            }
+
+            if (i->CurScopeLevel() == 0)
+            {
+                break;
+            }
+
+            if (++i->CurInstruction() == end) {
+                return IN_PROCESS;
+            }
+
+            node = i->ast_trees[i->CurInstruction()];
+            i->ProcessCtrlStructure(node);
+        }
+
+        if (CurJumpPoints().size() > 0 && CurScopeLevel() == 0) {
+            i->CurInstruction() = i->CurJumpPoints().front().jump_point;
+            node = ast_trees[CurInstruction()];
+            i->ConvertJumpPointsToScopeTree();
+        }
+
+        bool is_ret = (node->Type() == FUNC_RETR_CMD);
+        CurInstruction() += is_ret;
+        return (int)is_ret;
+    };
 
     while (CurInstruction() < end)
     {
         AstNode *node = ast_trees[CurInstruction()];
+
+        int jump_tree_process_res = ComputeScopeTree(node, this, end);
+        if (jump_tree_process_res == IN_PROCESS) {
+            continue;
+        }
+
         RunAst(node);
         CurInstruction()++;
+
+
+        if (CurJumpPoints().size() > 0 && CurInstruction() > CurJumpPoints().back().jump_point)
+        {
+            CurJumpPoints().clear();
+            CurScopeTree().Clear();
+        }
 
         will_mutate_source = false;
         GarbageCollect();
     }
 }
 
-size_t &ChmrInterpreter::CurInstruction() {
-    if (run_time_context.size() == 0) {
-        run_time_context.push(Context(0, "base", nullptr));
-    }
+size_t &ChmrInterpreter::CurInstruction()
+{
+    FillEmptyStack(run_time_context);
     return run_time_context.top().cur_instruction;
+}
+
+ScopeTree &ChmrInterpreter::CurScopeTree()
+{
+    FillEmptyStack(run_time_context);
+    return run_time_context.top().tree;
+}
+
+vector<JumpInfo> &ChmrInterpreter::CurJumpPoints()
+{
+    FillEmptyStack(run_time_context);
+    return run_time_context.top().jump_points;
+}
+
+size_t &ChmrInterpreter::CurScopeLevel()
+{
+    FillEmptyStack(run_time_context);
+    return run_time_context.top().cur_scope_level;
+}
+
+stack<size_t> &ChmrInterpreter::ScopesRan() {
+    FillEmptyStack(run_time_context);
+    return run_time_context.top().scope_branches_entered;
+}
+
+ScopeStack &ChmrInterpreter::CurScopes() {
+    FillEmptyStack(run_time_context);
+    return run_time_context.top().scopes;
 }
 
 // PUBLIC METHODS ABOVE -----------------------------------------------------------------------------

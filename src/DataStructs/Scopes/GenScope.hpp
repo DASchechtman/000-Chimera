@@ -31,5 +31,6 @@ public:
     bool ParentIsntRunnable();
     void SetRunnableState(bool is_runnable);
     string GetType();
+    Scope *GetParent();
     size_t NumOfScopeMembers();
 };
