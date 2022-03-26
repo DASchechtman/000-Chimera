@@ -8,5 +8,6 @@ end
 
 repeat 10 with i start
     print|"in loop"|
+    # hello world
     (call foo (add i 1))
 end

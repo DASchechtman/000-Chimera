@@ -427,7 +427,6 @@ void ChmrInterpreter::GenerateCallbacks()
     {
         CircularList *jump = i->CurScopeTree()[i->ScopeLevel()];
         size_t next = jump->Next();
-        auto type = root->GetFromLeftNodes()->Type();
         string var_id = i->RunAst(root->GetFromLeftNodes());
         bool can_run = i->Table()->GetEntry(var_id)->ToBool();
         i->ScopesRan().push(i->CurScopes().Size());
@@ -470,12 +469,16 @@ void ChmrInterpreter::GenerateCallbacks()
             jump->Next();
         }
 
-        if (i->run_time_context.top().ScopeWasExecuted())
+        bool scope_was_created = i->CurScopes().Size() > i->ScopesRan().top();
+        while (scope_was_created)
         {
             i->DestroyScope();
+            scope_was_created = i->CurScopes().Size() > i->ScopesRan().top();
         }
 
-        i->ScopesRan().pop();
+        if (i->ScopesRan().size() > 1) {
+            i->ScopesRan().pop();
+        }
 
         return EMPTY_VAR_NAME;
     };
@@ -662,7 +665,6 @@ void ChmrInterpreter::GenerateCallbacks()
         i->RunCurInstruction(func_end_point + 1, false);
 
         i->run_time_context.pop();
-        i->DestroyScope();
 
         i->Table()->AddOrUpdateRef(func_name + "ret", func->GetRet(), true);
 

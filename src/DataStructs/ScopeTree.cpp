@@ -86,6 +86,7 @@ void ScopeTree::Clear() {
         cur_block.reset();
         root.reset();
     }
+    size = 0;
 }
 
 size_t ScopeTree::Size() {

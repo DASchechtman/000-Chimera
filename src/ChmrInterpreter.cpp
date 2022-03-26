@@ -474,17 +474,12 @@ void ChmrInterpreter::RunCurInstruction(size_t end, bool is_base_call)
         end = ast_trees.size();
     }
 
-    
-    size_t cur_scope_size = CurScopeLevel();
-
-
-    const int NOTHING_PROCESSED = -1;
     const int IN_PROCESS = 1;
-    const int DONE_PROCESSING = 0;
     auto ComputeScopeTree = [&](AstNode *&node, ChmrInterpreter *i, size_t end)
     {
 
-        if (CurJumpPoints().size() > 0 && CurScopeLevel() != 0 && CurScopeTree().Size() > 0) {
+        bool ctrl_struct_being_ran = CurScopeTree().Size() > 0;
+        if (ctrl_struct_being_ran) {
             return -1;
         }
 
@@ -534,8 +529,12 @@ void ChmrInterpreter::RunCurInstruction(size_t end, bool is_base_call)
         RunAst(node);
         CurInstruction()++;
 
+        bool end_of_ctrl_struct_found = (
+            CurJumpPoints().size() > 0
+            && CurInstruction() > CurJumpPoints().back().jump_point
+        );
 
-        if (CurJumpPoints().size() > 0 && CurInstruction() > CurJumpPoints().back().jump_point)
+        if (end_of_ctrl_struct_found)
         {
             CurJumpPoints().clear();
             CurScopeTree().Clear();

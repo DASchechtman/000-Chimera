@@ -1,6 +1,9 @@
-repeat 16 with i start
+suro fizzbuzz|i: int|: int start
+    
+end
 
-    (= output:[string | int] "")
+repeat 16 with i start
+    (var output:[string | int] "")
 
     if (equal (mod i 3) 0) start
         (= output (add output "fizz"))
