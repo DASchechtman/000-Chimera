@@ -25,6 +25,7 @@ print| "5 < 6:" (less 5 6) |
 print| "(should be false) 5 < 'hello world':" (less 5 "hello world") |
 
 # all compare opers test
+print| "bool compare test" |
 print| "5 > 3:" (greater 5 3) |
 print| 
     "5 > true :" (greater 5 true) '\n'

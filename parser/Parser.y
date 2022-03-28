@@ -86,6 +86,7 @@ extern char* yytext;
 %token SURO
 %token CALL
 %token ASSIGN
+%token FUNC_RET
 
 %token <data> INT_VAL 
 %token <data> DOUBLE_VAL 
@@ -205,6 +206,12 @@ functionHead:                   SURO any_ws id opt_ws '|' '|' ':' opt_ws types a
                                 }
                                 ;
 
+funcRet:                        FUNC_RET any_ws expr {
+                                    auto node = MakeNode(FUNC_RETR_CMD);
+                                    node->AddToLeftNodes($expr);
+                                    i.EatAst(node);
+                                };
+
 functionCall:                   '(' CALL any_ws id opt_ws ')' {
                                     auto func_call = MakeNode(CALL_FUNC_CMD);
                                     func_call->AddToLeftNodes($id);
@@ -250,7 +257,11 @@ ifStatement:                    ifBody END {
                                 };
 
 functionDeclStatement:          functionHead line END {
-                                    $$ = MakeNode(FUNC_RETR_CMD);
+                                    auto node_type = i.MostRecentAst()->Type();
+                                    $$ = nullptr;
+                                    if (node_type != FUNC_RETR_CMD) {
+                                        $$ = MakeNode(FUNC_RETR_CMD);
+                                    }
                                 }
                                 ;
 
@@ -372,16 +383,28 @@ id:                             ID {
 assign:                         '(' ASSIGN opt_ws id opt_ws ':' opt_ws types any_ws expr opt_ws ')' {
                                     $$ = MakeAssignAst($id, $types, $expr);
                                 }
+                                | '(' '=' opt_ws id opt_ws ':' opt_ws types any_ws expr opt_ws ')' {
+                                    $$ = MakeAssignAst($id, $types, $expr);
+                                }
                                 | '(' ASSIGN opt_ws id opt_ws ':' opt_ws UNKNOWN any_ws expr opt_ws ')' {
                                     $$ = MakeUnionAst($id, $expr);
                                 }
+                                | '(' '=' opt_ws id opt_ws ':' opt_ws UNKNOWN any_ws expr opt_ws ')' {
+                                    $$ = MakeUnionAst($id, $expr);
+                                }
                                 | '(' ASSIGN opt_ws id opt_ws ':' opt_ws '[' unionTypes ']' any_ws expr opt_ws ')' {
+                                    $$ = MakeUnionAst($id, $unionTypes, $expr);
+                                }
+                                | '(' '=' opt_ws id opt_ws ':' opt_ws '[' unionTypes ']' any_ws expr opt_ws ')' {
                                     $$ = MakeUnionAst($id, $unionTypes, $expr);
                                 }
                                 | '(' '=' opt_ws id any_ws expr opt_ws ')' {
                                    $$ = MakeReassignAst($id, $expr);
                                 }
                                 | '(' ASSIGN opt_ws id opt_ws ':' opt_ws types opt_ws '<' REF '>' any_ws expr opt_ws ')' {
+                                    $$ = MakeRefAst($id, $types, $expr);
+                                }
+                                | '(' '=' opt_ws id opt_ws ':' opt_ws types opt_ws '<' REF '>' any_ws expr opt_ws ')' {
                                     $$ = MakeRefAst($id, $types, $expr);
                                 }
                                 | '(' '=' opt_ws id any_ws expr opt_ws '<' REF '>' opt_ws ')' {
@@ -420,7 +443,7 @@ statement:                      assign
 
 
 //MATH OPERS BELOW ---------------------------------------------------------------------------------------------------------------------------------------------------
-math_expr:                      '(' ADD exprList[left] ')' {
+math_expr:                      '(' ADD exprList[left] opt_ws_or_nl ')' {
                                     Perform($$, $left, ADDITION_CMD);
                                 }
                                 | '(' SUB exprList[left] opt_ws_or_nl')' {
@@ -519,6 +542,7 @@ expr:                           term {
                                 | functionDeclStatement {
                                     $$ = $functionDeclStatement;
                                 }
+                                | functionCall { $$ = $functionCall; }
                                 ;
 
 prog:                           expr { i.EatAst($expr); $expr = nullptr; }
@@ -526,10 +550,10 @@ prog:                           expr { i.EatAst($expr); $expr = nullptr; }
                                 | ifStatement
                                 | whileStatement
                                 | forloopStatement
-                                | functionCall { i.EatAst($functionCall); $functionCall = nullptr; }
                                 | start line end
                                 | any_ws
                                 | newline
+                                | funcRet
                                 | EOPU {
                                     Destroy();
                                     return 0;

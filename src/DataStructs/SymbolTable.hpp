@@ -106,9 +106,14 @@ string SymbolTable::GetConstEntry(T data, false_type) {
     
     string key;
 
-    if (is_same<T, bool>::value)
+    bool is_bool = is_same<T, bool>::value;
+    bool is_char = is_same<T, char32_t>::value;
+    if (is_bool)
     {
         key = data ? "true!" : "false!";
+    }
+    else if (is_char) {
+        key = "chr" + to_string(data) + '!';
     }
     else {
         key = to_string(data) + '!';

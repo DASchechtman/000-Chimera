@@ -92,6 +92,7 @@ private:
 public:
 
     void EatAst(AstNode* root);
+    AstNode *MostRecentAst();
     ChmrInterpreter();
     ~ChmrInterpreter();
 };

@@ -17,7 +17,7 @@ print|(add "x[3] * 4 =" (cast (mul (get x 3) 4) string))|
 
 #Expected output: 10 60 30
 (= ten:string (add (cast (get x 0) string) " "))
-(= sixty:string (add (cast (get x 2) string) " "))
+(= sixty:string (add (cast (get x 1) string) " "))
 (= thirty:string (cast (get x 2) string))
 print|(add ten sixty thirty)|
 

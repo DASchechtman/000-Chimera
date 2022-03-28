@@ -483,9 +483,10 @@ void ChmrInterpreter::RunCurInstruction(size_t end, bool is_base_call)
             return -1;
         }
 
+        size_t cur_level = CurScopeLevel();
+
         i->ProcessCtrlStructure(node);
         
-
         while (true)
         {
             if (node->Type() == MAKE_FUNC_CMD)
@@ -512,7 +513,7 @@ void ChmrInterpreter::RunCurInstruction(size_t end, bool is_base_call)
             i->ConvertJumpPointsToScopeTree();
         }
 
-        bool is_ret = (node->Type() == FUNC_RETR_CMD);
+        bool is_ret = (node->Type() == FUNC_RETR_CMD) && cur_level == SIZE_MAX;
         CurInstruction() += is_ret;
         return (int)is_ret;
     };
@@ -527,6 +528,10 @@ void ChmrInterpreter::RunCurInstruction(size_t end, bool is_base_call)
         }
 
         RunAst(node);
+        if (node->Type() == FUNC_RETR_CMD) {
+            break;
+        }
+
         CurInstruction()++;
 
         bool end_of_ctrl_struct_found = (
@@ -577,6 +582,14 @@ stack<size_t> &ChmrInterpreter::ScopesRan() {
 ScopeStack &ChmrInterpreter::CurScopes() {
     FillEmptyStack(run_time_context);
     return run_time_context.top().scopes;
+}
+
+AstNode *ChmrInterpreter::MostRecentAst() {
+    if (ast_trees.size() == 0) {
+        return nullptr;
+    }
+
+    return ast_trees.back();
 }
 
 // PUBLIC METHODS ABOVE -----------------------------------------------------------------------------

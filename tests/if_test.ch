@@ -1,4 +1,4 @@
-(= x:int (pow 10 3))
+(= x:int (pow 10 9))
 
 if (less x (pow 10 6)) start
   print|x '<' (pow 10 6)|

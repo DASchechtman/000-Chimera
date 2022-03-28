@@ -61,7 +61,7 @@ exit                            { return EXIT; }
 (\/|div)                        { return DIV; }
 (\^|pow)                        { return POW; }
 (\%|mod)                        { return MOD; }
-(var)                           { return ASSIGN; }
+var                             { return ASSIGN; }
 addTo                           { return ADD_LIST; }
 put                             { return ADD_MAP; }
 set                             { return SET; }
@@ -79,6 +79,7 @@ with                            { return WITH; }
 inc                             { return INC; }
 suro                            { return SURO; }
 call                            { return CALL; }
+return                          { return FUNC_RET; }
 
 true                            { Init(yylval.data); yylval.data->bol_val = true; return BOOL_VAL; }
 false                           { Init(yylval.data); yylval.data->bol_val = false; return BOOL_VAL; }
@@ -102,47 +103,76 @@ false                           { Init(yylval.data); yylval.data->bol_val = fals
 .                               { return UNKNOWN;}
 %%
 
+void AddEscapeCharToString(char type, string &str) {
+    switch(type) {
+        case 'n': {
+            str += '\n';
+            break;
+        }
+        case 't': {
+            str += '\t';
+            break;
+        }
+        case '\'': {
+            str += '\'';
+            break;
+        }
+        case '"': {
+            str += '"';
+            break;
+        }
+        case '\\': {
+            str += '\\';
+            break;
+        }
+        case 'r': {
+            str += '\r';
+            break;
+        }
+        case 'b': {
+            str += '\b';
+            break;
+        }
+        case 'f': {
+            str += '\f';
+            break;
+        }
+        case 'v': {
+            str += '\v';
+            break;
+        }
+    }
+}
+
 char CharVal(const char* str) {
-    char ret_val = 0;
-    if (str[1] == '\\') {
-        if (str[2] == 'n') {
-            ret_val = '\n';
-        }
-        else if (str[2] == 't') {
-            ret_val = '\t';
-        }
-        else {
-            ret_val = str[2];
-        }
+    auto char_val = string(yytext);
+    char ret = 0;
+    if (char_val[1] == '\\') {
+        auto esp_char = string();
+        AddEscapeCharToString(char_val[2], esp_char);
+        ret = esp_char[0];
     }
     else {
-        ret_val = str[1];
+        ret = char_val[1];
     }
-    return ret_val;
+    return ret;
 }
 
 string TextVal(const char* str) {
-    string ret_str;
-
-    for (int i = 0; i < yyleng; i++) {
-        char *c = nullptr;
-        if (str[i] == '\\' && i+1 < yyleng) {
-            c = new char[3];
-            c[0] = '\0';
-            c[1] = str[i];
-            c[2] = str[i+1];  
+    auto str_val = string(str);
+    string ret_val = "";
+    for(size_t i = 0; i < str_val.length(); i++) {
+        char c = str_val[i];
+        if (c == '\\') {
+            char next_c = str_val[i+1];
+            AddEscapeCharToString(next_c, ret_val);
             i++;
+            continue;
         }
-        else {
-           c = new char[2];
-           c[0] = '\0';
-           c[1] = str[i];
-        }
-        ret_str += CharVal(c);
-        delete[] c;
-    }
 
-    return ret_str;
+        ret_val += c;
+    }
+    return ret_val;
 }
 
 void Init(YYSTYPEs *&data) {

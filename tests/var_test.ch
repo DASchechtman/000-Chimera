@@ -59,7 +59,8 @@ $
         (cast 'm' string)
         (cast 'a' string)
         (cast 'r' string)
-        (cast 's' string)))
+        (cast 's' string)
+))
 
 $
 str_val = (+ (cast 

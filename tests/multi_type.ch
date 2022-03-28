@@ -45,7 +45,7 @@ print|"should:" flo2 "is:" c_or_f_or_s|
 (= c_or_f_or_s str3)
 print|"should:" str3 "is:" c_or_f_or_s|
 
-(= c_or_f_or_s ch2)
+(= c_or_f_or_s chr2)
 print|"should:" chr2 "is:" c_or_f_or_s '\n'|
 
 print|"unknown test"|
@@ -71,6 +71,7 @@ print|"should:" d "is:" u|
 (= u c)
 print|"should:" c "is:" u|
 
+(= u b)
 print|"should:" b "is:" u|
 
 (= u s)
