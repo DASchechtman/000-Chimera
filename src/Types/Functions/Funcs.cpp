@@ -3,10 +3,12 @@
 ChmrFunc::ChmrFunc(
     size_t start_point,
     string &ret_type,
+    COMMANDS func_type,
     string func_name
 ) {
     m_start_point = start_point;
     m_func_name = func_name;
+    m_type = func_type;
 
     ChimeraObject *default_val = new Int();
     ret_val = default_val->ConvertTo(ret_type);
@@ -56,6 +58,53 @@ string ChmrFunc::GetParamData(size_t index) {
 
 size_t ChmrFunc::ParamNums() {
     return m_param_type_list.size();
+}
+
+void ChmrFunc::CopyParamsToNewContext(
+    vector<string> &names, 
+    vector<ChimeraObject*> &objs,
+    vector<bool> &can_ref_objs,
+    SymbolTable *tbl
+) {
+    for(size_t i = 0; i < objs.size(); i++) {
+        auto obj = objs[i];
+        auto name = names[i];
+        switch(m_type) {
+            case FUNC_SURO_TYPE: {
+                bool cant_ref = can_ref_objs[i];
+                if (cant_ref) {
+                    obj = objs[i]->Clone();
+                    tbl->OverwriteEntry(name, obj);
+                    continue;
+                }
+                tbl->AddOrUpdateRef(name, obj, true);
+                break;
+            }
+            case FUNC_FURO_TYPE: {
+                tbl->OverwriteEntry(name, obj->Clone());
+                break;
+            }
+            case FUNC_FUNC_TYPE: {
+                bool cant_ref = can_ref_objs[i];
+
+                if (cant_ref) {
+                    obj = objs[i]->Clone();
+                    tbl->OverwriteEntry(name, obj);
+                    continue;
+                }
+
+                if (obj->GetGeneralType() != COLLECTION_DATA_TYPE) {
+                    obj = objs[i]->Clone();
+                    tbl->OverwriteEntry(name, obj);
+                }
+                else {
+                    tbl->AddOrUpdateRef(name, obj, true);
+                }
+                break;
+            }
+            default: {}
+        }
+    }
 }
 
 int ChmrFunc::Get(int64 &data) {
@@ -108,10 +157,17 @@ bool ChmrFunc::ToBool() {
 
 ChimeraObject* ChmrFunc::Clone() {
     string type = ret_val->GetTypeName();
-    return new ChmrFunc(
+    auto new_func =  new ChmrFunc(
         m_start_point,
         type,
+        m_type,
         m_func_name
     );
+
+    for(size_t i = 0; i < m_param_type_list.size(); i += 2) {
+        new_func->AddParam(m_param_type_list[i], m_param_type_list[i+1]);
+    }
+
+    return new_func;
 }
 

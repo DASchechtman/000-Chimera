@@ -78,6 +78,8 @@ repeat                          { return REPEAT; }
 with                            { return WITH; }
 inc                             { return INC; }
 suro                            { return SURO; }
+furo                            { return FURO; }
+func                            { return FUNC; }
 call                            { return CALL; }
 return                          { return FUNC_RET; }
 

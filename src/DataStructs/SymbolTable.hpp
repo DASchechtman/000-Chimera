@@ -69,6 +69,7 @@ public:
     void SetCopyStat(bool is_copying);
     string GetParent(string var_id);
     string AddEntry(string var_id, ChimeraObject *object);
+    string OverwriteEntry(string var_id, ChimeraObject *object);
     string AddOrUpdateRef(string var_id, ChimeraObject *object, bool is_weak_ref = false);
     ChimeraObject *GetEntry(string var_id);
     void RemoveEntry(string var_id);

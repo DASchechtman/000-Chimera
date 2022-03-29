@@ -26,7 +26,7 @@ string MakeFunc(AstNode *root, SymbolTable *tbl, string func_name, string ret_ty
         params = root->GetFromMiddleNodes().get();
     }
 
-    ChmrFunc *func = new ChmrFunc(cur_i + 1, ret_type, func_name);
+    ChmrFunc *func = new ChmrFunc(cur_i + 1, ret_type, root->GetFromLeftNodes(1)->Type(), func_name);
 
     bool is_valid_params = params != nullptr;
     size_t param_size = 0;

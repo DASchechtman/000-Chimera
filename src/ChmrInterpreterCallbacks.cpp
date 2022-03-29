@@ -521,6 +521,7 @@ void ChmrInterpreter::GenerateCallbacks()
         size_t cur_instruction = i->run_time_context.top().cur_instruction;
         string func_name = i->RunAst(root->GetFromLeftNodes());
         string ret_type = i->RunAst(root->GetFromRightNodes());
+        COMMANDS func_type = root->GetFromLeftNodes(1)->Type();
 
         AstNode *params = nullptr;
 
@@ -532,7 +533,7 @@ void ChmrInterpreter::GenerateCallbacks()
             params_list_size = params->Size(AstNode::LEFT);
         }
 
-        ChmrFunc *func = new ChmrFunc(cur_instruction + 1, ret_type, func_name);
+        ChmrFunc *func = new ChmrFunc(cur_instruction + 1, ret_type, func_type, func_name);
 
 
         for (size_t index = 0; params && index < params_list_size; index++)
@@ -598,16 +599,9 @@ void ChmrInterpreter::GenerateCallbacks()
             return EMPTY_VAR_NAME;
         }
 
-        struct param
-        {
-            ChimeraObject *p_obj = nullptr;
-            string p_name;
-            bool cant_reference = false;
-
-            param(ChimeraObject *obj, string name, bool referable) : p_obj(obj), p_name(name), cant_reference(referable) {}
-        };
-
-        vector<param> func_args;
+        vector<ChimeraObject*> func_args_objs;
+        vector<string> func_args_names;
+        vector<bool> can_ref_args;
 
         size_t param_type_index = 1;
         for (size_t iter = 0; iter < num_o_passed_params; iter++)
@@ -632,27 +626,18 @@ void ChmrInterpreter::GenerateCallbacks()
 
             string param_name = func->GetParamData(param_type_index - 1);
             bool referable = expression->GetConstStatus() || i->Table()->IsTemp(param_value);
-            param p(expression, param_name, referable);
-            func_args.push_back(p);
+         
+            func_args_names.push_back(param_name);
+            func_args_objs.push_back(expression);
+            can_ref_args.push_back(referable);
+
             param_type_index += 2;
         }
         
-        ScopeStack &old = i->CurScopes();
         i->run_time_context.push(Context(func->GetStartPoint(), func->ToStr(), func));
-        i->CurScopes().CopyScopeBaseSymbolTable(old);
+        i->CurScopes().CopyScopeBaseSymbolTable(i->base_context->scopes);
 
-        for (auto arg : func_args)
-        {
-            if (arg.cant_reference)
-            {
-                ChimeraObject *obj = arg.p_obj->Clone();
-                obj->SetConstStatus(false);
-                i->Table()->AddEntry(arg.p_name, obj);
-                continue;
-            }
-
-            i->Table()->AddOrUpdateRef(arg.p_name, arg.p_obj, true);
-        }
+        func->CopyParamsToNewContext(func_args_names, func_args_objs, can_ref_args, i->Table());
 
         size_t func_end_point = func->GetStartPoint();
         while (i->ast_trees[func_end_point]->Type() != FUNC_RETR_CMD)

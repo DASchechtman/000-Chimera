@@ -19,6 +19,7 @@ void FillEmptyStack(stack<Context> &context_stack)
 ChmrInterpreter::ChmrInterpreter()
 {
     run_time_context.push(Context(0, "base", nullptr));
+    base_context = &run_time_context.top();
     GenerateCallbacks();
 }
 

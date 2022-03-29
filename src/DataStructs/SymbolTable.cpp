@@ -32,7 +32,6 @@ SymbolTable::~SymbolTable() {
     auto end = m_table.end();
 
     while (it != end) {
-        if (it->second.is_weak) { it++; continue; }
         DecreaseRefCount(it->second.item);
         it++;
     }
@@ -98,6 +97,14 @@ string SymbolTable::AddEntry(string var_id, ChimeraObject *object) {
         m_ref_counter[object] = 1;
     }
 
+    return var_id;
+}
+
+string SymbolTable::OverwriteEntry(string var_id, ChimeraObject *object) {
+    if (!Has(var_id)) { return AddEntry(var_id, object); }
+
+    delete m_table[var_id].item;
+    m_table[var_id].item = object;
     return var_id;
 }
 
@@ -175,8 +182,11 @@ void SymbolTable::CopyTable(SymbolTable *old, bool full_copy) {
 
         TableItem item;
         item.item = start->second.item;
-        item.is_temp = false;
-        item.is_ref = false;
+        if (full_copy) {
+            item.item = start->second.item->Clone();
+        }
+        item.is_temp = start->second.is_temp;
+        item.is_ref = start->second.is_ref;
         item.created_from = start->second.created_from;
         
         m_table[start->first] = item;

@@ -1,6 +1,8 @@
 #pragma once
+#include "../../Cmds.hpp"
 #include "../ChimeraObject.hpp"
 #include "../Number/Derived/Int.hpp"
+#include "../../DataStructs/SymbolTable.hpp"
 #include <map>
 #include <vector>
 #include <string>
@@ -11,6 +13,7 @@ class ChmrFunc : public ChimeraObject {
 private:
     vector<string> m_param_type_list;
     string m_func_name;
+    COMMANDS m_type;
     size_t m_start_point;
     size_t m_call_point;
     ChimeraObject *ret_val = nullptr;
@@ -22,6 +25,7 @@ public:
     ChmrFunc(
         size_t start_point,
         string &ret_type,
+        COMMANDS func_type,
         string func_name = "anon"
     );
     ~ChmrFunc();
@@ -35,6 +39,12 @@ public:
     int StoreValInRet(ChimeraObject *ret);
     string GetParamData(size_t index);
     size_t ParamNums();
+    void CopyParamsToNewContext(
+        vector<string> &names, 
+        vector<ChimeraObject*> &objs,
+        vector<bool> &can_ref_objs, 
+        SymbolTable *tbl
+    );
 
     int Get(int64 &data);
     int Get(float &data);

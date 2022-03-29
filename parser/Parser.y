@@ -84,6 +84,8 @@ extern char* yytext;
 %token MOD
 %token GET
 %token SURO
+%token FURO
+%token FUNC
 %token CALL
 %token ASSIGN
 %token FUNC_RET
@@ -116,6 +118,7 @@ extern char* yytext;
 %type <tmp_id> paramList
 %type <tmp_id> functionDeclStatement
 %type <tmp_id> functionCall
+%type <tmp_id> funcType
 
 %token UNKNOWN
 
@@ -190,17 +193,46 @@ paramList:                      id ':' opt_ws types {
                                 }
                                 ;
 
-functionHead:                   SURO any_ws id opt_ws '|' '|' ':' opt_ws types any_ws START {
+funcType:                       SURO {
+                                    $$ = MakeNode(FUNC_SURO_TYPE);
+                                } 
+                                | FURO {
+                                    $$ = MakeNode(FUNC_FURO_TYPE);
+                                }
+                                | FUNC {
+                                    $$ = MakeNode(FUNC_FUNC_TYPE);
+                                }
+                                ;
+
+functionHead:                   funcType any_ws id opt_ws '|' '|' ':' opt_ws types any_ws START {
                                     $$ = MakeNode(MAKE_FUNC_CMD);
                                     $$->AddToLeftNodes($id);
+                                    $$->AddToLeftNodes($funcType);
                                     $$->AddToRightNodes($types);
                                     i.EatAst($$);
                                 }
-                                | SURO any_ws id opt_ws '|' paramList opt_ws '|' ':' opt_ws types any_ws START {
+                                | funcType any_ws id opt_ws '|' paramList opt_ws '|' ':' opt_ws types any_ws START {
                                     $$ = MakeNode(MAKE_FUNC_CMD);
                                     $$->AddToLeftNodes($id);
+                                    $$->AddToLeftNodes($funcType);
                                     $$->AddToMiddleNodes($paramList);
                                     $$->AddToRightNodes($types);
+                                    i.EatAst($$);
+                                    $$ = nullptr;
+                                }
+                                | funcType any_ws id opt_ws '|' '|' any_ws START {
+                                    $$ = MakeNode(MAKE_FUNC_CMD);
+                                    $$->AddToLeftNodes($id);
+                                    $$->AddToLeftNodes($funcType);
+                                    $$->AddToRightNodes(MakeDataTypeNode("int"));
+                                    i.EatAst($$);
+                                }
+                                | funcType any_ws id opt_ws '|' paramList opt_ws '|' any_ws START {
+                                    $$ = MakeNode(MAKE_FUNC_CMD);
+                                    $$->AddToLeftNodes($id);
+                                    $$->AddToLeftNodes($funcType);
+                                    $$->AddToMiddleNodes($paramList);
+                                    $$->AddToRightNodes(MakeDataTypeNode("int"));
                                     i.EatAst($$);
                                     $$ = nullptr;
                                 }

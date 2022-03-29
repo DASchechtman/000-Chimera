@@ -47,6 +47,7 @@ private:
     bool will_mutate_source = false;
     ChmrFunc *cur_func_running = nullptr; 
     stack<Context> run_time_context;
+    Context *base_context = nullptr;
 
     /* used to put a lot of boilerplate into one place for the assign/reassign actions */
     string MakeBind(string to, string from, string type);

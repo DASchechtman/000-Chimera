@@ -45,7 +45,7 @@ void ScopeStack::DestroyScope() {
 }
 
 void ScopeStack::CopyScopeBaseSymbolTable(const ScopeStack &other) {
-    base->CopyTable(other.base);
+    base->CopyTable(other.base, true);
 }
 
 SymbolTable* ScopeStack::GetTable() {
