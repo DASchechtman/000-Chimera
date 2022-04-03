@@ -2,6 +2,7 @@
 
 #include "StrWrapper.hpp"
 #include "../../src/Ast.hpp"
+#include "../../src/Types.hpp"
 #include <string>
 #include <vector>
 
@@ -22,9 +23,9 @@ struct YYSTYPEs {
     // representations of data types in Chimera
     StrWrapper str_val;
     char32_t char_val;
-    long long int int_val;
+    int64 int_val;
     float flo_val;
-    long double dou_val;
+    dbl128 dou_val;
     bool bol_val;
 };
 

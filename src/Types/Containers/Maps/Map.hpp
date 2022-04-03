@@ -72,6 +72,7 @@ struct MapItem {
 class Map : public Container {
 public:
     Map(VAR_TYPES key_type, VAR_TYPES val_type);
+    Map();
     ~Map();
 
 private:
@@ -154,9 +155,9 @@ int Map::SetData(T index, ChimeraObject *data, VAR_TYPES type, MapItem &item) {
     int ret_code = FAIL;
 
     
-        size_t hash = NonStrHash(index);
-        ret_code =  MapData(hash, type, data, item);
-        m_size = ret_code == SUCCEED ? m_size+1 : m_size;
+    size_t hash = NonStrHash(index);
+    ret_code =  MapData(hash, type, data, item);
+    m_size = ret_code == SUCCEED ? m_size+1 : m_size;
     
     
     

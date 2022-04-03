@@ -16,10 +16,11 @@ using namespace std;
 
 struct TableItem
 {
-    ChimeraObject *item;
-    bool is_temp;
-    bool is_ref;
-    bool is_weak;
+    ChimeraObject *item = nullptr;
+    bool is_temp = false;
+    bool is_ref = false;
+    bool is_weak = false;
+    bool is_const = false;
     string created_from;
 
     TableItem(){};
@@ -30,6 +31,7 @@ struct TableItem
         is_temp = old.is_temp;
         is_ref = old.is_ref;
         created_from = old.created_from;
+        is_const = old.is_const;
     }
 };
 
@@ -65,6 +67,7 @@ public:
     bool CameFromVar(string var_id);
     bool IsRef(string var_id);
     bool IsTemp(string var_id);
+    bool IsConst(string var_id);
     void SetParent(string var_id, string parent_id);
     void SetCopyStat(bool is_copying);
     string GetParent(string var_id);
@@ -97,6 +100,7 @@ string SymbolTable::GetConstEntry(T data, true_type) {
         val->Set(data);
         val->SetConstStatus(true);
         AddEntry(key, val);
+        m_table[key].is_const = true;
     }
 
     return key;
@@ -163,6 +167,7 @@ string SymbolTable::GetConstEntry(T data, false_type) {
         val->Set(data);
         val->SetConstStatus(true);
         AddEntry(key, val);
+        m_table[key].is_const = true;
     }
 
     return key;

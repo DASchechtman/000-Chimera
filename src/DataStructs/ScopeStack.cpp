@@ -2,41 +2,34 @@
 
 ScopeStack::ScopeStack() {
     m_stack.push_back(new GenScope());
-    base = m_stack.back()->GetTable();
+    base = &m_stack.front()->GetMemory();
 }
 
 ScopeStack::ScopeStack(const ScopeStack &old) {
-   for(auto scope : old.m_stack) {
-       GenScope *s = (GenScope*)scope;
-       SymbolTable *tbl = s->GetTable();
-       if (s->GetParent() != nullptr) {
-           tbl = s->GetParent()->GetTable();
-       }
-       m_stack.push_back(new GenScope(s->GetType(), tbl, s->GetParent()));
-       if (m_stack.size() == 1) {
-           base = m_stack.back()->GetTable();
-       }
-   }
+    for(auto scope : old.m_stack) {
+        m_stack.push_back(scope->Clone());
+    }
+    base = &m_stack.front()->GetMemory();
 }
 
 ScopeStack::~ScopeStack() {
-    for(auto scope : m_stack) {
+    for (auto scope : m_stack) {
         delete scope;
     }
 }
 
 void ScopeStack::CreateScope(string type) {
-    Scope *n_scope = nullptr;
+  
     if (type == GEN_SCOPE) {
-        n_scope = new GenScope(GetTable(), m_stack.back());
+        Memory &mem = m_stack.back()->GetMemory();
+        m_stack.push_back(new GenScope(mem, m_stack.back()));
     }
     else {
-        n_scope = new GenScope(base, m_stack.back());
+        Memory &mem = m_stack.front()->GetMemory();
+        m_stack.push_back(new GenScope(mem, m_stack.back()));
     }
 
     m_override = false;
-    n_scope->SetRunnableState(true);
-    m_stack.push_back(n_scope);
 }
 
 void ScopeStack::DestroyScope() {
@@ -45,14 +38,11 @@ void ScopeStack::DestroyScope() {
 }
 
 void ScopeStack::CopyScopeBaseSymbolTable(const ScopeStack &other) {
-    base->CopyTable(other.base, true);
+    base->LinkOtherMemory(other.base);
 }
 
-SymbolTable* ScopeStack::GetTable() {
-    if (m_stack.size() == 0) {
-        return nullptr;
-    }
-    return m_stack.back()->GetTable();
+Memory& ScopeStack::GetMemory() {
+    return m_stack.back()->GetMemory();
 }
 
 string ScopeStack::GetScopeType() {

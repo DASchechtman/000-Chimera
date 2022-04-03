@@ -304,6 +304,7 @@ AstNode* MakeGetFromCollectionAst(AstNode *id, AstNode *expr) {
 
     get_from_container_ast->AddToLeftNodes(id);
     get_from_container_ast->AddToRightNodes(expr);
+    
 
     return get_from_container_ast;
 }

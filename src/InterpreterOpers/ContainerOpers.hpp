@@ -2,11 +2,11 @@
 
 #include <string>
 #include <vector>
-#include "../DataStructs/SymbolTable.hpp"
+#include "../DataStructs/Memory.hpp"
 
 using namespace std;
 
-typedef SymbolTable* VarTbl;
+typedef Memory& VarTbl;
 
 string MakeArray(string list, string list_type, VarTbl tbl);
 string MakeArray(string list, vector<string> list_type, VarTbl tbl);
