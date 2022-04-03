@@ -25,7 +25,7 @@ int Float::Set(float &data) {
 }
 
 int Float::Set(long double &data) {
-    m_data.floating = (float)data;
+    m_data.floating = data;
     return SUCCEED;
 }
 
@@ -41,23 +41,23 @@ int Float::Get(float &data) {
 }
 
 int Float::Add(Number &other) {
-    m_data.floating += (float)GetOtherNumber(other);
+    m_data.floating += GetOtherNumber(other);
     return SUCCEED;
 }
 
 int Float::Subtract(Number &other) {
-    m_data.floating -= (float)GetOtherNumber(other);
+    m_data.floating -= GetOtherNumber(other);
     return SUCCEED;
 }
 
 int Float::Multiply(Number &other) {
-    m_data.floating *= (float)GetOtherNumber(other);
+    m_data.floating *= GetOtherNumber(other);
     return SUCCEED;
 }
 
 int Float::Divide(Number &other) {
     try {
-        m_data.floating /= (float)DivideByZeroGuard(other);
+        m_data.floating /= DivideByZeroGuard(other);
     }
     catch(const char* msg){
         cout << msg;

@@ -4,6 +4,16 @@
 
 using namespace std;
 
+Map::Map() {
+    free_hash_indexes = 10;
+    for(size_t i = 0; i < free_hash_indexes; i++) {
+        m_map.push_back(nullptr);
+    }
+
+    SetType(MAP_DATA_TYPE);
+    SetGeneralType(COLLECTION_DATA_TYPE);
+}
+
 Map::Map(VAR_TYPES key_type, VAR_TYPES val_type) : m_key_type(key_type),
                                                    m_val_type(val_type),
                                                    free_hash_indexes(10)
@@ -64,11 +74,13 @@ int Map::SetToNewContainer(Container *new_container)
     return SUCCEED;
 }
 
-void Map::SetDeclaredType(VAR_TYPES type) {
+void Map::SetDeclaredType(VAR_TYPES type)
+{
     m_declared_type = type;
 }
 
-VAR_TYPES Map::GetDeclaredType() {
+VAR_TYPES Map::GetDeclaredType()
+{
     return m_declared_type;
 }
 
@@ -104,84 +116,82 @@ int Map::MapData(size_t hash, VAR_TYPES key_type, ChimeraObject *data, MapItem i
 {
     int ret_code = SUCCEED;
 
-    if (MatchingDataTypes(key_type, data->GetType()))
+    if (free_hash_indexes <= m_map.size() / 4)
     {
-        
-        if (free_hash_indexes <= m_map.size() / 4)
-        {
-            RehashIndexes();
+        RehashIndexes();
 
-            if (key_type == INT_DATA_TYPE) {
-                hash = NonStrHash(item.key.i);
-            }
-            else if (key_type == FLOAT_DATA_TYPE) {
-                hash = NonStrHash(item.key.f);
-            }
-            else if (key_type == DOUBLE_DATA_TYPE) {
-                hash = NonStrHash(item.key.d);
-            }
-            else if (key_type == CHAR_DATA_TYPE) {
-                hash = NonStrHash(item.key.c);
-            }
-            else if (key_type == STRING_DATA_TYPE) {
-                hash = StrHash(item.key.s);
-            }
-            else if (key_type == BOOL_DATA_TYPE) {
-                hash = NonStrHash(item.key.b);
-            }
+        if (key_type == INT_DATA_TYPE)
+        {
+            hash = NonStrHash(item.key.i);
         }
-
-        if (m_map[hash] == nullptr)
+        else if (key_type == FLOAT_DATA_TYPE)
         {
-            m_map[hash] = new list<MapItem>();
-            free_hash_indexes--;
+            hash = NonStrHash(item.key.f);
         }
-
-        bool matching_key = false;
-
-        for (auto hash_item = m_map[hash]->begin(); hash_item != m_map[hash]->end(); hash_item++)
+        else if (key_type == DOUBLE_DATA_TYPE)
         {
-            if (key_type == INT_DATA_TYPE)
-            {
-                matching_key = hash_item->key.i == item.key.i;
-            }
-            else if (key_type == FLOAT_DATA_TYPE)
-            {
-                matching_key = hash_item->key.f == item.key.f;
-            }
-            else if (key_type == DOUBLE_DATA_TYPE)
-            {
-                matching_key = hash_item->key.d == item.key.d;
-            }
-            else if (key_type == CHAR_DATA_TYPE)
-            {
-                matching_key = hash_item->key.c == item.key.c;
-            }
-            else if (key_type == STRING_DATA_TYPE)
-            {
-                matching_key = hash_item->key.s == item.key.s;
-            }
-            else if (key_type == BOOL_DATA_TYPE)
-            {
-                matching_key = hash_item->key.b == item.key.b;
-            }
-
-            if (matching_key)
-            {
-                delete hash_item->val;
-                hash_item->val = item.val->Clone();
-                break;
-            }
+            hash = NonStrHash(item.key.d);
         }
-
-        if (!matching_key)
+        else if (key_type == CHAR_DATA_TYPE)
         {
-            m_map[hash]->push_back(item);
+            hash = NonStrHash(item.key.c);
+        }
+        else if (key_type == STRING_DATA_TYPE)
+        {
+            hash = StrHash(item.key.s);
+        }
+        else if (key_type == BOOL_DATA_TYPE)
+        {
+            hash = NonStrHash(item.key.b);
         }
     }
-    else
+
+    if (m_map[hash] == nullptr)
     {
-        ret_code = FAIL;
+        m_map[hash] = new list<MapItem>();
+        free_hash_indexes--;
+    }
+
+    bool matching_key = false;
+
+    for (auto hash_item = m_map[hash]->begin(); hash_item != m_map[hash]->end(); hash_item++)
+    {
+        if (key_type == INT_DATA_TYPE)
+        {
+            matching_key = hash_item->key.i == item.key.i;
+        }
+        else if (key_type == FLOAT_DATA_TYPE)
+        {
+            matching_key = hash_item->key.f == item.key.f;
+        }
+        else if (key_type == DOUBLE_DATA_TYPE)
+        {
+            matching_key = hash_item->key.d == item.key.d;
+        }
+        else if (key_type == CHAR_DATA_TYPE)
+        {
+            matching_key = hash_item->key.c == item.key.c;
+        }
+        else if (key_type == STRING_DATA_TYPE)
+        {
+            matching_key = hash_item->key.s == item.key.s;
+        }
+        else if (key_type == BOOL_DATA_TYPE)
+        {
+            matching_key = hash_item->key.b == item.key.b;
+        }
+
+        if (matching_key)
+        {
+            delete hash_item->val;
+            hash_item->val = item.val->Clone();
+            break;
+        }
+    }
+
+    if (!matching_key)
+    {
+        m_map[hash]->push_back(item);
     }
 
     return ret_code;
@@ -189,15 +199,15 @@ int Map::MapData(size_t hash, VAR_TYPES key_type, ChimeraObject *data, MapItem i
 
 void Map::RehashIndexes()
 {
-    vector<list<MapItem>*> copy = m_map;
+    vector<list<MapItem> *> copy = m_map;
     size_t new_size = m_map.size() * 2;
 
     for (size_t i = 0; i < new_size; i++)
     {
         if (i < m_map.size())
         {
-            if (m_map[i] != nullptr) {
-                //FreeHashIndex(m_map[i]);
+            if (m_map[i] != nullptr)
+            {
                 m_map[i] = nullptr;
             }
         }
@@ -208,7 +218,7 @@ void Map::RehashIndexes()
         }
     }
 
-    for (list<MapItem>* const item : copy)
+    for (list<MapItem> *const item : copy)
     {
         if (item != nullptr)
         {
@@ -216,29 +226,47 @@ void Map::RehashIndexes()
             auto end = item->end();
             size_t cur_index = 0;
 
-            if (m_key_type == INT_DATA_TYPE)
+            switch (start->val->GetType())
+            {
+            case INT_DATA_TYPE:
             {
                 cur_index = NonStrHash(start->key.i);
+                break;
             }
-            else if (m_key_type == FLOAT_DATA_TYPE)
+            case FLOAT_DATA_TYPE:
             {
                 cur_index = NonStrHash(start->key.f);
+                break;
             }
-            else if (m_key_type == DOUBLE_DATA_TYPE)
+            case DOUBLE_DATA_TYPE:
             {
                 cur_index = NonStrHash(start->key.d);
+                break;
             }
-            else if (m_key_type == CHAR_DATA_TYPE)
+            case CHAR_DATA_TYPE:
             {
                 cur_index = NonStrHash(start->key.c);
+                break;
             }
-            else if (m_key_type == STRING_DATA_TYPE)
-            {
-                cur_index = StrHash(start->key.s);
-            }
-            else if (m_key_type == BOOL_DATA_TYPE)
+            case BOOL_DATA_TYPE:
             {
                 cur_index = NonStrHash(start->key.b);
+                break;
+            }
+            case STRING_DATA_TYPE:
+            {
+                cur_index = StrHash(start->key.s);
+                break;
+            }
+            case MAP_DATA_TYPE:
+            case LIST_DATA_TYPE:
+            {
+                cur_index = StrHash(start->val->ToStr());
+                break;
+            }
+            default:
+            {
+            }
             }
 
             while (start != end)
@@ -278,16 +306,9 @@ int Map::SetData(string index, ChimeraObject *data, VAR_TYPES type, MapItem &ite
 {
     int ret_code = FAIL;
 
-    if (m_key_type == type)
-    {
-        size_t hash = StrHash(index);
-        ret_code = MapData(hash, type, data, item);
-        m_size = ret_code == SUCCEED ? m_size+1 : m_size;
-    }
-    else
-    {
-        cout << "Error: key type does not match\n";
-    }
+    size_t hash = StrHash(index);
+    ret_code = MapData(hash, type, data, item);
+    m_size = ret_code == SUCCEED ? m_size + 1 : m_size;
 
     return ret_code;
 }
@@ -401,9 +422,10 @@ void Map::Clear()
     {
         if (list != nullptr)
         {
-           for(auto start = list->begin(); start != list->end(); start++) {
-               delete start->val;
-           }
+            for (auto start = list->begin(); start != list->end(); start++)
+            {
+                delete start->val;
+            }
         }
     }
 
@@ -423,7 +445,7 @@ string Map::ToStr()
         {
             continue;
         }
-        
+
         for (auto start = item->begin(); start != item->end(); start++)
         {
             switch (m_key_type)

@@ -51,7 +51,7 @@ private:
 
     /* used to put a lot of boilerplate into one place for the assign/reassign actions */
     string MakeBind(string to, string from, string type);
-    SymbolTable* Table();
+    Memory& ProgramMem();
     void ProcessCtrlStructure(AstNode *node);
     void ConvertJumpPointsToScopeTree();
     void GoTo(size_t jump_point, bool adjust_val = true);
@@ -102,74 +102,34 @@ public:
 template <class T>
 string ChmrInterpreter::Create(string var_id, string type, T data)
 {
-    string new_var_name;
-    SymbolTable *tbl = Table();
-
-    if (type == INT_TYPE_NAME)
-    {
-        new_var_name = tbl->AddEntry(var_id, new Int());
-    }
-    else if (type == FLOAT_TYPE_NAME)
-    {
-        new_var_name = tbl->AddEntry(var_id, new Float());
-    }
-    else if (type == DOUBLE_TYPE_NAME)
-    {
-        new_var_name = tbl->AddEntry(var_id, new Double());
-    }
-    else if (type == CHAR_TYPE_NAME)
-    {
-        new_var_name = tbl->AddEntry(var_id, new Char());
-    }
-    else if (type == STRING_TYPE_NAME)
-    {
-        new_var_name = tbl->AddEntry(var_id, new String());
-    }
-    else if (type == BOOL_TYPE_NAME)
-    {
-        new_var_name = tbl->AddEntry(var_id, new Bool());
-    }
-    else {
-        cout << "Error: cannot not make data of type " << type << endl;
+    string new_var_name = ProgramMem().CreateData(var_id, type);
+    if (ProgramMem().InitData(data, var_id) == FAIL) {
+        ChimeraObject *var = ProgramMem().GetData(ORIGINAL, new_var_name);
+        cout << "Error: cannot create data of " << var->GetTypeName() << " with '" << type << "'" << endl;
         return EMPTY_VAR_NAME;
     }
-
-    ChimeraObject *entry = tbl->GetEntry(new_var_name);
-
-    if (new_var_name.empty() || entry->Set(data) == 1)
-    {
-        if (new_var_name.empty())
-        {
-            cout << "Error: created variable with unsupported type '" << type << endl;
-        }
-        else
-        {
-            // no error message here because if Set fails it will print something
-            Table()->RemoveEntry(new_var_name);
-        }
-        new_var_name = EMPTY_VAR_NAME;
-    }
-
     return new_var_name;
 };
 
 template <class T>
 string ChmrInterpreter::CloneOrCreateVar(string to, string type, T data)
 {
-    if (!Table()->Has(to))
+    string ret;
+    if (!ProgramMem().HasData(to))
     {
-        return Create(to, type, data);
+        ret = Create(to, type, data);
     }
     else
     {
-        ChimeraObject *obj = Table()->GetEntry(to);
+        ChimeraObject *obj = ProgramMem().GetData(ORIGINAL, to);
         if (obj->GetTypeName() != type)
         {
             return EMPTY_VAR_NAME;
         }
         obj->Set(data);
-        return to;
+        ret = to;
     }
+    return ret;
 };
 // PRIVATE TEMPLATE METHODS ABOVE -----------------------------------------------------------------------------------------------------------------------
 

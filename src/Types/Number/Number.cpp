@@ -33,8 +33,8 @@ long double Number::GetOtherNumber(Number &other) {
     return data;
 }
 
-long double Number::DivideByZeroGuard(Number &other) {
-    long double data = 0;
+dbl128 Number::DivideByZeroGuard(Number &other) {
+    dbl128 data = 0;
     bool execption_thrown = false;
 
     try {

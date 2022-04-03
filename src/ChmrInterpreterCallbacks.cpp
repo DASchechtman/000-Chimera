@@ -25,66 +25,51 @@ void ChmrInterpreter::GenerateCallbacks()
 
         if (root->Value().type == INT_NODE_TYPE)
         {
-            data_name = i->Table()->GetConstEntry(root->Value().i);
+            data_name = i->ProgramMem().GetConstsData(root->Value().i);
         }
         else if (root->Value().type == FLOAT_NODE_TYPE)
         {
-            data_name = i->Table()->GetConstEntry(root->Value().f);
+            data_name = i->ProgramMem().GetConstsData(root->Value().f);
         }
         else if (root->Value().type == DOUBLE_NODE_TYPE)
         {
-            data_name = i->Table()->GetConstEntry(root->Value().d);
+            data_name = i->ProgramMem().GetConstsData(root->Value().d);
         }
         else if (root->Value().type == CHAR_NODE_TYPE)
         {
-            data_name = i->Table()->GetConstEntry(root->Value().c);
+            data_name = i->ProgramMem().GetConstsData(root->Value().c);
         }
         else if (root->Value().type == STRING_NODE_TYPE)
         {
-            data_name = i->Table()->GetConstEntry(root->Value().s);
+            data_name = i->ProgramMem().GetConstsData(root->Value().s);
         }
         else if (root->Value().type == BOOL_NODE_TYPE)
         {
-            data_name = i->Table()->GetConstEntry(root->Value().b);
+            data_name = i->ProgramMem().GetConstsData(root->Value().b);
         }
         else if (root->Value().type == ARRAY_NODE_TYPE)
         {
-            string arr = MakeArray(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, i->Table());
+            string arr = MakeArray(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, i->ProgramMem());
             for (size_t iter = 0; iter < root->Size(AstNode::LEFT); iter++)
             {
-                PutInArray(arr, i->RunAst(root->GetFromLeftNodes(iter)), i->Table());
+                PutInArray(arr, i->RunAst(root->GetFromLeftNodes(iter)), i->ProgramMem());
             }
             data_name = arr;
         }
         else if (root->Value().type == MAP_NODE_TYPE)
         {
-            string map = MakeMap(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, UNKNOWN_TYPE_NAME, i->Table());
+            string map = MakeMap(EMPTY_VAR_NAME, UNKNOWN_TYPE_NAME, UNKNOWN_TYPE_NAME, i->ProgramMem());
             for (size_t iter = 0; iter < root->Size(AstNode::LEFT); iter++)
             {
                 string key = i->RunAst(root->GetFromLeftNodes(iter));
                 string val = i->RunAst(root->GetFromRightNodes(iter));
-                PutInMap(map, key, val, i->Table());
+                PutInMap(map, key, val, i->ProgramMem());
             }
             data_name = map;
         }
-        else if (root->Value().type == VAR_TYPE_NODE_TYPE)
+        else if (root->Value().type == VAR_TYPE_NODE_TYPE || root->Value().type == ID_NODE_TYPE)
         {
             data_name = root->Value().s;
-        }
-        else if (root->Value().type == ID_NODE_TYPE)
-        {
-            if (!i->Table()->Has(root->Value().s) || !i->will_mutate_source)
-            {
-                data_name = root->Value().s;
-            }
-            else if (i->Table()->Has(root->Value().s) && i->Table()->GetEntry(root->Value().s)->GetGeneralType() == COLLECTION_DATA_TYPE)
-            {
-                data_name = root->Value().s;
-            }
-            else
-            {
-                data_name = i->CloneVarToTempVar(root->Value().s);
-            }
         }
 
         return data_name;
@@ -96,13 +81,14 @@ void ChmrInterpreter::GenerateCallbacks()
         string from = i->RunAst(root->GetFromRightNodes());
         string type = i->RunAst(root->GetFromMiddleNodes());
 
-        bool is_func = (i->Table()->Has(from) && i->Table()->GetEntry(from)->GetType() == FUNC_DATA_TYPE);
+        ChimeraObject *obj = i->ProgramMem().GetData(ORIGINAL, from);
+        bool is_func = (obj != nullptr && obj->GetType() == FUNC_DATA_TYPE);
 
-        if (is_func && i->Table()->Has(to))
+        ChimeraObject *dest = i->ProgramMem().GetData(ORIGINAL, to);
+        if (is_func && dest != nullptr)
         {
-            ChmrFunc *func = (ChmrFunc *)i->Table()->GetEntry(from);
-            ChimeraObject *obj = i->Table()->GetEntry(to);
-            func->SetRetDest(obj);
+            ChmrFunc *func = (ChmrFunc *)obj;
+            func->SetRetDest(dest);
             return to;
         }
         else if (is_func)
@@ -127,14 +113,13 @@ void ChmrInterpreter::GenerateCallbacks()
         string ref = i->RunAst(root->GetFromLeftNodes());
         string var = i->RunAst(root->GetFromRightNodes());
         string type = "";
+        
         if (root->Size(AstNode::MIDDLE) > 0)
         {
             type = i->RunAst(root->GetFromMiddleNodes());
         }
-        else
-        {
-            ref = i->Table()->GetParent(ref);
-        }
+        
+        
         return i->RefBind(ref, var, type);
     };
 
@@ -164,12 +149,12 @@ void ChmrInterpreter::GenerateCallbacks()
         if (root->Size(AstNode::MIDDLE) > 0)
         {
             string expr = i->RunAst(root->GetFromMiddleNodes());
-            string list = MakeArray(id, type, i->Table());
-            return ReassignContainer(list, expr, i->Table());
+            string list = MakeArray(id, type, i->ProgramMem());
+            return ReassignContainer(list, expr, i->ProgramMem());
         }
         else
         {
-            return MakeArray(id, type, i->Table());
+            return MakeArray(id, type, i->ProgramMem());
         }
     };
 
@@ -178,14 +163,14 @@ void ChmrInterpreter::GenerateCallbacks()
         string id = i->RunAst(root->GetFromLeftNodes());
         string key = i->RunAst(root->GetFromMiddleNodes());
         string val = i->RunAst(root->GetFromRightNodes());
-        return MakeMap(id, key, val, i->Table());
+        return MakeMap(id, key, val, i->ProgramMem());
     };
 
     callbacks[PUT_IN_CONTAINER_CMD] = [](AstNode *root, CInter i)
     {
         string list = i->RunAst(root->GetFromLeftNodes());
         string val = i->RunAst(root->GetFromRightNodes());
-        return PutInArray(list, val, i->Table());
+        return PutInArray(list, val, i->ProgramMem());
     };
 
     callbacks[PUT_IN_MAP_CMD] = [](AstNode *root, CInter i)
@@ -193,7 +178,7 @@ void ChmrInterpreter::GenerateCallbacks()
         string map = i->RunAst(root->GetFromLeftNodes());
         string key = i->RunAst(root->GetFromMiddleNodes());
         string val = i->RunAst(root->GetFromRightNodes());
-        return PutInMap(map, key, val, i->Table());
+        return PutInMap(map, key, val, i->ProgramMem());
     };
 
     callbacks[GET_FROM_CONTAINER_CMD] = [](AstNode *root, CInter i)
@@ -201,12 +186,12 @@ void ChmrInterpreter::GenerateCallbacks()
         string container = i->RunAst(root->GetFromLeftNodes());
         string list_index = i->RunAst(root->GetFromRightNodes());
 
-        string data_name = GetFromContainer(container, list_index, i->Table());
+        string data_name = GetFromContainer(container, list_index, i->ProgramMem());
 
         for (size_t index = 0; index < root->Size(AstNode::MIDDLE); index++)
         {
             list_index = i->RunAst(root->GetFromMiddleNodes(index));
-            data_name = GetFromContainer(data_name, list_index, i->Table());
+            data_name = GetFromContainer(data_name, list_index, i->ProgramMem());
         }
 
         return data_name;
@@ -217,64 +202,49 @@ void ChmrInterpreter::GenerateCallbacks()
         string container = i->RunAst(root->GetFromLeftNodes());
         string index = i->RunAst(root->GetFromMiddleNodes());
         string new_val = i->RunAst(root->GetFromRightNodes());
-        return SetInContainer(container, index, new_val, i->Table());
+        return SetInContainer(container, index, new_val, i->ProgramMem());
     };
 
     callbacks[GET_CONTAINER_SIZE_CMD] = [](AstNode *root, CInter i)
     {
         string container = i->RunAst(root->GetFromLeftNodes());
-        return GetContainerSize(container, i->Table());
+        return GetContainerSize(container, i->ProgramMem());
     };
 
     auto MathOpers = [](AstNode *root, CInter i)
     {
-        auto CloneToAvoidBadDataMutation = [](string &arg_name, SymbolTable *tbl) {
-            if (!tbl->Has(arg_name)) {
-                cout << "Error: cannot do math oper on non-existent " << arg_name << endl;
-                arg_name = EMPTY_VAR_NAME;
-                return;
-            }
-
-            bool will_mutate_badly = (
-                !tbl->IsTemp(arg_name)
-                || tbl->GetEntry(arg_name)->GetConstStatus()
-                || tbl->IsRef(arg_name)
-            );
-
-            if (will_mutate_badly) {
-                arg_name = tbl->AddEntry(EMPTY_VAR_NAME, tbl->GetEntry(arg_name)->Clone());
-            }
-
-            return;
-        };
+        
 
         string left = i->RunAst(root->GetFromLeftNodes());
-        CloneToAvoidBadDataMutation(left, i->Table());
+        
+        if (!i->ProgramMem().IsTemp(left) || i->ProgramMem().IsConst(left)) {
+            i->ProgramMem().GetData(CLONED, left);
+        }
 
         for (size_t iter = 1; iter < root->Size(AstNode::LEFT); iter++)
         {
             string right = i->RunAst(root->GetFromLeftNodes(iter));
-            CloneToAvoidBadDataMutation(right, i->Table());
+            i->ProgramMem().GetData(ORIGINAL, right);
 
             if (root->Type() == ADDITION_CMD)
             {
-                Add(left, right, i->Table());
+                Add(left, right, i->ProgramMem());
             }
             else if (root->Type() == SUBTRACTION_CMD)
             {
-                Subtract(left, right, i->Table());
+                Subtract(left, right, i->ProgramMem());
             }
             else if (root->Type() == MULTIPLY_CMD)
             {
-                Multiply(left, right, i->Table());
+                Multiply(left, right, i->ProgramMem());
             }
             else if (root->Type() == DIVIDE_CMD)
             {
-                Divide(left, right, i->Table());
+                Divide(left, right, i->ProgramMem());
             }
             else if (root->Type() == POW_CMD)
             {
-                Pow(left, right, i->Table());
+                Pow(left, right, i->ProgramMem());
             }
         }
 
@@ -298,7 +268,7 @@ void ChmrInterpreter::GenerateCallbacks()
     {
         string left = i->RunAst(root->GetFromLeftNodes());
         string right = i->RunAst(root->GetFromRightNodes());
-        return root->Type() == AND_CMD ? And(left, right, i->Table()) : Or(left, right, i->Table());
+        return root->Type() == AND_CMD ? And(left, right, i->ProgramMem()) : Or(left, right, i->ProgramMem());
     };
 
     callbacks[AND_CMD] = AndOrOper;
@@ -307,7 +277,7 @@ void ChmrInterpreter::GenerateCallbacks()
     callbacks[NOT_CMD] = [](AstNode *root, CInter i)
     {
         string val = i->RunAst(root->GetFromLeftNodes());
-        return Not(val, i->Table());
+        return Not(val, i->ProgramMem());
     };
 
     auto CompareOper = [](AstNode *root, CInter i)
@@ -317,23 +287,23 @@ void ChmrInterpreter::GenerateCallbacks()
 
         if (root->Type() == LESS_CMD)
         {
-            return Less(left, right, i->Table());
+            return Less(left, right, i->ProgramMem());
         }
         else if (root->Type() == LESS_EQ_CMD)
         {
-            return LessEqual(left, right, i->Table());
+            return LessEqual(left, right, i->ProgramMem());
         }
         else if (root->Type() == GREATER_CMD)
         {
-            return Greater(left, right, i->Table());
+            return Greater(left, right, i->ProgramMem());
         }
         else if (root->Type() == GREATER_EQ_CMD)
         {
-            return GreaterEqual(left, right, i->Table());
+            return GreaterEqual(left, right, i->ProgramMem());
         }
         else if (root->Type() == EQ_CMD)
         {
-            return Equal(left, right, i->Table());
+            return Equal(left, right, i->ProgramMem());
         }
 
         return EMPTY_VAR_NAME;
@@ -366,7 +336,8 @@ void ChmrInterpreter::GenerateCallbacks()
         CircularList *jump_points = i->CurScopeTree()[i->ScopeLevel()];
         size_t next_jump_point = jump_points->Next();
         i->ScopesRan().push(i->CurScopes().Size());
-        bool can_run = i->Table()->GetEntry(i->RunAst(root->GetFromLeftNodes()))->ToBool();
+        string val = i->RunAst(root->GetFromLeftNodes());
+        bool can_run = i->ProgramMem().GetData(ORIGINAL, val)->ToBool();
         i->IncreaseScopeLevel();
 
         if (can_run)
@@ -387,7 +358,8 @@ void ChmrInterpreter::GenerateCallbacks()
         bool prev_if_branch_ran = i->run_time_context.top().NewScopeEntered();
         if (!prev_if_branch_ran)
         {
-            bool can_run = i->Table()->GetEntry(i->RunAst(root->GetFromLeftNodes()))->ToBool();
+            string val = i->RunAst(root->GetFromLeftNodes());
+            bool can_run = i->ProgramMem().GetData(ORIGINAL, val)->ToBool();
 
             if (can_run)
             {
@@ -428,7 +400,7 @@ void ChmrInterpreter::GenerateCallbacks()
         CircularList *jump = i->CurScopeTree()[i->ScopeLevel()];
         size_t next = jump->Next();
         string var_id = i->RunAst(root->GetFromLeftNodes());
-        bool can_run = i->Table()->GetEntry(var_id)->ToBool();
+        bool can_run = i->ProgramMem().GetData(ORIGINAL, var_id)->ToBool();
         i->ScopesRan().push(i->CurScopes().Size());
         i->IncreaseScopeLevel();
 
@@ -492,7 +464,7 @@ void ChmrInterpreter::GenerateCallbacks()
     callbacks[INC_CMD] = [](AstNode *root, CInter i)
     {
         string var = i->RunAst(root->GetFromLeftNodes());
-        Inc(var, i->Table());
+        Inc(var, i->ProgramMem());
         return var;
     };
 
@@ -500,7 +472,7 @@ void ChmrInterpreter::GenerateCallbacks()
     {
         string left = i->RunAst(root->GetFromLeftNodes());
         string right = i->RunAst(root->GetFromRightNodes());
-        return Mod(left, right, i->Table());
+        return Mod(left, right, i->ProgramMem());
     };
 
     callbacks[TRACK_TYPE_CMD] = [](AstNode *root, CInter i)
@@ -533,8 +505,9 @@ void ChmrInterpreter::GenerateCallbacks()
             params_list_size = params->Size(AstNode::LEFT);
         }
 
-        ChmrFunc *func = new ChmrFunc(cur_instruction + 1, ret_type, func_type, func_name);
-
+        
+        i->ProgramMem().CreateFunc(func_name, cur_instruction + 1, ret_type, func_type);
+        ChmrFunc *func = (ChmrFunc *)i->ProgramMem().GetData(ORIGINAL, func_name);
 
         for (size_t index = 0; params && index < params_list_size; index++)
         {
@@ -562,21 +535,23 @@ void ChmrInterpreter::GenerateCallbacks()
             func->AddParam(var_name, var_type);
         }
 
-        return i->Table()->AddEntry(func_name, func);
+        func->create_scope_mem = &i->ProgramMem();
+
+        return func_name;
     };
 
     callbacks[CALL_FUNC_CMD] = [](AstNode *root, CInter i)
     {
         string func_name = i->RunAst(root->GetFromLeftNodes());
 
-        bool func_exists = i->Table()->Has(func_name);
+        bool func_exists = i->ProgramMem().HasData(func_name);
         if (!func_exists)
         {
             cout << "Error: " << func_name << " does not exist\n";
             return EMPTY_VAR_NAME;
         }
 
-        ChimeraObject *obj = i->Table()->GetEntry(func_name);
+        ChimeraObject *obj = i->ProgramMem().GetData(ORIGINAL, func_name);
 
         bool is_func = obj->GetType() == FUNC_DATA_TYPE;
         if (!is_func)
@@ -608,14 +583,14 @@ void ChmrInterpreter::GenerateCallbacks()
         {
             string param_value = i->RunAst(root->GetFromRightNodes(iter));
 
-            bool has_param_expression = i->Table()->Has(param_value);
+            bool has_param_expression = i->ProgramMem().HasData(param_value);
             if (!has_param_expression)
             {
                 cout << "Error: param " << param_value << " does not exist\n";
                 return EMPTY_VAR_NAME;
             }
 
-            ChimeraObject *expression = i->Table()->GetEntry(param_value);
+            ChimeraObject *expression = i->ProgramMem().GetData(ORIGINAL, param_value);
 
             bool correct_param_type = expression->GetTypeName() == func->GetParamData(param_type_index);
             if (!correct_param_type)
@@ -625,33 +600,32 @@ void ChmrInterpreter::GenerateCallbacks()
             }
 
             string param_name = func->GetParamData(param_type_index - 1);
-            bool referable = expression->GetConstStatus() || i->Table()->IsTemp(param_value);
-         
+            func_args_names.push_back(param_value);
             func_args_names.push_back(param_name);
-            func_args_objs.push_back(expression);
-            can_ref_args.push_back(referable);
 
             param_type_index += 2;
         }
         
+        Memory &old = i->ProgramMem();
         i->run_time_context.push(Context(func->GetStartPoint(), func->ToStr(), func));
-        i->CurScopes().CopyScopeBaseSymbolTable(i->base_context->scopes);
 
-        func->CopyParamsToNewContext(func_args_names, func_args_objs, can_ref_args, i->Table());
-
-        size_t func_end_point = func->GetStartPoint();
-        while (i->ast_trees[func_end_point]->Type() != FUNC_RETR_CMD)
-        {
-            func_end_point++;
+        if (!func->GetEndPoint()) {
+            size_t index = func->GetStartPoint();
+            while (i->ast_trees[index]->Type() != FUNC_END_CMD) {
+                index++;
+            }
+            func->SetFuncEndPoint(index);
         }
-
-        func->SetReturnPoint(i->CurInstruction() + 1);
-        i->GoTo(func->GetStartPoint(), false);
-        i->RunCurInstruction(func_end_point + 1, false);
+        
+        i->ProgramMem().LinkOtherMemory(func->create_scope_mem);
+        func->CopyParamsToNewContext(func_args_names, i->ProgramMem(), old);
+        i->RunCurInstruction(func->GetEndPoint(), false);
 
         i->run_time_context.pop();
 
-        i->Table()->AddOrUpdateRef(func_name + "ret", func->GetRet(), true);
+        string ret_name = func_name + "ret";
+        i->ProgramMem().CreateData(ret_name, func->GetRet()->GetType());
+        i->ProgramMem().InitData(func->GetRet(), ret_name);
 
         return func_name + "ret";
     };
@@ -664,24 +638,24 @@ void ChmrInterpreter::GenerateCallbacks()
             return EMPTY_VAR_NAME;
         }
         string func_name = i->run_time_context.top().func->ToStr();
+        ChmrFunc *func = i->run_time_context.top().func;
 
         bool has_ret_val = root->Size(AstNode::LEFT) > 0;
         if (has_ret_val)
         {
             string ret_name = i->RunAst(root->GetFromLeftNodes());
-            if (!i->Table()->Has(ret_name))
+            if (!i->ProgramMem().HasData(ret_name))
             {
                 cout << "Error: ret val doesn't exist\n";
                 i->DestroyScope();
                 return EMPTY_VAR_NAME;
             }
 
-            ChimeraObject *obj = i->Table()->GetEntry(ret_name);
-            ChmrFunc *func = i->run_time_context.top().func;
+            ChimeraObject *obj = i->ProgramMem().GetData(ORIGINAL, ret_name);
             func_name = func->StoreValInRet(obj) == FAIL ? EMPTY_VAR_NAME : func_name;
         }
 
-        
+        i->GoTo(func->GetEndPoint());
         return func_name;
     };
 }

@@ -46,7 +46,8 @@ VAR_TYPES TypeNameToType(string type_name) {
 
 string MakeArray(string list, string list_type, VarTbl tbl) {
     VAR_TYPES type = TypeNameToType(list_type);
-    if (tbl->Has(list)) {
+
+    if (tbl.HasData(list)) {
         cout << "Error: " << list << " already exists.\n";
         return EMPTY_VAR_NAME;
     }
@@ -55,60 +56,36 @@ string MakeArray(string list, string list_type, VarTbl tbl) {
         return EMPTY_VAR_NAME;
     }
 
-    List *new_list = new List();
-    return tbl->AddEntry(list, new_list);
+    return tbl.CreateData(list, LIST_DATA_TYPE);
 }
 
 string MakeArray(string list, vector<string> list_type, VarTbl tbl) {
-    vector<VAR_TYPES> type;
-
-    for(auto type_name : list_type) {
-        type.push_back(TypeNameToType(type_name));
-    }
-
-    if (tbl->Has(list)) {
+    
+    if (tbl.HasData(list)) {
         cout << "Error: " << list << " already exists.\n";
         return EMPTY_VAR_NAME;
     }
-    else if (type.empty()) {
-        cout << "Error: setting list to unsupported type.\n";
-        return EMPTY_VAR_NAME;
-    }
 
-    List *new_list = new List(type);
-    return tbl->AddEntry(list, new_list);
+    return tbl.CreateData(list, LIST_DATA_TYPE);
 }
 
 string MakeMap(string map, string key_type_name, string val_type_name, VarTbl tbl) {
-    VAR_TYPES key_type = STRING_DATA_TYPE;
-    VAR_TYPES declared_type = TypeNameToType(key_type_name);
-    VAR_TYPES val_type = TypeNameToType(val_type_name);
 
-    if (tbl->Has(map)) {
+    if (tbl.HasData(map)) {
         cout << "Error: " << map << " already exists.\n";
         return EMPTY_VAR_NAME;
     } 
-    else if (
-        key_type == UNDEFINED_DATA_TYPE 
-        || val_type == UNDEFINED_DATA_TYPE
-        || declared_type == UNDEFINED_DATA_TYPE
-        ) {
-            cout << "Error: using undefined type to make map.\n";
-            return EMPTY_VAR_NAME;
-    }
 
-    Map *new_map = new Map(key_type, val_type);
-    new_map->SetDeclaredType(declared_type);
-    return tbl->AddEntry(map, new_map);
+    return tbl.CreateData(map, MAP_DATA_TYPE);
 }
 
 string PutInArray(string container, string item, VarTbl tbl) {
-    if (!tbl->Has(container) || !tbl->Has(item)) {
+    if (!tbl.HasData(container) || !tbl.HasData(item)) {
         ShowErr(tbl, "Error: variable doesn't exist", container, item);
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *obj = GetObjContents(tbl->GetEntry(container));
+    ChimeraObject *obj = GetObjContents(tbl.GetData(ORIGINAL, container));
 
     if (obj->GetType() != LIST_DATA_TYPE) {
         cout << "Error: initializing array to unsupported type.\n";
@@ -116,7 +93,7 @@ string PutInArray(string container, string item, VarTbl tbl) {
     }
 
     List *array = (List*)obj;
-    ChimeraObject *item_obj = GetObjContents(tbl->GetEntry(item));
+    ChimeraObject *item_obj = GetObjContents(tbl.GetData(ORIGINAL, item));
 
     if (array->PutItem(item_obj) == FAIL) {
         return EMPTY_VAR_NAME;
@@ -126,16 +103,16 @@ string PutInArray(string container, string item, VarTbl tbl) {
 }
 
 string PutInMap(string map, string key, string item, VarTbl tbl) {
-    bool map_exists = tbl->Has(map);
-    bool key_exists = tbl->Has(key);
-    bool item_exists = tbl->Has(item);
+    bool map_exists = tbl.HasData(map);
+    bool key_exists = tbl.HasData(key);
+    bool item_exists = tbl.HasData(item);
 
     if (!map_exists || !key_exists || !item_exists) {
         ShowErr(tbl, "Error: variable doesn't exist", map, key, item);
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *container = GetObjContents(tbl->GetEntry(map));
+    ChimeraObject *container = GetObjContents(tbl.GetData(ORIGINAL, map));
 
     if (container->GetType() != MAP_DATA_TYPE) {
         cout << "Error: cannot add data to map.\n";
@@ -143,8 +120,8 @@ string PutInMap(string map, string key, string item, VarTbl tbl) {
     }
 
     Map *map_obj = (Map*) container;
-    ChimeraObject *key_obj = GetObjContents(tbl->GetEntry(key));
-    ChimeraObject *item_obj = GetObjContents(tbl->GetEntry(item));
+    ChimeraObject *key_obj = GetObjContents(tbl.GetData(ORIGINAL, key));
+    ChimeraObject *item_obj = GetObjContents(tbl.GetData(ORIGINAL, item));
 
     string key_val = key_obj->ToStr();
 
@@ -156,16 +133,17 @@ string PutInMap(string map, string key, string item, VarTbl tbl) {
 }
 
 string GetFromContainer(string container, string index, VarTbl tbl) {
-    if (!tbl->Has(container) || !tbl->Has(index)) {
+    if (!tbl.HasData(container) || !tbl.HasData(index)) {
         ShowErr(tbl, "Error: variable doesn't exist", container, index);
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *data_struct = GetObjContents(tbl->GetEntry(container));
-    ChimeraObject *index_obj = GetObjContents(tbl->GetEntry(index));
+    ChimeraObject *data_struct = GetObjContents(tbl.GetData(ORIGINAL, container));
+    ChimeraObject *index_obj = GetObjContents(tbl.GetData(ORIGINAL, index));
 
     
-
+    string empty_name = EMPTY_VAR_NAME;
+    
     if (data_struct->GetType() == LIST_DATA_TYPE) {
         int64 index_val;
         if (index_obj->Get(index_val) == FAIL) {
@@ -178,10 +156,15 @@ string GetFromContainer(string container, string index, VarTbl tbl) {
             return EMPTY_VAR_NAME;
         }
         else if (data->GetGeneralType() == COLLECTION_DATA_TYPE) {
-            return tbl->AddOrUpdateRef(container+index, data, true);
+            string index_name = tbl.CreateData(empty_name, data->GetType());
+            ((Container*) tbl.GetData(ORIGINAL, index_name))->SetToNewContainer((Container*)data);
+            return index_name;
         }
 
-        return tbl->AddEntry(EMPTY_VAR_NAME, data->Clone());
+        string index_name = tbl.CreateData(empty_name, data->GetType());
+        tbl.InitData(data, index_name);
+
+        return index_name;
     }
     else if (data_struct->GetType() == MAP_DATA_TYPE) {
         
@@ -193,43 +176,44 @@ string GetFromContainer(string container, string index, VarTbl tbl) {
             return EMPTY_VAR_NAME;
         }
         else if (data->GetGeneralType() == COLLECTION_DATA_TYPE) {
-            return tbl->AddOrUpdateRef(container+key, data, true);
+            string index_name = tbl.CreateData(empty_name, data->GetType());
+            ((Container*) tbl.GetData(ORIGINAL, index_name))->SetToNewContainer((Container*)data);
+            return index_name;;
         }
 
-        return tbl->AddEntry(EMPTY_VAR_NAME, data->Clone());
+        string index_name = tbl.CreateData(empty_name, data->GetType());
+        tbl.InitData(data, index_name);
+        return index_name;
     }
     cout << "Error: cannot get data from non-container.\n";
     return EMPTY_VAR_NAME;
 }
 
 string SetInContainer(string container, string index, string item, VarTbl tbl) {
-    bool container_exists = tbl->Has(container);
-    bool index_exists = tbl->Has(index);
-    bool item_exists = tbl->Has(item);
+    bool container_exists = tbl.HasData(container);
+    bool index_exists = tbl.HasData(index);
+    bool item_exists = tbl.HasData(item);
 
     if (!container_exists || !index_exists || !item_exists) {
         ShowErr(tbl, "Error: variable doesn't exist", container, index, item);
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *container_obj = GetObjContents(tbl->GetEntry(container));
+    ChimeraObject *container_obj = GetObjContents(tbl.GetData(ORIGINAL, container));
 
     if (container_obj->GetType() == LIST_DATA_TYPE) {
         int64 index_val;
-        ChimeraObject *index_obj = GetObjContents(tbl->GetEntry(index));
-        ChimeraObject *item_obj = GetObjContents(tbl->GetEntry(item));
+        ChimeraObject *index_obj = GetObjContents(tbl.GetData(ORIGINAL, index));
+        ChimeraObject *item_obj = GetObjContents(tbl.GetData(ORIGINAL, item));
         index_obj->Get(index_val);
 
         int err = ((List*) container_obj)->SetItem(index_val, item_obj);
         return err == FAIL ? EMPTY_VAR_NAME : item;
     }
     else if (container_obj->GetType() == MAP_DATA_TYPE) {
-        ChimeraObject *index_obj = GetObjContents(tbl->GetEntry(index));
-        if (((Map*) container_obj)->GetDeclaredType() != index_obj->GetType()) {
-            return EMPTY_VAR_NAME;
-        }
+        ChimeraObject *index_obj = GetObjContents(tbl.GetData(ORIGINAL, index));
+        ChimeraObject *item_obj = GetObjContents(tbl.GetData(ORIGINAL, item));
 
-        ChimeraObject *item_obj = GetObjContents(tbl->GetEntry(item));
         int err = ((Map*) container_obj)->SetItem(index_obj->ToStr(), item_obj);
         return err == FAIL ? EMPTY_VAR_NAME : item;
     }
@@ -239,13 +223,13 @@ string SetInContainer(string container, string index, string item, VarTbl tbl) {
 }
 
 string ReassignContainer(string old, string latest, VarTbl tbl) {
-    if (!tbl->Has(old) || !tbl->Has(latest)) {
+    if (!tbl.HasData(old) || !tbl.HasData(latest)) {
         ShowErr(tbl, "Error: variable doesn't exist", old, latest);
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *old_container = GetObjContents(tbl->GetEntry(old));
-    ChimeraObject *new_container = GetObjContents(tbl->GetEntry(latest));
+    ChimeraObject *old_container = GetObjContents(tbl.GetData(ORIGINAL, old));
+    ChimeraObject *new_container = GetObjContents(tbl.GetData(ORIGINAL, latest));
 
     if (
         old_container->GetGeneralType() == COLLECTION_DATA_TYPE
@@ -261,17 +245,19 @@ string ReassignContainer(string old, string latest, VarTbl tbl) {
 }
 
 string GetContainerSize(string container, VarTbl tbl) {
-    if (!tbl->Has(container)) {
+    if (!tbl.HasData(container)) {
         ShowErr(tbl, "Error: variable doesn't exist", container);
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *container_obj = GetObjContents(tbl->GetEntry(container));
+    ChimeraObject *container_obj = GetObjContents(tbl.GetData(ORIGINAL, container));
 
     if(container_obj->GetGeneralType() == COLLECTION_DATA_TYPE) {
         int64 size = (int64)((Container*) container_obj)->Size();
-        Int *list_size = new Int(size);
-        return tbl->AddEntry(EMPTY_VAR_NAME, list_size);
+        string empty_name = EMPTY_VAR_NAME;
+        string container_size = tbl.CreateData(empty_name, INT_DATA_TYPE);
+        tbl.InitData(size, container_size);
+        return container_size;
     }
     cout << "Error: cannot get size of non-container.\n";
     return EMPTY_VAR_NAME;

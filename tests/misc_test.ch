@@ -1,13 +1,24 @@
-(var t:char 'a')
+(var x:int 10)
+start
+    (var y:int<ref> x)
+    (var z:int<ref> y)
 
-suro foo|int|: int start
-    repeat arg0 with i start
-         print|"in func:" i t|
+    (var x:int 77)
+    (= y x<ref>)
+
+    start
+        (var x:int 824)
+        (= y x<ref>)
+
+        start
+            (var x:int 23892)
+            (= y x<ref>)
+
+            start
+                print|y|
+            end
+        end
     end
 end
 
-repeat 10 with i start
-    print|"in loop"|
-    # hello world
-    (call foo (add i 1))
-end
+print|"done:" 23892|

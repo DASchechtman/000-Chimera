@@ -12,18 +12,18 @@ Char::Char(char data) {
 
 
 int Char::Set(int64 &data) {
-    m_data.character = (char)data;
+    m_data.character = data;
     return SUCCEED;
 }
 
 int Char::Set(float &data) {
-    m_data.character = (char)(int)data;
+    m_data.character = data;
     return SUCCEED;
 }
 
 
 int Char::Set(long double &data) {
-    m_data.character = (char)(int)(float)data;
+    m_data.character = data;
     return SUCCEED;
 }
 
@@ -40,24 +40,24 @@ int Char::Get(char32_t &data) {
 }
 
 int Char::Add(Number &other) {
-    m_data.character += (char)(int)(float)GetOtherNumber(other);
+    m_data.character += GetOtherNumber(other);
     return SUCCEED;
 }
 
 int Char::Subtract(Number &other) {
-    m_data.character -= (char)(int)(float)GetOtherNumber(other);
+    m_data.character -= GetOtherNumber(other);
     return SUCCEED;
 }
 
 int Char::Multiply(Number &other) {
-    m_data.character *= (char)(int)(float)GetOtherNumber(other);
+    m_data.character *= GetOtherNumber(other);
     return SUCCEED;
 }
 
 int Char::Divide(Number &other) {
     
     try {
-        m_data.character /= (char)(int)(float)DivideByZeroGuard(other);
+        m_data.character /= DivideByZeroGuard(other);
     }
     catch(const char* msg){
         cout << msg;

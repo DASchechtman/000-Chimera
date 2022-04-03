@@ -32,7 +32,7 @@ SymbolTable::~SymbolTable() {
     auto end = m_table.end();
 
     while (it != end) {
-        DecreaseRefCount(it->second.item);
+        delete it->second.item;
         it++;
     }
     m_is_being_copied = false;
@@ -55,6 +55,10 @@ bool SymbolTable::IsRef(string var_id) {
 
 bool SymbolTable::IsTemp(string var_id) {
     return Has(var_id) && m_table[var_id].is_temp;
+}
+
+bool SymbolTable::IsConst(string var_id) {
+    return Has(var_id) && m_table[var_id].is_const;
 }
 
 void SymbolTable::SetParent(string var_id, string parent_id) {
@@ -94,7 +98,15 @@ string SymbolTable::AddEntry(string var_id, ChimeraObject *object) {
         m_table[var_id].item = object;
         m_table[var_id].is_temp = is_tmp;
         m_table[var_id].is_ref = false;
+
+        if (var_id.length() > 0 && var_id.back() == '!') {
+            m_table[var_id].is_const = true;
+        }
+        
         m_ref_counter[object] = 1;
+    }
+    else {
+        return EMPTY_VAR_NAME;
     }
 
     return var_id;
@@ -181,19 +193,17 @@ void SymbolTable::CopyTable(SymbolTable *old, bool full_copy) {
         }
 
         TableItem item;
-        item.item = start->second.item;
-        if (full_copy) {
-            item.item = start->second.item->Clone();
-        }
+        item.item = start->second.item->Clone();
         item.is_temp = start->second.is_temp;
         item.is_ref = start->second.is_ref;
         item.created_from = start->second.created_from;
+        item.is_const = start->second.is_const;
         
         m_table[start->first] = item;
     }
 
     for(auto start = m_table.begin(); start != m_table.end(); start++) {
-        m_ref_counter[start->second.item] = old->m_ref_counter[start->second.item] + 1;
+        m_ref_counter[start->second.item] = old->m_ref_counter[start->second.item];
     }
 }
 

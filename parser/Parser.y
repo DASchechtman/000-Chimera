@@ -289,11 +289,7 @@ ifStatement:                    ifBody END {
                                 };
 
 functionDeclStatement:          functionHead line END {
-                                    auto node_type = i.MostRecentAst()->Type();
-                                    $$ = nullptr;
-                                    if (node_type != FUNC_RETR_CMD) {
-                                        $$ = MakeNode(FUNC_RETR_CMD);
-                                    }
+                                    $$ = MakeNode(FUNC_END_CMD);
                                 }
                                 ;
 

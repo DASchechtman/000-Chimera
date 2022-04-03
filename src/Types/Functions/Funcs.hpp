@@ -2,7 +2,7 @@
 #include "../../Cmds.hpp"
 #include "../ChimeraObject.hpp"
 #include "../Number/Derived/Int.hpp"
-#include "../../DataStructs/SymbolTable.hpp"
+#include "../../DataStructs/Memory.hpp"
 #include <map>
 #include <vector>
 #include <string>
@@ -13,9 +13,9 @@ class ChmrFunc : public ChimeraObject {
 private:
     vector<string> m_param_type_list;
     string m_func_name;
-    COMMANDS m_type;
-    size_t m_start_point;
-    size_t m_call_point;
+    COMMANDS m_type = NO_CMD;
+    size_t m_start_point = 0;
+    size_t m_end_of_func_point = 0;
     ChimeraObject *ret_val = nullptr;
 
 
@@ -30,10 +30,12 @@ public:
     );
     ~ChmrFunc();
 
+    Memory *create_scope_mem = nullptr;
+
     size_t GetStartPoint();
     size_t GetEndPoint();
     ChimeraObject* GetRet();
-    void SetReturnPoint(size_t new_end_point);
+    void SetFuncEndPoint(size_t new_end_point);
     void AddParam(string name, string type);
     void SetRetDest(ChimeraObject *dest);
     int StoreValInRet(ChimeraObject *ret);
@@ -41,9 +43,8 @@ public:
     size_t ParamNums();
     void CopyParamsToNewContext(
         vector<string> &names, 
-        vector<ChimeraObject*> &objs,
-        vector<bool> &can_ref_objs, 
-        SymbolTable *tbl
+        Memory &tbl,
+        Memory &other_tbl
     );
 
     int Get(int64 &data);

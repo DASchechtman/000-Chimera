@@ -1,26 +1,32 @@
 #include "GenScope.hpp"
 
+void GenScope::SetFields(Memory &mem, Scope *parent, string scope_type) {
+    m_scope_memory = mem;
+    m_parent = parent;
+    this->scope_type = scope_type;
+}
+
 GenScope::GenScope() {
     m_type = GEN_SCOPE;
 }
 
-GenScope::GenScope(SymbolTable *table, Scope *parent)
+GenScope::GenScope(Memory &mem_space, Scope *parent)
 {
     scope_type = GEN_SCOPE;
     m_parent = parent;
-    m_table.CopyTable(table);
+    m_scope_memory.LinkOtherMemory(&mem_space);
 }
 
-GenScope::GenScope(string type, SymbolTable *table, Scope *parent) {
+GenScope::GenScope(string type, Memory &mem_space, Scope *parent) {
     m_parent = parent;
-    m_table.CopyTable(table, true);
+    m_scope_memory.LinkOtherMemory(&mem_space);
     scope_type = type;
 }
 
 GenScope::~GenScope() {}
 
-SymbolTable* GenScope::GetTable() {
-    return &m_table;
+Memory& GenScope::GetMemory() {
+    return m_scope_memory;
 }
 
 bool GenScope::IsntRunnable() {
@@ -48,4 +54,10 @@ Scope *GenScope::GetParent() {
 
 size_t GenScope::NumOfScopeMembers() {
     return 1;
+}
+
+GenScope* GenScope::Clone() {
+    GenScope *new_scope = new GenScope();
+    new_scope->SetFields(m_scope_memory, m_parent, scope_type);
+    return new_scope;
 }

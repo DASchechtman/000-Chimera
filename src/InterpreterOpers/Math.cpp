@@ -12,15 +12,15 @@ ChrO *UnionObjSafeGaurd(ChrO *obj) {
     return ret_obj;
 }
 
-int DoMath(string var_1, string var_2, OPER_CODE code, SymbolTable *tbl, operFunc oper) {
-    if (!tbl->Has(var_1) || !tbl->Has(var_2))
+int DoMath(string var_1, string var_2, OPER_CODE code, Memory &tbl, operFunc oper) {
+    if (!tbl.HasData(var_1) || !tbl.HasData(var_2))
     {
         cout << "Error: trying to do math operation on a non-numerical value\n";
         return FAIL;
     }
 
-    ChimeraObject *obj_1 = UnionObjSafeGaurd(tbl->GetEntry(var_1));
-    ChimeraObject *obj_2 = UnionObjSafeGaurd(tbl->GetEntry(var_2));
+    ChimeraObject *obj_1 = UnionObjSafeGaurd(tbl.GetData(ORIGINAL, var_1));
+    ChimeraObject *obj_2 = UnionObjSafeGaurd(tbl.GetData(ORIGINAL, var_2));
 
     int err = FAIL;
 
@@ -56,7 +56,7 @@ int DoMath(string var_1, string var_2, OPER_CODE code, SymbolTable *tbl, operFun
     return err;
 }
 
-int Add(string var_1, string var_2, SymbolTable *var_table) {
+int Add(string var_1, string var_2, Memory &var_table) {
     return DoMath(var_1, var_2, ADD_CODE, var_table, [](ChrO *obj_1, ChrO *obj_2, bool is_num) {
         int err = FAIL;
         if (is_num) {
@@ -69,7 +69,7 @@ int Add(string var_1, string var_2, SymbolTable *var_table) {
     });
 }
 
-int Subtract(string var_1, string var_2, SymbolTable *var_table) {
+int Subtract(string var_1, string var_2, Memory &var_table) {
     return DoMath(var_1, var_2, SUBTRACT_CODE, var_table, [](ChrO *obj_1, ChrO *obj_2, bool is_num) {
         int err = FAIL;
         if (is_num) {
@@ -82,7 +82,7 @@ int Subtract(string var_1, string var_2, SymbolTable *var_table) {
     });
 }
 
-int Multiply(string var_1, string var_2, SymbolTable *var_table) {
+int Multiply(string var_1, string var_2, Memory &var_table) {
     return DoMath(var_1, var_2, MULTIPLY_CODE, var_table, [](ChrO *obj_1, ChrO *obj_2, bool is_num) {
         if (!is_num) {
             return FAIL;
@@ -91,7 +91,7 @@ int Multiply(string var_1, string var_2, SymbolTable *var_table) {
     });
 }
 
-int Divide(string var_1, string var_2, SymbolTable *var_table) {
+int Divide(string var_1, string var_2, Memory &var_table) {
     return DoMath(var_1, var_2, DIVIDE_CODE, var_table, [](ChrO *obj_1, ChrO *obj_2, bool is_num) {
         if (!is_num) {
             return FAIL;
@@ -100,7 +100,7 @@ int Divide(string var_1, string var_2, SymbolTable *var_table) {
     });
 }
 
-int Pow(string var_1, string var_2, SymbolTable *var_table) {
+int Pow(string var_1, string var_2, Memory &var_table) {
     return DoMath(var_1, var_2, POW_CODE, var_table, [](ChrO *obj_1, ChrO *obj_2, bool is_num) {
         if (!is_num) {
             return FAIL;
@@ -109,16 +109,14 @@ int Pow(string var_1, string var_2, SymbolTable *var_table) {
     });
 }
 
-int Inc(string var, SymbolTable *var_table) {
-    if (!var_table->Has(var)) {
+int Inc(string var, Memory &var_table) {
+    if (!var_table.HasData(var)) {
         cout << "Error: Variable does not exist\n";
         return FAIL;
     }
 
-    ChimeraObject *var_obj = var_table->GetEntry(var);
-    if (var_table->GetParent(var).length() > 0) {
-        var_obj = var_table->GetEntry(var_table->GetParent(var));
-    }
+    ChimeraObject *var_obj = var_table.GetData(ORIGINAL, var);
+    
     if (var_obj->IsNumber()) {
         long double num = ((Number*)var_obj)->GetNumber() + 1;
         var_obj->Set(num);
@@ -129,14 +127,14 @@ int Inc(string var, SymbolTable *var_table) {
     return FAIL;
 }
 
-string Mod(string var_1, string var_2, SymbolTable *var_table) {
-    if (!var_table->Has(var_1) || !var_table->Has(var_2)) {
+string Mod(string var_1, string var_2, Memory &var_table) {
+    if (!var_table.HasData(var_1) || !var_table.HasData(var_2)) {
         cout << "Error: Variable doesn't exist\n";
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *var_1_obj = var_table->GetEntry(var_1);
-    ChimeraObject *var_2_obj = var_table->GetEntry(var_2);
+    ChimeraObject *var_1_obj = var_table.GetData(ORIGINAL, var_1);
+    ChimeraObject *var_2_obj = var_table.GetData(ORIGINAL, var_2);
 
     if (var_1_obj->IsNumber() && var_2_obj->IsNumber()) {
         long double val_1 = ((Number*)var_1_obj)->GetNumber();
@@ -145,8 +143,11 @@ string Mod(string var_1, string var_2, SymbolTable *var_table) {
             cout << "Error: cannot get the results of " << val_1 << " % " << val_2 << endl;
             return EMPTY_VAR_NAME;
         }
-        
-        return var_table->AddEntry(EMPTY_VAR_NAME, new Double(fmod(val_1, val_2)));
+        string empty = EMPTY_VAR_NAME;
+        string mod_res = var_table.CreateData(empty, DOUBLE_DATA_TYPE);
+        var_table.InitData(fmod(val_1, val_2), mod_res);
+
+        return mod_res;
     }
 
     return EMPTY_VAR_NAME;
