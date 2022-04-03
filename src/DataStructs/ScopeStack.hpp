@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Scopes/Scope.hpp"
 #include "Scopes/GenScope.hpp"
-#include "SymbolTable.hpp"
 #include <vector>
 #include <string>
 
@@ -18,8 +16,8 @@ const string PLACE_HOLDER_NAME = "#";
 
 class ScopeStack {
 private:
-    vector<Scope*> m_stack;
-    SymbolTable *base = nullptr;
+    vector<GenScope*> m_stack;
+    Memory *base = nullptr;
 
     // the state a new scope should have
     bool m_next_scope_runnable = true;
@@ -39,7 +37,7 @@ public:
     void DestroyScope();
     void CopyScopeBaseSymbolTable(const ScopeStack &other);
 
-    SymbolTable* GetTable();
+    Memory& GetMemory();
 
     string GetScopeType();
     size_t Size();

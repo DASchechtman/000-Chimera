@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../SymbolTable.hpp"
+#include "../Memory.hpp"
 
 /*
     base class for any type of scope the interpreter needs to run a program
@@ -12,10 +12,6 @@
 // used this because when it comes time to implement repeating scopes like loops and functions
 // it'll be easier to store what type of scope should be created, because all the input into the interpreter is a
 // string. Therefore the best way to remember an instruction is to store that string input
-const string IF_SCOPE = "if scope";
-const string ELIF_SCOPE = "else if scope";
-const string ELSE_SCOPE = "else scope";
-const string WHILE_LOOP_SCOPE = "loop scope";
 const string GEN_SCOPE = "gen scope";
 
 class Scope {
@@ -26,7 +22,7 @@ public:
 
     virtual ~Scope(){};
 
-    virtual SymbolTable* GetTable() = 0;
+    virtual Memory& GetMemory() = 0;
 
     // returns true if the current scope can't be run (like an if-statement with a false run condition)
     virtual bool IsntRunnable() = 0;

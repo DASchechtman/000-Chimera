@@ -3,14 +3,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "../DataStructs/SymbolTable.hpp"
+#include "../DataStructs/Memory.hpp"
 
 using namespace std;
 
-string GetMissingData(vector<string> &data_names, SymbolTable *tbl);
+string GetMissingData(vector<string> &data_names, Memory &tbl);
 
 template<class... T>
-void ShowErr(SymbolTable *tbl, string err_msg, T ... args) {
+void ShowErr(Memory &tbl, string err_msg, T ... args) {
     vector<string> names = {args...};
     cout << err_msg << " " << GetMissingData(names, tbl) << endl;
 }

@@ -33,25 +33,19 @@ ChmrInterpreter::~ChmrInterpreter()
 
     for (AstNode *node : ast_trees)
     {
-        if (was_deleted[node].yes)
-        {
-            continue;
-        }
-
-        was_deleted[node].yes = true;
         delete node;
     }
 }
 
 string ChmrInterpreter::MakeBind(string to, string from, string type)
 {
-    if (!Table()->Has(from))
+    ChimeraObject *obj = ProgramMem().GetData(ORIGINAL, from);
+    if (obj == nullptr)
     {
         cout << "Error: can't bind data to nonexistant symbol\n";
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *obj = Table()->GetEntry(from);
     string var_id = EMPTY_VAR_NAME;
 
     switch (obj->GetType())
@@ -107,15 +101,14 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
             break;
         }
 
-        if (!Table()->Has(to))
+        ChimeraObject *container = ProgramMem().GetData(ORIGINAL, to);
+        if (container == nullptr)
         {
-            to = Table()->AddEntry(to, obj->Clone());
+            ProgramMem().CreateData(to, LIST_DATA_TYPE);
         }
-        else
-        {
-            List *list_obj = (List *)Table()->GetEntry(to);
-            list_obj->SetToNewContainer((Container *)obj);
-        }
+
+        container = ProgramMem().GetData(ORIGINAL, to);
+        ((List*)container)->SetToNewContainer((List*)obj);
 
         var_id = to;
 
@@ -129,15 +122,16 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
             var_id = EMPTY_VAR_NAME;
             break;
         }
-        if (!Table()->Has(to))
+
+        ChimeraObject *container = ProgramMem().GetData(ORIGINAL, to);
+        if (container == nullptr)
         {
-            to = Table()->AddEntry(to, obj->Clone());
+            ProgramMem().CreateData(to, MAP_DATA_TYPE);
         }
-        else
-        {
-            Map *map_obj = (Map *)Table()->GetEntry(to);
-            map_obj->SetToNewContainer((Container *)obj);
-        }
+        
+        Map *map_obj = (Map *)ProgramMem().GetData(ORIGINAL, to);
+        map_obj->SetToNewContainer((Container *)obj);
+        
         break;
     }
     default:
@@ -149,9 +143,9 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
     return var_id;
 }
 
-SymbolTable *ChmrInterpreter::Table()
+Memory& ChmrInterpreter::ProgramMem()
 {
-    return CurScopes().GetTable();
+    return CurScopes().GetMemory();
 }
 
 void ChmrInterpreter::GoTo(size_t jump_point, bool adjust_val)
@@ -195,7 +189,7 @@ void ChmrInterpreter::ProcessCtrlStructure(AstNode *node)
 
         CurJumpPoints().push_back(ji);
     }
-    else if (node->Type() == FUNC_RETR_CMD && CurScopeLevel() == SIZE_MAX)
+    else if (node->Type() == FUNC_END_CMD && CurScopeLevel() == SIZE_MAX)
     {
         CurScopeLevel() = 0;
     }
@@ -256,12 +250,8 @@ void ChmrInterpreter::ConvertJumpPointsToScopeTree()
 
 string ChmrInterpreter::Bind(string to, string from, string type)
 {
-    if (Table()->Has(to))
+    if (ProgramMem().HasDataInLocalScope(to))
     {
-        if (!Table()->GetParent(to).empty())
-        {
-            to = Table()->GetParent(to);
-        }
         cout << "Error: var " << to << " already exists\n";
         return EMPTY_VAR_NAME;
     }
@@ -273,23 +263,23 @@ string ChmrInterpreter::Bind(string to, string from, string type)
 
 string ChmrInterpreter::Rebind(string to, string from)
 {
-    if (!Table()->Has(to) || !Table()->Has(from))
+    ChimeraObject *dest = ProgramMem().GetData(ORIGINAL, to);
+    ChimeraObject *src = ProgramMem().GetData(ORIGINAL, from);
+
+    if (dest == nullptr || src == nullptr)
     {
-        cout << "Error: couldn't clone var\n";
+        cout << "Error: couldn't clone var" << endl;
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *obj = Table()->GetEntry(to);
-    ChimeraObject *obj_2 = Table()->GetEntry(from);
-
-    if (obj->GetGeneralType() == COLLECTION_DATA_TYPE)
+    if (dest->GetGeneralType() == COLLECTION_DATA_TYPE)
     {
-        return ReassignContainer(to, from, Table());
+        return ReassignContainer(to, from, ProgramMem());
     }
 
-    if (obj->Set(obj_2) == FAIL)
+    if (dest->Set(src) == FAIL)
     {
-        cout << "Error: could not bind " << obj->GetTypeName() << " to " << obj_2->GetTypeName() << endl;
+        cout << "Error: could not bind " << dest->GetTypeName() << " to " << src->GetTypeName() << endl;
         to = EMPTY_VAR_NAME;
     }
 
@@ -301,31 +291,30 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type)
 
     // makes sure that the variable being bound to a ref
     // is valid
-    if (!Table()->Has(var_id))
+
+    string ref_id_copy = ref_id;
+    string var_id_copy = var_id;
+
+    ChimeraObject *var = ProgramMem().GetData(ORIGINAL, var_id);
+    if (var == nullptr)
     {
         cout << "Error: cannot bind a reference to a nonexistent var\n";
         return EMPTY_VAR_NAME;
     }
-    else if (!Table()->CameFromVar(var_id))
+    else if (ProgramMem().IsTemp(var_id) || ProgramMem().IsConst(var_id))
     {
         cout << "Error: cannot bind ref to a temp value\n";
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *obj = Table()->GetEntry(Table()->GetParent(var_id));
-
-    if (obj == nullptr)
-    {
-        obj = Table()->GetEntry(var_id);
-    }
-
     // makes sure that the reference id is valid in cases
     // that a reference is being rebound
-    if (ref_type.empty() && Table()->Has(ref_id))
+    ChimeraObject *data_to_ref = ProgramMem().GetData(ORIGINAL, ref_id);
+    if (ref_type.empty() && data_to_ref != nullptr)
     {
-        ref_type = Table()->GetEntry(ref_id)->GetTypeName();
+        ref_type = data_to_ref->GetTypeName();
     }
-    else if (ref_type.empty() && !Table()->Has(ref_id))
+    else if (ref_type.empty())
     {
         cout << "Error: can't rebind a nonexistent ref\n";
         return EMPTY_VAR_NAME;
@@ -333,24 +322,26 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type)
 
     // makes sure that the right time of variable is being bound
     // to the same type of reference
-    if (obj->GetTypeName() != ref_type)
+    if (var->GetTypeName() != ref_type)
     {
-        cout << "Error: cannot reference type '" << obj->GetTypeName() << "' as " << ref_type << "-ref\n";
+        cout << "Error: cannot reference type '" << var->GetTypeName() << "' as " << ref_type << "-ref\n";
         return EMPTY_VAR_NAME;
     }
-    else if (obj->GetGeneralType() == UNION_DATA_TYPE)
+    else if (var->GetGeneralType() == UNION_DATA_TYPE)
     {
         cout << "Error: cannot make a reference to dynamic types 'unions'" << endl;
         return EMPTY_VAR_NAME;
     }
 
-    return Table()->AddOrUpdateRef(ref_id, obj);
+    ProgramMem().CreateRef(ref_id_copy, var_id_copy);
+    return ref_id;
 }
 
 string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string var_id_2, bool unknown)
 {
 
-    if (!Table()->Has(var_id_2))
+    ChimeraObject *union_data_var = ProgramMem().GetData(ORIGINAL, var_id_2);
+    if (union_data_var == nullptr)
     {
         cout << "Error: cannot make a union type, var " << var_id_2 << " doesn't exist\n";
         return EMPTY_VAR_NAME;
@@ -369,57 +360,50 @@ string ChmrInterpreter::MakeUnion(string var_id, vector<string> types, string va
             STRING_TYPE_NAME};
     }
 
-    ChimeraObject *from = Table()->GetEntry(var_id_2);
-    ChimeraObject *to = new ChimeraUnion(type_list, from);
+    string union_name = ProgramMem().CreateUnionData(var_id, type_list, union_data_var);
+    ChimeraObject *union_var = ProgramMem().GetData(ORIGINAL, union_name);
 
-    if (to->GetType() == UNDEFINED_DATA_TYPE)
+    if (union_var->GetType() == UNDEFINED_DATA_TYPE)
     {
         cout << "Error: initalized union with non-allowable type\n";
-        delete to;
+        ProgramMem().EraseData(union_name);
         return EMPTY_VAR_NAME;
     }
 
-    return Table()->AddEntry(var_id, to);
+    return union_name;
 }
 
 string ChmrInterpreter::CloneVarToTempVar(string var_id)
 {
 
-    if (!Table()->Has(var_id))
+    ChimeraObject *var = ProgramMem().GetData(CLONED, var_id);
+    if (var == nullptr)
     {
         cout << "Error: var doesn't exist\n";
         return EMPTY_VAR_NAME;
     }
 
-    ChimeraObject *obj = Table()->GetEntry(var_id);
-    string tmp = MakeBind(EMPTY_VAR_NAME, var_id, obj->GetTypeName());
-    Table()->SetParent(tmp, var_id);
-    return tmp;
+    return var_id;
 }
 
 string ChmrInterpreter::CastVarTo(string var_id, string type)
 {
-
-    if (!Table()->Has(var_id))
-    {
-        cout << "Error: var " << var_id << " doesn't exist\n";
+    if (ProgramMem().CastData(var_id, type) == FAIL) {
+        if (var_id.empty()) {
+            cout << "Error: " << var_id << " can't be cast because it doesn't exist" << endl;
+        }
+        else if (type.empty()) {
+            cout << "Error: trying to cast to invalid type '" << type << "'" << endl;
+        }
         return EMPTY_VAR_NAME;
     }
-
-    ChimeraObject *var = Table()->GetEntry(var_id)->ConvertTo(type);
-
-    if (var == nullptr)
-    {
-        cout << "Error: trying to convert to non-supported type " << type << endl;
-        return EMPTY_VAR_NAME;
-    }
-
-    return Table()->AddEntry(EMPTY_VAR_NAME, var);
+    
+    return var_id;
 }
 
 void ChmrInterpreter::GarbageCollect()
 {
-    Table()->FreeTempItems();
+    ProgramMem().CleanUp();
 }
 
 void ChmrInterpreter::CreateScope(string type)
@@ -435,14 +419,14 @@ void ChmrInterpreter::DestroyScope()
 int ChmrInterpreter::PrintVar(string var_id, char end)
 {
 
-    if (!Table()->Has(var_id))
+    ChimeraObject *var = ProgramMem().GetData(ORIGINAL, var_id);
+    if (var == nullptr)
     {
         cout << "Error: cannot print var " << var_id << '\n';
         return FAIL;
     }
 
-    ChimeraObject *obj = Table()->GetEntry(var_id);
-    cout << *obj << end;
+    cout << *var << end;
 
     return SUCCEED;
 }

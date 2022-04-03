@@ -44,16 +44,16 @@ ref                             { return REF; }
 map                             { Init(yylval.data); yylval.data->types = yytext; return MAP; }
 
 cast                            { return CAST; }
-less                            { return LESS; }
-greater                         { return GREATER; }
-less-equal                      { return LESS_EQUAL; }
-greater-equal                   { return GREATER_EQUAL; }
-equal                           { return EQUAL; }
-not-equal                       { return NOT_EQUAL; }
+(\<|less)                       { return LESS; }
+(>|greater)                     { return GREATER; }
+(\<=|less-equal)                { return LESS_EQUAL; }
+(>=|greater-equal)              { return GREATER_EQUAL; }
+(==|equal)                      { return EQUAL; }
+(!=|not-equal)                  { return NOT_EQUAL; }
 print                           { return PRINT; }
-and                             { return AND; }
-or                              { return OR; }
-not                             { return NOT; }
+(&|:S|and)                      { return AND; }
+(\^|:\\|or)                     { return OR; }
+(!|=o|not)                      { return NOT; }
 exit                            { return EXIT; }
 (\+|add)                        { return ADD; }
 (\-|sub)                        { return SUB; }
@@ -88,7 +88,7 @@ false                           { Init(yylval.data); yylval.data->bol_val = fals
 {ID}                            { Init(yylval.data); yylval.data->id = yytext; return ID; }
 -?{DEC}                         { Init(yylval.data); yylval.data->dou_val = strtod(yytext, nullptr); return DOUBLE_VAL; }
 -?{FLOAT}                       { Init(yylval.data); yylval.data->flo_val = strtod(yytext, nullptr); return FLOAT_VAL; }
--?{DIGIT}+                      { Init(yylval.data); yylval.data->int_val = strtod(yytext, nullptr); return INT_VAL; }
+-?{DIGIT}+                      { Init(yylval.data); yylval.data->int_val = stoll(string(yytext)); return INT_VAL; }
 \"{CHAR}*\"                     { Init(yylval.data); yylval.data->str_val.SetWithOmittedEnds(TextVal(yytext).c_str()); return STRING_VAL; }
 \'{CHAR}\'                      { Init(yylval.data); yylval.data->char_val = CharVal(yytext); return CHAR_VAL; }
 

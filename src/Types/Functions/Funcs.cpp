@@ -25,15 +25,15 @@ size_t ChmrFunc::GetStartPoint() {
 }
 
 size_t ChmrFunc::GetEndPoint() {
-    return m_call_point;
+    return m_end_of_func_point;
 }
 
 ChimeraObject* ChmrFunc::GetRet() {
     return ret_val;
 }
 
-void ChmrFunc::SetReturnPoint(size_t new_end_point) {
-    m_call_point = new_end_point;
+void ChmrFunc::SetFuncEndPoint(size_t new_end_point) {
+    m_end_of_func_point = new_end_point;
 }
 
 void ChmrFunc::AddParam(string name, string type) {
@@ -62,44 +62,35 @@ size_t ChmrFunc::ParamNums() {
 
 void ChmrFunc::CopyParamsToNewContext(
     vector<string> &names, 
-    vector<ChimeraObject*> &objs,
-    vector<bool> &can_ref_objs,
-    SymbolTable *tbl
+    Memory &tbl,
+    Memory &other_tbl
 ) {
-    for(size_t i = 0; i < objs.size(); i++) {
-        auto obj = objs[i];
-        auto name = names[i];
+    for(size_t i = 0; i < names.size(); i += 2) {
         switch(m_type) {
             case FUNC_SURO_TYPE: {
-                bool cant_ref = can_ref_objs[i];
-                if (cant_ref) {
-                    obj = objs[i]->Clone();
-                    tbl->OverwriteEntry(name, obj);
-                    continue;
-                }
-                tbl->AddOrUpdateRef(name, obj, true);
+                tbl.TransferData(names[i], names[i+1], other_tbl, [](string &name, Memory &mem) {
+                    return mem.IsTemp(name) || mem.IsConst(name) ? CLONED : ORIGINAL;
+                });
                 break;
             }
             case FUNC_FURO_TYPE: {
-                tbl->OverwriteEntry(name, obj->Clone());
+                tbl.TransferData(names[i], names[i+1], other_tbl, [](string &name, Memory &mem) {
+                    return CLONED;
+                });
                 break;
             }
             case FUNC_FUNC_TYPE: {
-                bool cant_ref = can_ref_objs[i];
+                tbl.TransferData(names[i], names[i+1], other_tbl, [](string &name, Memory &mem) {
+                    if (mem.IsTemp(name) || mem.IsConst(name)) {
+                        return CLONED;
+                    }
 
-                if (cant_ref) {
-                    obj = objs[i]->Clone();
-                    tbl->OverwriteEntry(name, obj);
-                    continue;
-                }
+                    if (mem.GetData(ORIGINAL, name)->GetGeneralType() == COLLECTION_DATA_TYPE) {
+                        return ORIGINAL;
+                    }
 
-                if (obj->GetGeneralType() != COLLECTION_DATA_TYPE) {
-                    obj = objs[i]->Clone();
-                    tbl->OverwriteEntry(name, obj);
-                }
-                else {
-                    tbl->AddOrUpdateRef(name, obj, true);
-                }
+                    return CLONED;
+                });
                 break;
             }
             default: {}

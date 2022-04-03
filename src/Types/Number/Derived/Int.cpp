@@ -24,12 +24,12 @@ int Int::Set(int64 &data) {
 }
 
 int Int::Set(float &data) {
-    m_data.integer = (int)data;
+    m_data.integer = data;
     return SUCCEED;
 }
 
 int Int::Set(long double &data) {
-    m_data.integer = (int)(float)data;
+    m_data.integer = data;
     return SUCCEED;
 }
 
@@ -45,23 +45,23 @@ int Int::Get(int64 &data) {
 }
 
 int Int::Add(Number &other) {
-    m_data.integer += (int)(float)GetOtherNumber(other);
+    m_data.integer += GetOtherNumber(other);
     return SUCCEED;
 }
 
 int Int::Subtract(Number &other) {
-    m_data.integer -= (int)(float)GetOtherNumber(other);
+    m_data.integer -= GetOtherNumber(other);
     return SUCCEED;
 }
 
 int Int::Multiply(Number &other) {
-    m_data.integer *= (int)(float)GetOtherNumber(other);
+    m_data.integer *= GetOtherNumber(other);
     return SUCCEED;
 }
 
 int Int::Divide(Number &other) {
     try {
-        m_data.integer /= (int)(float)DivideByZeroGuard(other);
+        m_data.integer /= DivideByZeroGuard(other);
     }
     catch(const char* msg){
         cout << msg;
