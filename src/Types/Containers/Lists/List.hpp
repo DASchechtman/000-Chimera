@@ -25,6 +25,8 @@ public:
     ChimeraObject* GetItem(int64 index);
     size_t Size();
     int SetToNewContainer(Container *new_container);
+    bool HasItem(ChimeraObject *item);
+    int RemoveItem(ChimeraObject *item);
 
     string ToStr();
     int64 ToInt();

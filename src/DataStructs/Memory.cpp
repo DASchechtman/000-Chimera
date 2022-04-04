@@ -161,6 +161,14 @@ bool Memory::IsConst(string &data_name) {
     return is_const;
 }
 
+bool Memory::IsRef(string &data_name) {
+    bool is_ref = m_ref_map.find(data_name) != m_ref_map.end();
+    if (!is_ref && m_mem_next != nullptr) {
+        is_ref = m_mem_next->IsRef(data_name);
+    }
+    return is_ref;
+}
+
 void Memory::CreateRef(const string &ref, const string &var) {
     m_ref_map[ref] = var;
 }
@@ -200,7 +208,11 @@ bool Memory::HasData(string &data_name) {
 }
 
 bool Memory::HasDataInLocalScope(string &data_name) {
-    return m_var_memory.Has(data_name) || m_transfered_data.find(data_name) != m_transfered_data.end();
+    return (
+        m_var_memory.Has(data_name)
+        || m_transfered_data.find(data_name) != m_transfered_data.end()
+        || m_ref_map.find(data_name) != m_ref_map.end()
+    );
 }
 
 void Memory::TransferData(string &data_name, string &ref_name, Memory &other_memory, MemStates (*Mode)(string &name, Memory &mem)) {

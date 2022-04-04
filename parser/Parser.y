@@ -71,7 +71,6 @@ extern char* yytext;
 %token ADD_LIST 
 %token ADD_MAP 
 %token SET 
-%token POINTS_TO
 %token START 
 %token END 
 %token IF 
@@ -89,6 +88,9 @@ extern char* yytext;
 %token CALL
 %token ASSIGN
 %token FUNC_RET
+%token HAS
+%token REMOVE
+%token TYPEOF
 
 %token <data> INT_VAL 
 %token <data> DOUBLE_VAL 
@@ -300,7 +302,7 @@ terms:                          term { $$ = new AstNode(); $$->SaveAsExtraNode($
                                 | terms[list] opt_newline term {$list->SaveAsExtraNode($term); $$ = $list; }
                                 ;
 
-keyValPairs:                    '|' opt_ws term[key] opt_ws POINTS_TO opt_ws term[val] opt_ws '|' {
+keyValPairs:                    '|' opt_ws term[key]  any_ws  term[val] opt_ws '|' {
                                     $$ = new AstNode();
                                     $$->SaveAsExtraNode($key);
                                     $$->SaveAsExtraNode($val);
@@ -332,6 +334,14 @@ keyVals:                        keyValPairs[kp] NEWLINE opt_ws {
                                     $$ = $prev;
                                 }
                                 | keyVals[prev] keyValPairs[kp] any_ws {
+                                    $prev->SaveAsExtraNode($kp->GetExtraNode());
+                                    $prev->SaveAsExtraNode($kp->GetExtraNode(1));
+                                    $kp->NullExtraNode(0);
+                                    $kp->NullExtraNode(1);
+                                    delete $kp;
+                                    $$ = $prev;
+                                }
+                                | keyVals[prev] keyValPairs[kp] {
                                     $prev->SaveAsExtraNode($kp->GetExtraNode());
                                     $prev->SaveAsExtraNode($kp->GetExtraNode(1));
                                     $kp->NullExtraNode(0);
@@ -429,13 +439,13 @@ assign:                         '(' ASSIGN opt_ws id opt_ws ':' opt_ws types any
                                 | '(' '=' opt_ws id any_ws expr opt_ws ')' {
                                    $$ = MakeReassignAst($id, $expr);
                                 }
-                                | '(' ASSIGN opt_ws id opt_ws ':' opt_ws types opt_ws '<' REF '>' any_ws expr opt_ws ')' {
+                                | '(' ASSIGN opt_ws id opt_ws ':' opt_ws '{' types any_ws REF '}' any_ws expr opt_ws ')' {
                                     $$ = MakeRefAst($id, $types, $expr);
                                 }
-                                | '(' '=' opt_ws id opt_ws ':' opt_ws types opt_ws '<' REF '>' any_ws expr opt_ws ')' {
+                                | '(' '=' opt_ws id opt_ws ':' opt_ws '{' types any_ws REF '}' any_ws expr opt_ws ')' {
                                     $$ = MakeRefAst($id, $types, $expr);
                                 }
-                                | '(' '=' opt_ws id any_ws expr opt_ws '<' REF '>' opt_ws ')' {
+                                | '(' '=' opt_ws id any_ws '{' REF any_ws expr '}' opt_ws ')' {
                                     $$ = MakeRebindRefAst($id, $expr);
                                 }
                                 ;
@@ -566,6 +576,16 @@ expr:                           term {
                                 }
                                 | expr[list] '.' SIZE {
                                     $$ = MakeCollectionSizeAst($list);
+                                }
+                                | expr[list] '.' HAS '|' expr[item] '|'{
+                                    $$ = MakeQueryContainerCmd($list, $item);
+                                }
+                                | expr[list] '.' REMOVE '|' expr[item] '|' {
+                                    $$ = MakeRemoveFromContainerCmd($list, $item);
+                                }
+                                | '(' TYPEOF any_ws expr[item] opt_ws ')' {
+                                    $$ = MakeNode(GET_TYPE_CMD);
+                                    $$->AddToLeftNodes($item);
                                 }
                                 | functionDeclStatement {
                                     $$ = $functionDeclStatement;

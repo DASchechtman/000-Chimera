@@ -17,5 +17,6 @@ string GetFromContainer(string container, string index, VarTbl tbl);
 string SetInContainer(string container, string index, string item, VarTbl tbl);
 string ReassignContainer(string old, string latest, VarTbl tbl);
 string GetContainerSize(string container, VarTbl tbl);
-
+string RemoveFromContainer(string container, string item, VarTbl tbl);
+string QueryContainer(string container, string item, VarTbl tbl);
 

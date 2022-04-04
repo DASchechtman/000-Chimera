@@ -37,6 +37,7 @@ public:
     void LinkOtherMemory(Memory *mem);
     bool IsTemp(string &data_name);
     bool IsConst(string &data_name);
+    bool IsRef(string &data_name);
     int CastData(string &data_name, string &type);
     void CleanUp();
     bool HasData(string &data_name);

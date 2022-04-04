@@ -289,19 +289,15 @@ string ChmrInterpreter::Rebind(string to, string from)
 string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type)
 {
 
-    // makes sure that the variable being bound to a ref
-    // is valid
-
     string ref_id_copy = ref_id;
     string var_id_copy = var_id;
 
-    ChimeraObject *var = ProgramMem().GetData(ORIGINAL, var_id);
-    if (var == nullptr)
+    if (!ProgramMem().HasData(var_id_copy))
     {
         cout << "Error: cannot bind a reference to a nonexistent var\n";
         return EMPTY_VAR_NAME;
     }
-    else if (ProgramMem().IsTemp(var_id) || ProgramMem().IsConst(var_id))
+    else if (ProgramMem().IsTemp(var_id_copy) || ProgramMem().IsConst(var_id_copy))
     {
         cout << "Error: cannot bind ref to a temp value\n";
         return EMPTY_VAR_NAME;
@@ -309,10 +305,10 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type)
 
     // makes sure that the reference id is valid in cases
     // that a reference is being rebound
-    ChimeraObject *data_to_ref = ProgramMem().GetData(ORIGINAL, ref_id);
-    if (ref_type.empty() && data_to_ref != nullptr)
+   
+    if (ref_type.empty() && ProgramMem().HasData(ref_id_copy))
     {
-        ref_type = data_to_ref->GetTypeName();
+        ref_type = ProgramMem().GetData(ORIGINAL, ref_id)->GetTypeName();
     }
     else if (ref_type.empty())
     {
@@ -322,6 +318,7 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type)
 
     // makes sure that the right time of variable is being bound
     // to the same type of reference
+    ChimeraObject *var = ProgramMem().GetData(ORIGINAL, var_id);
     if (var->GetTypeName() != ref_type)
     {
         cout << "Error: cannot reference type '" << var->GetTypeName() << "' as " << ref_type << "-ref\n";
@@ -330,6 +327,10 @@ string ChmrInterpreter::RefBind(string ref_id, string var_id, string ref_type)
     else if (var->GetGeneralType() == UNION_DATA_TYPE)
     {
         cout << "Error: cannot make a reference to dynamic types 'unions'" << endl;
+        return EMPTY_VAR_NAME;
+    }
+    else if (ProgramMem().HasData(ref_id_copy) && !ProgramMem().IsRef(ref_id_copy)) {
+        cout << "Error: cannot use non reference var to reference data" << endl;
         return EMPTY_VAR_NAME;
     }
 

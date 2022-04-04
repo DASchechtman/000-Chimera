@@ -24,6 +24,8 @@ public:
 
     virtual int PutItem(ChimeraObject *data);
     virtual size_t Size();
+    virtual bool HasItem(ChimeraObject *item) = 0;
+    virtual int RemoveItem(ChimeraObject *item) = 0;
     virtual int SetToNewContainer(Container *new_container) = 0;
 
     virtual int SetItem(int64 index, ChimeraObject *data);

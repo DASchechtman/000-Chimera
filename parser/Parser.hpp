@@ -87,35 +87,37 @@ extern int yydebug;
     ADD_LIST = 287,
     ADD_MAP = 288,
     SET = 289,
-    POINTS_TO = 290,
-    START = 291,
-    END = 292,
-    IF = 293,
-    ELSE = 294,
-    WHILE = 295,
-    SIZE = 296,
-    REPEAT = 297,
-    WITH = 298,
-    INC = 299,
-    MOD = 300,
-    GET = 301,
-    SURO = 302,
-    FURO = 303,
-    FUNC = 304,
-    CALL = 305,
-    ASSIGN = 306,
-    FUNC_RET = 307,
-    INT_VAL = 308,
-    DOUBLE_VAL = 309,
-    STRING_VAL = 310,
-    CHAR_VAL = 311,
-    BOOL_VAL = 312,
-    ELSE_IF = 313,
-    FLOAT_VAL = 314,
-    ID = 315,
-    UNKNOWN = 316,
-    MULTI_WS = 317,
-    SINGLE_WS = 318
+    START = 290,
+    END = 291,
+    IF = 292,
+    ELSE = 293,
+    WHILE = 294,
+    SIZE = 295,
+    REPEAT = 296,
+    WITH = 297,
+    INC = 298,
+    MOD = 299,
+    GET = 300,
+    SURO = 301,
+    FURO = 302,
+    FUNC = 303,
+    CALL = 304,
+    ASSIGN = 305,
+    FUNC_RET = 306,
+    HAS = 307,
+    REMOVE = 308,
+    TYPEOF = 309,
+    INT_VAL = 310,
+    DOUBLE_VAL = 311,
+    STRING_VAL = 312,
+    CHAR_VAL = 313,
+    BOOL_VAL = 314,
+    ELSE_IF = 315,
+    FLOAT_VAL = 316,
+    ID = 317,
+    UNKNOWN = 318,
+    MULTI_WS = 319,
+    SINGLE_WS = 320
   };
 #endif
 
@@ -128,7 +130,7 @@ union YYSTYPE
     YYSTYPEs *data;
     AstNode *tmp_id;
 
-#line 132 "./parser/Parser.hpp"
+#line 134 "./parser/Parser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

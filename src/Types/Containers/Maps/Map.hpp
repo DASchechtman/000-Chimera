@@ -15,12 +15,13 @@ using namespace std;
 struct MapItem {
     ChimeraObject *val = nullptr;
     struct Key {
-        int64 i;
-        float f;
-        dbl128 d;
-        char32_t c;
+        int64 i = 0;
+        float f = 0;
+        dbl128 d = 0;
+        char32_t c = 0;
         string s;
-        bool b;
+        bool b = false;
+        string key_type;
     } key;
     bool was_cloned = false;
 
@@ -115,6 +116,8 @@ public:
     int PutItem(ChimeraObject *data);
     size_t Size();
     int SetToNewContainer(Container *new_container);
+    bool HasItem(ChimeraObject *item);
+    int RemoveItem(ChimeraObject *item);
     void SetDeclaredType(VAR_TYPES type);
     VAR_TYPES GetDeclaredType();
 

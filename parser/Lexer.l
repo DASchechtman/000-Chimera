@@ -22,7 +22,7 @@ DIGIT                   [0-9]
 DEC                     ({DIGIT}+[.]{DIGIT}+|[.]{DIGIT}+|{DIGIT}+d)
 FLOAT                   ({DEC}f|{DIGIT}+f)
 CHAR                    (\\.|[^\\"])
-SINGLE_CHAR_TOKS        [=:()+\-*/|^&\[\]<>.{}]
+SINGLE_CHAR_TOKS        [=:()/|\[\].{}]
 SINGLE_SEP              [ \f\v\t]
 MULTI_SEP               {SINGLE_SEP}{2,}
 COMMENT                 #[^\n]*\n?
@@ -66,7 +66,6 @@ addTo                           { return ADD_LIST; }
 put                             { return ADD_MAP; }
 set                             { return SET; }
 get                             { return GET; }
-->                              { return POINTS_TO; }
 start                           { return START; }
 end                             { return END; }
 if                              { return IF; }
@@ -82,6 +81,9 @@ furo                            { return FURO; }
 func                            { return FUNC; }
 call                            { return CALL; }
 return                          { return FUNC_RET; }
+has                             { return HAS; }
+remove                          { return REMOVE; }
+typeof                          { return TYPEOF; }
 
 true                            { Init(yylval.data); yylval.data->bol_val = true; return BOOL_VAL; }
 false                           { Init(yylval.data); yylval.data->bol_val = false; return BOOL_VAL; }

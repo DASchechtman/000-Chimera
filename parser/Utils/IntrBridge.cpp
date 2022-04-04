@@ -363,6 +363,20 @@ AstNode* MakeFuncParamAst(AstNode *name, AstNode *type) {
     return param;
 }
 
+AstNode* MakeRemoveFromContainerCmd(AstNode *container, AstNode *item) {
+    AstNode *node = MakeNode(REMOVE_FROM_CONTAINER_CMD);
+    node->AddToLeftNodes(container);
+    node->AddToRightNodes(item);
+    return node;
+}
+
+AstNode* MakeQueryContainerCmd(AstNode *container, AstNode *item) {
+    AstNode *node = MakeNode(QUERY_CONTAINER_CMD);
+    node->AddToLeftNodes(container);
+    node->AddToRightNodes(item);
+    return node;
+}
+
 AstNode* MakeTermNode(string data, DataType type) {
     return MakeNode(RAW_DATA_CMD, data, type);
 }

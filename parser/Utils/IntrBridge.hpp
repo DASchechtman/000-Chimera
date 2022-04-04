@@ -53,6 +53,8 @@ AstNode* MakeIncAst                             (AstNode *node);
 AstNode* MakeModAst                             (AstNode *left, AstNode *right);
 AstNode* MakeFuncAst                            (AstNode *name, AstNode *params, AstNode *ret_type);
 AstNode* MakeFuncParamAst                       (AstNode *name, AstNode *type);
+AstNode *MakeRemoveFromContainerCmd             (AstNode *container, AstNode *item);
+AstNode *MakeQueryContainerCmd                  (AstNode *container, AstNode *item);
 
 AstNode* MakeTermNode                           (string data, DataType type);
 AstNode* MakeDataTypeNode                       (string type);

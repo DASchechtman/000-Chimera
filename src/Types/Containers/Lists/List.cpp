@@ -109,6 +109,34 @@ int List::SetToNewContainer(Container *new_list)
     return SUCCEED;
 }
 
+bool List::HasItem(ChimeraObject *item) {
+    bool has = false;
+    for (auto el : m_list) {
+        has = el->GetType() == item->GetType() && el->ToStr() == item->ToStr();
+        if (has) { break; }
+    }
+    return has;
+}
+
+int List::RemoveItem(ChimeraObject *item) {
+    int removed = FAIL;
+    for (size_t i = 0; i < m_list.size(); i++) {
+        ChimeraObject *el = m_list[i];
+        bool has = el->GetType() == item->GetType() && el->ToStr() == item->ToStr();
+        
+        if (has && removed == FAIL) {
+            delete m_list[i];
+            removed = SUCCEED;
+        }
+
+        if (removed == SUCCEED && i + 1 < m_list.size()) {
+            m_list[i] = m_list[i+1];
+        }
+    }
+    m_list.pop_back();
+    return removed;
+}
+
 string List::ToStr()
 {
     string str_rep = "[";

@@ -262,3 +262,41 @@ string GetContainerSize(string container, VarTbl tbl) {
     cout << "Error: cannot get size of non-container.\n";
     return EMPTY_VAR_NAME;
 }
+
+string RemoveFromContainer(string container, string item, VarTbl tbl) {
+    if (!tbl.HasData(container) || !tbl.HasData(item)) {
+        cout << "Error: cannot remove item from nonexistent container" << endl;
+        return EMPTY_VAR_NAME;
+    }
+
+    ChimeraObject *obj_container = tbl.GetData(ORIGINAL, container);
+    ChimeraObject *obj_item = tbl.GetData(ORIGINAL, item);
+
+    if (obj_container->GetGeneralType() != COLLECTION_DATA_TYPE) {
+        cout << "Error: cannot remove item from a non-collection type" << endl;
+        return EMPTY_VAR_NAME;
+    }
+
+    ((Container*)obj_container)->RemoveItem(obj_item);
+
+    return item;
+}
+
+string QueryContainer(string container, string item, VarTbl tbl) {
+    if (!tbl.HasData(container) || !tbl.HasData(item)) {
+        cout << "Error: cannot remove item from nonexistent container" << endl;
+        return EMPTY_VAR_NAME;
+    }
+
+    ChimeraObject *obj_container = tbl.GetData(ORIGINAL, container);
+    ChimeraObject *obj_item = tbl.GetData(ORIGINAL, item);
+
+    if (obj_container->GetGeneralType() != COLLECTION_DATA_TYPE) {
+        cout << "Error: cannot remove item from a non-collection type" << endl;
+        return EMPTY_VAR_NAME;
+    }
+
+    bool res = ((Container*)obj_container)->HasItem(obj_item);
+
+    return tbl.GetConstsData(res);
+}

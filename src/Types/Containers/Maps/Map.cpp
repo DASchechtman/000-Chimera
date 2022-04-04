@@ -74,6 +74,34 @@ int Map::SetToNewContainer(Container *new_container)
     return SUCCEED;
 }
 
+bool Map::HasItem(ChimeraObject *item) {
+    string val = item->ToStr();
+    return GetData(StrHash(val), val) != nullptr;
+}
+
+int Map::RemoveItem(ChimeraObject *item) {
+    string val = item->ToStr();
+    size_t index = StrHash(val);
+    int removed = FAIL;
+
+    if (m_map[index] != nullptr) {
+        auto start = m_map[index]->begin();
+        auto end = m_map[index]->end();
+
+        while(start != end) {
+            if (start->EqualsKey(val)) {
+                start->was_cloned=true;
+                m_map[index]->erase(start);
+                removed = SUCCEED;
+                break;
+            }
+            start++;
+        }
+    }
+
+    return removed;
+}
+
 void Map::SetDeclaredType(VAR_TYPES type)
 {
     m_declared_type = type;
@@ -448,50 +476,7 @@ string Map::ToStr()
 
         for (auto start = item->begin(); start != item->end(); start++)
         {
-            switch (m_key_type)
-            {
-            case INT_DATA_TYPE:
-            {
-                str_val << start->key.i;
-                break;
-            }
-            case FLOAT_DATA_TYPE:
-            {
-                str_val << start->key.f;
-                break;
-            }
-            case DOUBLE_DATA_TYPE:
-            {
-                str_val << start->key.d;
-                break;
-            }
-            case CHAR_DATA_TYPE:
-            {
-                str_val << "'" << (char)start->key.c << "'";
-                break;
-            }
-            case STRING_DATA_TYPE:
-            {
-                str_val << '"' << start->key.s << '"';
-                break;
-            }
-            case BOOL_DATA_TYPE:
-            {
-                if (start->key.b)
-                {
-                    str_val << "true";
-                }
-                else
-                {
-                    str_val << "false";
-                }
-                break;
-            }
-
-            default:
-            {
-            }
-            }
+            str_val << start->key.s;
 
             str_val << ": ";
             switch (start->val->GetType())

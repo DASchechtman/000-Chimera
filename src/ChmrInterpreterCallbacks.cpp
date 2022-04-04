@@ -658,4 +658,26 @@ void ChmrInterpreter::GenerateCallbacks()
         i->GoTo(func->GetEndPoint());
         return func_name;
     };
+
+    callbacks[REMOVE_FROM_CONTAINER_CMD] = [](AstNode *root, CInter i) {
+        string container = i->RunAst(root->GetFromLeftNodes());
+        string item = i->RunAst(root->GetFromRightNodes());
+        return RemoveFromContainer(container, item, i->ProgramMem());
+    };
+
+    callbacks[QUERY_CONTAINER_CMD] = [](AstNode *root, CInter i) {
+        string container = i->RunAst(root->GetFromLeftNodes());
+        string item = i->RunAst(root->GetFromRightNodes());
+        return QueryContainer(container, item, i->ProgramMem());
+    };
+    
+    callbacks[GET_TYPE_CMD] = [](AstNode *root, CInter i) {
+        string var = i->RunAst(root->GetFromLeftNodes());
+        if (!i->ProgramMem().HasData(var)) {
+            cout << "Error: cannot get type of non-existent data" << endl;
+            return EMPTY_VAR_NAME;
+        }
+        string type_name = i->ProgramMem().GetData(ORIGINAL, var)->GetTypeName();
+        return i->ProgramMem().GetConstsData(type_name);
+    };
 }
