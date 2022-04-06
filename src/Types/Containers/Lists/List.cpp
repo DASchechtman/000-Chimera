@@ -65,7 +65,7 @@ int List::PutItem(ChimeraObject *item)
     return SUCCEED;
 }
 
-int List::SetItem(int64 index, ChimeraObject *item)
+int List::SetItem(chmr_int index, ChimeraObject *item)
 {
     if (index < 0 || (size_t)index >= m_list.size())
     {
@@ -78,7 +78,7 @@ int List::SetItem(int64 index, ChimeraObject *item)
     return SUCCEED;
 }
 
-ChimeraObject *List::GetItem(int64 index)
+ChimeraObject *List::GetItem(chmr_int index)
 {
     if (index < 0 || (size_t)index >= m_list.size())
     {
@@ -99,7 +99,7 @@ int List::SetToNewContainer(Container *new_list)
 
     for (size_t i = 0; i < new_list->Size(); i++)
     {
-        int completed = SetItem((int64)i, new_list->GetItem((int64)i));
+        int completed = SetItem((chmr_int)i, new_list->GetItem((chmr_int)i));
         if (completed == FAIL)
         {
             return FAIL;
@@ -152,9 +152,9 @@ string List::ToStr()
     return str_rep;
 }
 
-int64 List::ToInt()
+chmr_int List::ToInt()
 {
-    int64 sum = 0;
+    chmr_int sum = 0;
     for (ChimeraObject *const &item : m_list)
     {
         sum += item->ToInt();
@@ -162,9 +162,9 @@ int64 List::ToInt()
     return sum;
 }
 
-float List::ToFloat()
+chmr_flt List::ToFloat()
 {
-    float sum = 0;
+    chmr_flt sum = 0;
     for (ChimeraObject *const &item : m_list)
     {
         sum += item->ToFloat();
@@ -172,9 +172,9 @@ float List::ToFloat()
     return sum;
 }
 
-dbl128 List::ToDouble()
+chmr_dbl List::ToDouble()
 {
-    dbl128 sum = 0;
+    chmr_dbl sum = 0;
     for (ChimeraObject *const &item : m_list)
     {
         sum += item->ToDouble();
@@ -182,7 +182,7 @@ dbl128 List::ToDouble()
     return sum;
 }
 
-char32_t List::ToChar()
+chmr_char List::ToChar()
 {
     return m_list[0]->ToChar();
 }

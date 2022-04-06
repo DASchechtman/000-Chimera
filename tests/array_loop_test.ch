@@ -6,7 +6,12 @@ while (less x 20) start
     (= x (add x 1))
 end
 
-(= x 0)
+$
+daf
+$
+
+# hello world
+(= x 0.99)
 
 while (less x arr.size) start
     if (less (get arr x) 10) start

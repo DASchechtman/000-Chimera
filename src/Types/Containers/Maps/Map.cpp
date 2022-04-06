@@ -76,7 +76,23 @@ int Map::SetToNewContainer(Container *new_container)
 
 bool Map::HasItem(ChimeraObject *item) {
     string val = item->ToStr();
-    return GetData(StrHash(val), val) != nullptr;
+    size_t index = StrHash(val);
+    bool has = false;
+
+    if (m_map[index] != nullptr) {
+        auto start = m_map[index]->begin();
+        auto end = m_map[index]->end();
+
+        while(start != end) {
+            if (start->EqualsKey(val)) {
+                has = true;
+                break;
+            }
+            start++;
+        }
+    }
+
+    return has;
 }
 
 int Map::RemoveItem(ChimeraObject *item) {
@@ -115,7 +131,7 @@ VAR_TYPES Map::GetDeclaredType()
 size_t Map::Hash(ChimeraObject *item)
 {
     size_t total_size = Size() == 0 ? 1 : Size();
-    unsigned long long hash = item->ToInt();
+    chmr_int hash = item->ToInt();
     return hash % total_size;
 }
 
@@ -227,92 +243,27 @@ int Map::MapData(size_t hash, VAR_TYPES key_type, ChimeraObject *data, MapItem i
 
 void Map::RehashIndexes()
 {
-    vector<list<MapItem> *> copy = m_map;
     size_t new_size = m_map.size() * 2;
+    size_t non_null_items = 0;
+    vector<list<MapItem>*> copy;
 
-    for (size_t i = 0; i < new_size; i++)
-    {
-        if (i < m_map.size())
-        {
-            if (m_map[i] != nullptr)
-            {
-                m_map[i] = nullptr;
-            }
-        }
-        else
-        {
-            m_map.push_back(nullptr);
-            free_hash_indexes++;
-        }
+    for(size_t i = 0; i < m_map.size(); i++) {
+        copy.push_back(m_map[i]);
+        non_null_items = m_map[i] != nullptr ? non_null_items + 1 : non_null_items;
+        m_map[i] = nullptr;
     }
 
-    for (list<MapItem> *const item : copy)
-    {
-        if (item != nullptr)
-        {
-            auto start = item->begin();
-            auto end = item->end();
-            size_t cur_index = 0;
+    m_map.resize(new_size, nullptr);
 
-            switch (start->val->GetType())
-            {
-            case INT_DATA_TYPE:
-            {
-                cur_index = NonStrHash(start->key.i);
-                break;
-            }
-            case FLOAT_DATA_TYPE:
-            {
-                cur_index = NonStrHash(start->key.f);
-                break;
-            }
-            case DOUBLE_DATA_TYPE:
-            {
-                cur_index = NonStrHash(start->key.d);
-                break;
-            }
-            case CHAR_DATA_TYPE:
-            {
-                cur_index = NonStrHash(start->key.c);
-                break;
-            }
-            case BOOL_DATA_TYPE:
-            {
-                cur_index = NonStrHash(start->key.b);
-                break;
-            }
-            case STRING_DATA_TYPE:
-            {
-                cur_index = StrHash(start->key.s);
-                break;
-            }
-            case MAP_DATA_TYPE:
-            case LIST_DATA_TYPE:
-            {
-                cur_index = StrHash(start->val->ToStr());
-                break;
-            }
-            default:
-            {
-            }
-            }
-
-            while (start != end)
-            {
-
-                if (m_map[cur_index] == nullptr)
-                {
-                    m_map[cur_index] = new list<MapItem>();
-                }
-
-                MapItem new_item(start->val, start->key);
-                m_map[cur_index]->push_back(new_item);
-                start++;
-            }
-
-            delete item;
-        }
+    for(auto el : copy) {
+        if (el == nullptr) { continue; }
+        auto start = el->begin();
+        size_t index = StrHash(start->key.s);
+        m_map[index] = el;
     }
+
+    free_hash_indexes = m_map.size() - non_null_items;
+
 }
 
 void Map::FreeHashIndex(list<MapItem> *index)
@@ -360,7 +311,7 @@ size_t Map::Size()
     return m_size;
 }
 
-int Map::SetItem(int64 index, ChimeraObject *data)
+int Map::SetItem(chmr_int index, ChimeraObject *data)
 {
     MapItem item;
     item.val = data;
@@ -368,7 +319,7 @@ int Map::SetItem(int64 index, ChimeraObject *data)
     return SetData(index, data, INT_DATA_TYPE, item);
 }
 
-int Map::SetItem(float index, ChimeraObject *data)
+int Map::SetItem(chmr_flt index, ChimeraObject *data)
 {
     MapItem item;
     item.val = data;
@@ -376,7 +327,7 @@ int Map::SetItem(float index, ChimeraObject *data)
     return SetData(index, data, FLOAT_DATA_TYPE, item);
 }
 
-int Map::SetItem(dbl128 index, ChimeraObject *data)
+int Map::SetItem(chmr_dbl index, ChimeraObject *data)
 {
     MapItem item;
     item.val = data;
@@ -384,7 +335,7 @@ int Map::SetItem(dbl128 index, ChimeraObject *data)
     return SetData(index, data, DOUBLE_DATA_TYPE, item);
 }
 
-int Map::SetItem(char32_t index, ChimeraObject *data)
+int Map::SetItem(chmr_char index, ChimeraObject *data)
 {
     MapItem item;
     item.val = data;
@@ -408,25 +359,25 @@ int Map::SetItem(bool index, ChimeraObject *data)
     return SetData(index, data, BOOL_DATA_TYPE, item);
 }
 
-ChimeraObject *Map::GetItem(int64 index)
+ChimeraObject *Map::GetItem(chmr_int index)
 {
     size_t hash = NonStrHash(index);
     return GetData(hash, index);
 }
 
-ChimeraObject *Map::GetItem(float index)
+ChimeraObject *Map::GetItem(chmr_flt index)
 {
     size_t hash = NonStrHash(index);
     return GetData(hash, index);
 }
 
-ChimeraObject *Map::GetItem(dbl128 index)
+ChimeraObject *Map::GetItem(chmr_dbl index)
 {
     size_t hash = NonStrHash(index);
     return GetData(hash, index);
 }
 
-ChimeraObject *Map::GetItem(char32_t index)
+ChimeraObject *Map::GetItem(chmr_char index)
 {
     size_t hash = NonStrHash(index);
     return GetData(hash, index);
@@ -476,57 +427,7 @@ string Map::ToStr()
 
         for (auto start = item->begin(); start != item->end(); start++)
         {
-            str_val << start->key.s;
-
-            str_val << ": ";
-            switch (start->val->GetType())
-            {
-            case INT_DATA_TYPE:
-            {
-                int64 data;
-                start->val->Get(data);
-                str_val << data;
-                break;
-            }
-            case FLOAT_DATA_TYPE:
-            {
-                float data;
-                start->val->Get(data);
-                str_val << data;
-                break;
-            }
-            case DOUBLE_DATA_TYPE:
-            {
-                dbl128 data;
-                start->val->Get(data);
-                str_val << data;
-                break;
-            }
-            case CHAR_DATA_TYPE:
-            {
-                char32_t data;
-                start->val->Get(data);
-                str_val << "'" << (char)data << "'";
-                break;
-            }
-            case STRING_DATA_TYPE:
-            {
-                string data;
-                start->val->Get(data);
-                str_val << '"' << data << '"';
-                break;
-            }
-            case BOOL_DATA_TYPE:
-            {
-                str_val << start->val->ToStr();
-                break;
-            }
-
-            default:
-            {
-                str_val << start->val->ToStr();
-            }
-            }
+            str_val << start->key.s << ": " << start->val->ToStr();
 
             if (index < max_size - 1)
             {
@@ -538,26 +439,25 @@ string Map::ToStr()
 
     str_val << "}";
 
-    auto val = str_val.str();
-    return val;
+    return str_val.str();
 }
 
-int64 Map::ToInt()
+chmr_int Map::ToInt()
 {
-    return (int64)Size();
+    return (chmr_int)Size();
 }
 
-float Map::ToFloat()
+chmr_flt Map::ToFloat()
 {
-    return (float)Size();
+    return (chmr_flt)Size();
 }
 
-dbl128 Map::ToDouble()
+chmr_dbl Map::ToDouble()
 {
-    return (dbl128)Size();
+    return (chmr_dbl)Size();
 }
 
-char32_t Map::ToChar()
+chmr_char Map::ToChar()
 {
     return m_map[0]->begin()->val->ToChar();
 }

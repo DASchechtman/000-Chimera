@@ -82,19 +82,19 @@ string ChimeraUnion::GetTypeName() {
     return EMPTY_VAR_NAME;
 }
 
-int ChimeraUnion::Set(int64 &data) {
+int ChimeraUnion::Set(chmr_int &data) {
     return SetTo(INT_DATA_TYPE, INT_TYPE_NAME, data);
 }
 
-int ChimeraUnion::Set(float &data) {
+int ChimeraUnion::Set(chmr_flt &data) {
     return SetTo(FLOAT_DATA_TYPE, FLOAT_TYPE_NAME, data);
 }
 
-int ChimeraUnion::Set(long double &data) {
+int ChimeraUnion::Set(chmr_dbl &data) {
     return SetTo(DOUBLE_DATA_TYPE, DOUBLE_TYPE_NAME, data);
 }
 
-int ChimeraUnion::Set(char32_t &data) {
+int ChimeraUnion::Set(chmr_char &data) {
     return SetTo(CHAR_DATA_TYPE, CHAR_TYPE_NAME, data);
 }
 
@@ -129,19 +129,19 @@ int ChimeraUnion::Set(ChimeraObject *data) {
     return FAIL;
 }
 
-int ChimeraUnion::Get(int64 &data) {
+int ChimeraUnion::Get(chmr_int &data) {
     return GetFrom(data);
 }
 
-int ChimeraUnion::Get(float &data) {
+int ChimeraUnion::Get(chmr_flt &data) {
     return GetFrom(data);
 }
 
-int ChimeraUnion::Get(long double &data) {
+int ChimeraUnion::Get(chmr_dbl &data) {
     return GetFrom(data);
 }
 
-int ChimeraUnion::Get(char32_t &data) {
+int ChimeraUnion::Get(chmr_char &data) {
     return GetFrom(data);
 }
 
@@ -160,28 +160,28 @@ string ChimeraUnion::ToStr() {
     return m_var->ToStr();
 }
 
-int64 ChimeraUnion::ToInt() {
+chmr_int ChimeraUnion::ToInt() {
     if (m_var == nullptr) {
         return 0;
     }
     return m_var->ToInt();
 }
 
-float ChimeraUnion::ToFloat() {
+chmr_flt ChimeraUnion::ToFloat() {
     if (m_var == nullptr) {
         return 0;
     }
     return m_var->ToFloat();
 }
 
-long double ChimeraUnion::ToDouble() {
+chmr_dbl ChimeraUnion::ToDouble() {
     if(m_var == nullptr) {
         return 0;
     }
     return m_var->ToDouble();
 }
 
-char32_t ChimeraUnion::ToChar() {
+chmr_char ChimeraUnion::ToChar() {
     if (m_var == nullptr) {
         return '\0';
     }

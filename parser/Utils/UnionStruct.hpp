@@ -23,9 +23,9 @@ struct YYSTYPEs {
     // representations of data types in Chimera
     StrWrapper str_val;
     char32_t char_val;
-    int64 int_val;
+    chmr_int int_val;
     float flo_val;
-    dbl128 dou_val;
+    chmr_dbl dou_val;
     bool bol_val;
 };
 

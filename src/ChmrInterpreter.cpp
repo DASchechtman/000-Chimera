@@ -52,28 +52,28 @@ string ChmrInterpreter::MakeBind(string to, string from, string type)
     {
     case INT_DATA_TYPE:
     {
-        int64 data = 0;
+        chmr_int data = 0;
         obj->Get(data);
         var_id = CloneOrCreateVar(to, type, data);
         break;
     }
     case FLOAT_DATA_TYPE:
     {
-        float data = 0;
+        chmr_flt data = 0;
         obj->Get(data);
         var_id = CloneOrCreateVar(to, type, data);
         break;
     }
     case DOUBLE_DATA_TYPE:
     {
-        long double data = 0;
+        chmr_dbl data = 0;
         obj->Get(data);
         var_id = CloneOrCreateVar(to, type, data);
         break;
     }
     case CHAR_DATA_TYPE:
     {
-        char32_t data = 'a';
+        chmr_char data = 'a';
         obj->Get(data);
         var_id = CloneOrCreateVar(to, type, data);
         break;
@@ -469,8 +469,6 @@ void ChmrInterpreter::RunCurInstruction(size_t end, bool is_base_call)
             return -1;
         }
 
-        size_t cur_level = CurScopeLevel();
-
         i->ProcessCtrlStructure(node);
         
         while (true)
@@ -499,9 +497,7 @@ void ChmrInterpreter::RunCurInstruction(size_t end, bool is_base_call)
             i->ConvertJumpPointsToScopeTree();
         }
 
-        bool is_ret = (node->Type() == FUNC_RETR_CMD) && cur_level == SIZE_MAX;
-        CurInstruction() += is_ret;
-        return (int)is_ret;
+        return 0;
     };
 
     while (CurInstruction() < end)
@@ -514,9 +510,6 @@ void ChmrInterpreter::RunCurInstruction(size_t end, bool is_base_call)
         }
 
         RunAst(node);
-        if (node->Type() == FUNC_RETR_CMD) {
-            break;
-        }
 
         CurInstruction()++;
 

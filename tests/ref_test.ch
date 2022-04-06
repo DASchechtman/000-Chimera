@@ -6,12 +6,12 @@
 (= b1:bool true)
 (= s1:string "hello world")
 
-(= ir1:int<ref> i1)
-(= fr1:float<ref> f1)
-(= dr1:double<ref> d1)
-(= cr1:char<ref> c1)
-(= br1:bool<ref> b1)
-(= sr1:string<ref> s1)
+(= ir1:{int ref} i1)
+(= fr1:{float ref} f1)
+(= dr1:{double ref} d1)
+(= cr1:{char ref} c1)
+(= br1:{bool ref} b1)
+(= sr1:{string ref} s1)
 
 print|"testing refs\n"|
 
@@ -34,12 +34,12 @@ print|"bool:" b1 "bool ref:" br1|
 print|"string:" s1 "<----> string ref:" sr1|
 
 (= s2:string "hello moon")
-(= sr1 s2<ref>)
+(= sr1 {ref s2})
 print|sr1|
 
 (= sr1 "hello sun")
-print|sr1 s2|
+print|sr1 s2 s1|
 
 print|"should crash"|
 (= new_data:int 99)
-(= sr1 new_data<ref>)
+(= sr1 {ref new_data})

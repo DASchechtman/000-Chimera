@@ -16,7 +16,7 @@ suro fizzbuzz|i: int|: int start
     print|output|
 end
 
-(var run_func:bool true)
+(var run_func:bool false)
 
 repeat 16 with i start
     if run_func start

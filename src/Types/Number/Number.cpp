@@ -5,16 +5,16 @@ using namespace std;
 
 // PRIVATE METHODS BELOW ---------------------------------------------------------------------------------------------------------------------------------------
 
-long double Number::GetOtherNumber(Number &other) {
-    long double data = 0;
+chmr_dbl Number::GetOtherNumber(Number &other) {
+    chmr_dbl data = 0;
 
     if (other.GetType() == INT_DATA_TYPE) {
-        int64 tmp_data = 0;
+        chmr_int tmp_data = 0;
         other.Get(tmp_data);
         data = tmp_data;
     }
     else if (other.GetType() == FLOAT_DATA_TYPE) {
-        float tmp_data = 0;
+        chmr_flt tmp_data = 0;
         other.Get(tmp_data);
         data = tmp_data;
     }
@@ -22,7 +22,7 @@ long double Number::GetOtherNumber(Number &other) {
         other.Get(data);
     }
     else if (other.GetType() == CHAR_DATA_TYPE) {
-        char32_t tmp_data = 0;
+        chmr_char tmp_data = 0;
         other.Get(tmp_data);
         data = tmp_data;
     }
@@ -33,8 +33,8 @@ long double Number::GetOtherNumber(Number &other) {
     return data;
 }
 
-dbl128 Number::DivideByZeroGuard(Number &other) {
-    dbl128 data = 0;
+chmr_dbl Number::DivideByZeroGuard(Number &other) {
+    chmr_dbl data = 0;
     bool execption_thrown = false;
 
     try {
@@ -68,7 +68,7 @@ Number::Number() {
     SetGeneralType(NUMBER_DATA_TYPE);
 }
 
-long double Number::GetNumber() {
+chmr_dbl Number::GetNumber() {
    return GetOtherNumber(*this);
 }
 

@@ -145,7 +145,7 @@ string GetFromContainer(string container, string index, VarTbl tbl) {
     string empty_name = EMPTY_VAR_NAME;
     
     if (data_struct->GetType() == LIST_DATA_TYPE) {
-        int64 index_val;
+        chmr_int index_val;
         if (index_obj->Get(index_val) == FAIL) {
             return EMPTY_VAR_NAME;
         }
@@ -202,7 +202,7 @@ string SetInContainer(string container, string index, string item, VarTbl tbl) {
     ChimeraObject *container_obj = GetObjContents(tbl.GetData(ORIGINAL, container));
 
     if (container_obj->GetType() == LIST_DATA_TYPE) {
-        int64 index_val;
+        chmr_int index_val;
         ChimeraObject *index_obj = GetObjContents(tbl.GetData(ORIGINAL, index));
         ChimeraObject *item_obj = GetObjContents(tbl.GetData(ORIGINAL, item));
         index_obj->Get(index_val);
@@ -253,7 +253,7 @@ string GetContainerSize(string container, VarTbl tbl) {
     ChimeraObject *container_obj = GetObjContents(tbl.GetData(ORIGINAL, container));
 
     if(container_obj->GetGeneralType() == COLLECTION_DATA_TYPE) {
-        int64 size = (int64)((Container*) container_obj)->Size();
+        chmr_int size = (chmr_int)((Container*) container_obj)->Size();
         string empty_name = EMPTY_VAR_NAME;
         string container_size = tbl.CreateData(empty_name, INT_DATA_TYPE);
         tbl.InitData(size, container_size);

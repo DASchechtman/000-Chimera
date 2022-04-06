@@ -229,3 +229,11 @@ void Memory::TransferData(string &data_name, string &ref_name, Memory &other_mem
         m_transfered_data[ref_name] = other_memory.GetData(mode, data_name);
     }
 }
+
+VAR_TYPES Memory::GetDataType(string &data_name) {
+    VAR_TYPES type = UNDEFINED_DATA_TYPE;
+    if (HasData(data_name)) {
+        type = GetData(ORIGINAL, data_name)->GetType();
+    }
+    return type;
+}

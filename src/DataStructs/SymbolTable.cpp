@@ -207,7 +207,7 @@ void SymbolTable::CopyTable(SymbolTable *old, bool full_copy) {
     }
 }
 
-string SymbolTable::KeyToString(int64 key) {
+string SymbolTable::KeyToString(chmr_int key) {
     char first_letter[] = {'z', 'o', 't', 'r', 'f', 'i', 's', 'e', 'g', 'n'};
     string str_key;
 

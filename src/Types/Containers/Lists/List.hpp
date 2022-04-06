@@ -21,18 +21,18 @@ public:
     ~List();
 
     int PutItem(ChimeraObject *item);
-    int SetItem(int64 index, ChimeraObject *item);
-    ChimeraObject* GetItem(int64 index);
+    int SetItem(chmr_int index, ChimeraObject *item);
+    ChimeraObject* GetItem(chmr_int index);
     size_t Size();
     int SetToNewContainer(Container *new_container);
     bool HasItem(ChimeraObject *item);
     int RemoveItem(ChimeraObject *item);
 
     string ToStr();
-    int64 ToInt();
-    float ToFloat();
-    dbl128 ToDouble();
-    char32_t ToChar();
+    chmr_int ToInt();
+    chmr_flt ToFloat();
+    chmr_dbl ToDouble();
+    chmr_char ToChar();
     bool ToBool();
     ChimeraObject* Clone();
 

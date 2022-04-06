@@ -52,7 +52,7 @@ cast                            { return CAST; }
 (!=|not-equal)                  { return NOT_EQUAL; }
 print                           { return PRINT; }
 (&|:S|and)                      { return AND; }
-(\^|:\\|or)                     { return OR; }
+(\^\^|:\\|or)                     { return OR; }
 (!|=o|not)                      { return NOT; }
 exit                            { return EXIT; }
 (\+|add)                        { return ADD; }
@@ -84,12 +84,13 @@ return                          { return FUNC_RET; }
 has                             { return HAS; }
 remove                          { return REMOVE; }
 typeof                          { return TYPEOF; }
+get_input                       { return GETINPUT; }
 
 true                            { Init(yylval.data); yylval.data->bol_val = true; return BOOL_VAL; }
 false                           { Init(yylval.data); yylval.data->bol_val = false; return BOOL_VAL; }
 {ID}                            { Init(yylval.data); yylval.data->id = yytext; return ID; }
 -?{DEC}                         { Init(yylval.data); yylval.data->dou_val = strtod(yytext, nullptr); return DOUBLE_VAL; }
--?{FLOAT}                       { Init(yylval.data); yylval.data->flo_val = strtod(yytext, nullptr); return FLOAT_VAL; }
+-?{FLOAT}                       { Init(yylval.data); yylval.data->flo_val = stof(yytext); return FLOAT_VAL; }
 -?{DIGIT}+                      { Init(yylval.data); yylval.data->int_val = stoll(string(yytext)); return INT_VAL; }
 \"{CHAR}*\"                     { Init(yylval.data); yylval.data->str_val.SetWithOmittedEnds(TextVal(yytext).c_str()); return STRING_VAL; }
 \'{CHAR}\'                      { Init(yylval.data); yylval.data->char_val = CharVal(yytext); return CHAR_VAL; }

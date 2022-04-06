@@ -15,29 +15,29 @@ using namespace std;
 struct MapItem {
     ChimeraObject *val = nullptr;
     struct Key {
-        int64 i = 0;
-        float f = 0;
-        dbl128 d = 0;
-        char32_t c = 0;
+        chmr_int i = 0;
+        chmr_flt f = 0;
+        chmr_dbl d = 0;
+        chmr_char c = 0;
         string s;
         bool b = false;
         string key_type;
     } key;
     bool was_cloned = false;
 
-    bool EqualsKey(int64 index) {
+    bool EqualsKey(chmr_int index) {
         return key.i == index;
     }
 
-    bool EqualsKey(float index) {
+    bool EqualsKey(chmr_flt index) {
         return key.f == index;
     }
 
-    bool EqualsKey(dbl128 index) {
+    bool EqualsKey(chmr_dbl index) {
         return key.d == index;
     }
 
-    bool EqualsKey(char32_t index) {
+    bool EqualsKey(chmr_char index) {
         return key.c == index;
     }
 
@@ -121,27 +121,27 @@ public:
     void SetDeclaredType(VAR_TYPES type);
     VAR_TYPES GetDeclaredType();
 
-    int SetItem(int64 index, ChimeraObject *data);
-    int SetItem(float index, ChimeraObject *data);
-    int SetItem(dbl128 index, ChimeraObject *data);
-    int SetItem(char32_t index, ChimeraObject *data);
+    int SetItem(chmr_int index, ChimeraObject *data);
+    int SetItem(chmr_flt index, ChimeraObject *data);
+    int SetItem(chmr_dbl index, ChimeraObject *data);
+    int SetItem(chmr_char index, ChimeraObject *data);
     int SetItem(string index, ChimeraObject *data);
     int SetItem(bool index, ChimeraObject *data);
 
-    ChimeraObject* GetItem(int64 index);
-    ChimeraObject* GetItem(float index);
-    ChimeraObject* GetItem(dbl128 index);
-    ChimeraObject* GetItem(char32_t index);
+    ChimeraObject* GetItem(chmr_int index);
+    ChimeraObject* GetItem(chmr_flt index);
+    ChimeraObject* GetItem(chmr_dbl index);
+    ChimeraObject* GetItem(chmr_char index);
     ChimeraObject* GetItem(string index);
     ChimeraObject* GetItem(bool index);
 
     void Clear();
 
     string ToStr();
-    int64 ToInt();
-    float ToFloat();
-    dbl128 ToDouble();
-    char32_t ToChar();
+    chmr_int ToInt();
+    chmr_flt ToFloat();
+    chmr_dbl ToDouble();
+    chmr_char ToChar();
     bool ToBool();
 
     ChimeraObject* Clone();
@@ -149,7 +149,7 @@ public:
 
 template<class T>
 size_t Map::NonStrHash(T index) {
-    int64 to_hash = (int64)round(index) % m_map.size();;
+    chmr_int to_hash = (chmr_int)round(index) % m_map.size();;
     return (size_t)abs(to_hash);
 }
 

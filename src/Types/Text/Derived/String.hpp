@@ -20,7 +20,7 @@ public:
     ~String();
 
     int Set(string &data);
-    int Set(char32_t &data);
+    int Set(chmr_char &data);
 
     int Get(string &data);
 
@@ -31,10 +31,10 @@ public:
     string GetText();
 
     string   ToStr();
-    char32_t ToChar();
-    int64    ToInt();
-    float    ToFloat();
-    long double ToDouble();
+    chmr_char ToChar();
+    chmr_int    ToInt();
+    chmr_flt    ToFloat();
+    chmr_dbl ToDouble();
     bool ToBool();
 
 };

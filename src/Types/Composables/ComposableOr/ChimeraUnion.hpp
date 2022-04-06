@@ -30,26 +30,26 @@ public:
     VAR_TYPES GetType();
     string GetTypeName();
 
-    int Set(int64 &data);
-    int Set(float &data);
-    int Set(long double &data);
-    int Set(char32_t &data);
+    int Set(chmr_int &data);
+    int Set(chmr_flt &data);
+    int Set(chmr_dbl &data);
+    int Set(chmr_char &data);
     int Set(bool &data);
     int Set(string &data);
     int Set(ChimeraObject *data);
 
-    int Get(int64 &data);
-    int Get(float &data);
-    int Get(long double &data);
-    int Get(char32_t &data);
+    int Get(chmr_int &data);
+    int Get(chmr_flt &data);
+    int Get(chmr_dbl &data);
+    int Get(chmr_char &data);
     int Get(bool &data);
     int Get(string &data);
 
     string ToStr();
-    int64 ToInt();
-    float ToFloat();
-    long double ToDouble();
-    char32_t ToChar();
+    chmr_int ToInt();
+    chmr_flt ToFloat();
+    chmr_dbl ToDouble();
+    chmr_char ToChar();
     bool ToBool();
 
     ChimeraObject* Clone();

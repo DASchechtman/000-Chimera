@@ -1,6 +1,7 @@
 #include "Int.hpp"
 #include <iostream>
 #include <cmath>
+#include <limits>
 
 using namespace std;
 
@@ -18,28 +19,28 @@ Int::~Int() {
     SetType(UNDEFINED_DATA_TYPE);
 }
 
-int Int::Set(int64 &data) {
+int Int::Set(chmr_int &data) {
     m_data.integer = data;
     return SUCCEED;
 }
 
-int Int::Set(float &data) {
+int Int::Set(chmr_flt &data) {
     m_data.integer = data;
     return SUCCEED;
 }
 
-int Int::Set(long double &data) {
+int Int::Set(chmr_dbl &data) {
     m_data.integer = data;
     return SUCCEED;
 }
 
-int Int::Set(char32_t &data) {
+int Int::Set(chmr_char &data) {
     m_data.integer = data;
     return SUCCEED;
 }
 
 
-int Int::Get(int64 &data) {
+int Int::Get(chmr_int &data) {
     data = m_data.integer;
     return SUCCEED;
 }
@@ -76,7 +77,7 @@ int Int::Divide(Number &other) {
 
 int Int::Pow(Number &other) {
     try {
-        long double other_num = GetOtherNumber(other);
+        chmr_dbl other_num = GetOtherNumber(other);
         m_data.integer = pow(m_data.integer, other_num);
     }
     catch (const char *msg) {
@@ -95,7 +96,7 @@ string Int::ToStr() {
     return to_string(m_data.integer);
 }
 
-char32_t Int::ToChar() {
+chmr_char Int::ToChar() {
     char to_char = 0;
 
     if (m_data.integer < 0) {
@@ -112,15 +113,15 @@ char32_t Int::ToChar() {
 }
 
 
-int64 Int::ToInt() {
+chmr_int Int::ToInt() {
     return m_data.integer;
 }
 
-float Int::ToFloat() {
+chmr_flt Int::ToFloat() {
     return m_data.integer;
 }
 
-long double Int::ToDouble() {
+chmr_dbl Int::ToDouble() {
     return m_data.integer;
 }
 

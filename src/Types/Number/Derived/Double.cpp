@@ -15,28 +15,28 @@ Double::Double(double data) {
     SetType(DOUBLE_DATA_TYPE);
 }
 
-int Double::Set(int64 &data) {
+int Double::Set(chmr_int &data) {
     m_data.decimal = data;
     return SUCCEED;
 }
 
-int Double::Set(float &data) {
+int Double::Set(chmr_flt &data) {
     m_data.decimal = data;
     return SUCCEED;
 }
 
-int Double::Set(long double &data) {
+int Double::Set(chmr_dbl &data) {
     m_data.decimal = data;
     return SUCCEED;
 }
 
-int Double::Set(char32_t &data) {
+int Double::Set(chmr_char &data) {
     m_data.decimal = data;
     return SUCCEED;
 }
 
 
-int Double::Get(long double &data) {
+int Double::Get(chmr_dbl &data) {
     data = m_data.decimal;
     return SUCCEED;
 }
@@ -73,7 +73,7 @@ int Double::Divide(Number &other) {
 
 int Double::Pow(Number &other) {
     try {
-        long double other_num = GetOtherNumber(other);
+        chmr_dbl other_num = GetOtherNumber(other);
         m_data.decimal = pow(m_data.decimal, other_num);
     }
     catch (const char *msg) {
@@ -93,7 +93,7 @@ string Double::ToStr() {
     return to_string(m_data.decimal);
 }
 
-char32_t Double::ToChar() {
+chmr_char Double::ToChar() {
     char to_char = 0;
 
     if (m_data.decimal < 0) {
@@ -109,15 +109,15 @@ char32_t Double::ToChar() {
     return to_char;
 }
 
-int64 Double::ToInt() {
+chmr_int Double::ToInt() {
     return (int32_t)m_data.decimal;
 }
 
-float Double::ToFloat() {
-    return (float)m_data.decimal;
+chmr_flt Double::ToFloat() {
+    return (chmr_flt)m_data.decimal;
 }
 
-long double Double::ToDouble() {
+chmr_dbl Double::ToDouble() {
     return m_data.decimal;
 }
 

@@ -47,18 +47,18 @@ public:
         Memory &other_tbl
     );
 
-    int Get(int64 &data);
-    int Get(float &data);
-    int Get(dbl128 &data);
-    int Get(char32_t &data);
+    int Get(chmr_int &data);
+    int Get(chmr_flt &data);
+    int Get(chmr_dbl &data);
+    int Get(chmr_char &data);
     int Get(bool &data);
     int Get(string &data);
 
     string ToStr();
-    int64 ToInt();
-    float ToFloat();
-    dbl128 ToDouble();
-    char32_t ToChar();
+    chmr_int ToInt();
+    chmr_flt ToFloat();
+    chmr_dbl ToDouble();
+    chmr_char ToChar();
     bool ToBool();
 
     ChimeraObject* Clone();

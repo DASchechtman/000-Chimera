@@ -29,6 +29,7 @@
 #include "InterpreterOpers/CompareOper.hpp"
 #include "Context.hpp"
 #include "InterpreterOpers/FuncOpers.hpp"
+#include "InterpreterOpers/StringOper.hpp"
 
 using namespace std;
 
@@ -138,19 +139,19 @@ string ChmrInterpreter::CloneOrCreateVar(string to, string type, T data)
 template <class T>
 string ChmrInterpreter::CreateTmpVar(T data)
 {
-    if (is_same<T, int64>::value)
+    if (is_same<T, chmr_int>::value)
     {
         return Create(EMPTY_VAR_NAME, INT_TYPE_NAME, data);
     }
-    else if (is_same<T, float>::value)
+    else if (is_same<T, chmr_flt>::value)
     {
         return Create(EMPTY_VAR_NAME, FLOAT_TYPE_NAME, data);
     }
-    else if (is_same<T, long double>::value)
+    else if (is_same<T, chmr_dbl>::value)
     {
         return Create(EMPTY_VAR_NAME, DOUBLE_TYPE_NAME, data);
     }
-    else if (is_same<T, char32_t>::value)
+    else if (is_same<T, chmr_char>::value)
     {
         return Create(EMPTY_VAR_NAME, CHAR_TYPE_NAME, data);
     }

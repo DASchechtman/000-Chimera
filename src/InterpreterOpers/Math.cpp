@@ -118,7 +118,7 @@ int Inc(string var, Memory &var_table) {
     ChimeraObject *var_obj = var_table.GetData(ORIGINAL, var);
     
     if (var_obj->IsNumber()) {
-        long double num = ((Number*)var_obj)->GetNumber() + 1;
+        chmr_dbl num = ((Number*)var_obj)->GetNumber() + 1;
         var_obj->Set(num);
         return SUCCEED;
     }
@@ -137,8 +137,8 @@ string Mod(string var_1, string var_2, Memory &var_table) {
     ChimeraObject *var_2_obj = var_table.GetData(ORIGINAL, var_2);
 
     if (var_1_obj->IsNumber() && var_2_obj->IsNumber()) {
-        long double val_1 = ((Number*)var_1_obj)->GetNumber();
-        long double val_2 = ((Number*)var_2_obj)->GetNumber();
+        chmr_dbl val_1 = ((Number*)var_1_obj)->GetNumber();
+        chmr_dbl val_2 = ((Number*)var_2_obj)->GetNumber();
         if(val_2 == 0) {
             cout << "Error: cannot get the results of " << val_1 << " % " << val_2 << endl;
             return EMPTY_VAR_NAME;

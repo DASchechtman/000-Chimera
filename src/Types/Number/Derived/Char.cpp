@@ -11,30 +11,30 @@ Char::Char(char data) {
 }
 
 
-int Char::Set(int64 &data) {
+int Char::Set(chmr_int &data) {
     m_data.character = data;
     return SUCCEED;
 }
 
-int Char::Set(float &data) {
-    m_data.character = data;
-    return SUCCEED;
-}
-
-
-int Char::Set(long double &data) {
+int Char::Set(chmr_flt &data) {
     m_data.character = data;
     return SUCCEED;
 }
 
 
-int Char::Set(char32_t &data) {
+int Char::Set(chmr_dbl &data) {
     m_data.character = data;
     return SUCCEED;
 }
 
 
-int Char::Get(char32_t &data) {
+int Char::Set(chmr_char &data) {
+    m_data.character = data;
+    return SUCCEED;
+}
+
+
+int Char::Get(chmr_char &data) {
     data = m_data.character;
     return SUCCEED;
 }
@@ -80,19 +80,19 @@ string Char::ToStr() {
     return to_str;
 }
 
-char32_t Char::ToChar() {
+chmr_char Char::ToChar() {
     return m_data.character;
 }
 
-int64 Char::ToInt() {
+chmr_int Char::ToInt() {
     return m_data.character;
 }
 
-float Char::ToFloat() {
+chmr_flt Char::ToFloat() {
     return m_data.character;
 }
 
-long double Char::ToDouble() {
+chmr_dbl Char::ToDouble() {
     return m_data.character;
 }
 

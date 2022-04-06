@@ -13,10 +13,10 @@ public:
     int Get(bool &data);
 
     string ToStr();
-    char32_t ToChar();
-    int64 ToInt();
-    float ToFloat();
-    long double ToDouble();
+    chmr_char ToChar();
+    chmr_int ToInt();
+    chmr_flt ToFloat();
+    chmr_dbl ToDouble();
     bool ToBool();
 
     ChimeraObject* Clone();

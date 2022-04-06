@@ -97,7 +97,7 @@ CircularList* ScopeTree::operator[](size_t index) {
     
     MoveToLevel(index);
 
-    if(cur_block->m_jump_points.IsEmpty()) {
+    if(root->m_jump_points.IsEmpty()) {
         index++;
         MoveToLevel(index);
     }

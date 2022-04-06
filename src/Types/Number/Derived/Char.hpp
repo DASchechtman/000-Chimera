@@ -11,12 +11,12 @@ public:
     Char();
     Char(char data);
 
-    int Set(int64 &data);
-    int Set(float &data);
-    int Set(long double &data);
-    int Set(char32_t &data);
+    int Set(chmr_int &data);
+    int Set(chmr_flt &data);
+    int Set(chmr_dbl &data);
+    int Set(chmr_char &data);
 
-    int Get(char32_t &data);
+    int Get(chmr_char &data);
 
     int Add(Number &other);
     int Subtract(Number &other);
@@ -26,9 +26,9 @@ public:
     ChimeraObject* Clone();
 
     string ToStr();
-    char32_t ToChar();
-    int64 ToInt();
-    float ToFloat();
-    long double ToDouble();
+    chmr_char ToChar();
+    chmr_int ToInt();
+    chmr_flt ToFloat();
+    chmr_dbl ToDouble();
     bool ToBool();
 };

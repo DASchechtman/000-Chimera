@@ -5,7 +5,7 @@
 (var s: string "x =")
 
 # sum: int = 0
-(var sum: int 0)
+(var sum: double 0)
 
 # sum_output: string = "sum ="
 (var sum_output: string "sum =")
@@ -28,7 +28,7 @@ end
 
 # comment comment comment
 # ss: string = ",------,"
-(var ss: string ",------,")
+(var ss: string ",----!--,")
 
 print|(add s ss) x|
 print|"program is done!!!<---->"|

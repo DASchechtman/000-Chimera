@@ -27,10 +27,10 @@ enum DataType {
 struct Data
 {
     DataType type = NON_DATA_TYPE;
-    int64 i;
-    float f;
-    dbl128 d;
-    char32_t c;
+    chmr_int i;
+    chmr_flt f;
+    chmr_dbl d;
+    chmr_char c;
     string s;
     bool b;
 };

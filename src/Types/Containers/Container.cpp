@@ -17,22 +17,22 @@ size_t Container::Size() {
     return FAIL;
 }
 
-int Container::SetItem(int64 index, ChimeraObject *item) {
+int Container::SetItem(chmr_int index, ChimeraObject *item) {
     printf(set_err_msg.c_str(), INT_TYPE_NAME.c_str());
     return FAIL;
 }
 
-int Container::SetItem(float index, ChimeraObject *item) {
+int Container::SetItem(chmr_flt index, ChimeraObject *item) {
     printf(set_err_msg.c_str(), FLOAT_TYPE_NAME.c_str());
     return FAIL;
 }
 
-int Container::SetItem(dbl128 index, ChimeraObject *item) {
+int Container::SetItem(chmr_dbl index, ChimeraObject *item) {
     printf(set_err_msg.c_str(), DOUBLE_TYPE_NAME.c_str());
     return FAIL;
 }
 
-int Container::SetItem(char32_t index, ChimeraObject *item) {
+int Container::SetItem(chmr_char index, ChimeraObject *item) {
     printf(set_err_msg.c_str(), CHAR_TYPE_NAME.c_str());
     return FAIL;
 }
@@ -48,17 +48,17 @@ int Container::SetItem(bool index, ChimeraObject *item) {
 }
 
 
-ChimeraObject* Container::GetItem(int64 index) {
+ChimeraObject* Container::GetItem(chmr_int index) {
     printf(get_err_msg.c_str(), INT_TYPE_NAME.c_str());
     return nullptr;
 }
 
-ChimeraObject* Container::GetItem(float index) {
+ChimeraObject* Container::GetItem(chmr_flt index) {
     printf(get_err_msg.c_str(), FLOAT_TYPE_NAME.c_str());
     return nullptr;
 }
 
-ChimeraObject* Container::GetItem(dbl128 index) {
+ChimeraObject* Container::GetItem(chmr_dbl index) {
     printf(get_err_msg.c_str(), DOUBLE_TYPE_NAME.c_str());
     return nullptr;
 }
@@ -68,7 +68,7 @@ ChimeraObject* Container::GetItem(string index) {
     return nullptr;
 }
 
-ChimeraObject* Container::GetItem(char32_t index) {
+ChimeraObject* Container::GetItem(chmr_char index) {
     printf(get_err_msg.c_str(), CHAR_TYPE_NAME.c_str());
     return nullptr;
 }

@@ -25,7 +25,7 @@ enum VAR_TYPES {
 };
 
 const string INT_TYPE_NAME = "int";
-const string FLOAT_TYPE_NAME = "float";
+const string FLOAT_TYPE_NAME = "chmr_flt";
 const string DOUBLE_TYPE_NAME = "double";
 const string CHAR_TYPE_NAME = "char";
 const string STRING_TYPE_NAME = "string";

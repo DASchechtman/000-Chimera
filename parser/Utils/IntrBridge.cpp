@@ -66,7 +66,9 @@ AstNode* MakeWhileDeclAst(AstNode *expr) {
 AstNode* MakeAssignAst(AstNode *id, AstNode *types, AstNode* expr) {
     AstNode *bind_cmd = MakeNode(BIND_CMD);
     bind_cmd->AddToLeftNodes(id);
-    bind_cmd->AddToMiddleNodes(types);
+    if (types != nullptr) {
+        bind_cmd->AddToMiddleNodes(types);
+    }
     bind_cmd->AddToRightNodes(expr);
 
     return bind_cmd;

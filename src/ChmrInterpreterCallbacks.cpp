@@ -1,4 +1,5 @@
 #include "ChmrInterpreter.hpp"
+#include <sstream>
 
 /*
  * this file consists of a single function meant to initialize all the callbacks for the interpreter
@@ -79,10 +80,21 @@ void ChmrInterpreter::GenerateCallbacks()
     {
         string to = i->RunAst(root->GetFromLeftNodes());
         string from = i->RunAst(root->GetFromRightNodes());
-        string type = i->RunAst(root->GetFromMiddleNodes());
+        string type = "undefined";
 
         ChimeraObject *obj = i->ProgramMem().GetData(ORIGINAL, from);
         bool is_func = (obj != nullptr && obj->GetType() == FUNC_DATA_TYPE);
+
+        if (root->Size(AstNode::MIDDLE) == 0 && obj != nullptr) {
+            type = obj->GetTypeName();
+        }
+        else if (root->Size(AstNode::MIDDLE) == 0 && obj == nullptr) {
+            cout << "Error: cannot infer type from data" << endl;
+            return EMPTY_VAR_NAME;
+        }
+        else {
+            type = i->RunAst(root->GetFromMiddleNodes());
+        }
 
         ChimeraObject *dest = i->ProgramMem().GetData(ORIGINAL, to);
         if (is_func && dest != nullptr)
@@ -186,13 +198,15 @@ void ChmrInterpreter::GenerateCallbacks()
         string container = i->RunAst(root->GetFromLeftNodes());
         string list_index = i->RunAst(root->GetFromRightNodes());
 
-        string data_name = GetFromContainer(container, list_index, i->ProgramMem());
+        string data_name = GetChar(container, list_index, i->ProgramMem());
 
-        for (size_t index = 0; index < root->Size(AstNode::MIDDLE); index++)
-        {
-            list_index = i->RunAst(root->GetFromMiddleNodes(index));
-            data_name = GetFromContainer(data_name, list_index, i->ProgramMem());
+        if (data_name.empty()) {
+            data_name = GetFromContainer(container, list_index, i->ProgramMem());
+            if (data_name.empty()) {
+                cout << "Error: cannot get from non-string or container type" << endl;
+            }
         }
+
 
         return data_name;
     };
@@ -208,7 +222,14 @@ void ChmrInterpreter::GenerateCallbacks()
     callbacks[GET_CONTAINER_SIZE_CMD] = [](AstNode *root, CInter i)
     {
         string container = i->RunAst(root->GetFromLeftNodes());
-        return GetContainerSize(container, i->ProgramMem());
+        string data = GetStrLen(container, i->ProgramMem());
+        if (data.empty()) {
+            data = GetContainerSize(container, i->ProgramMem());
+            if (data.empty()) {
+                cout << "Error: cannot get size of non-string or non-container type" << endl;
+            }
+        }
+        return data;
     };
 
     auto MathOpers = [](AstNode *root, CInter i)
@@ -333,11 +354,11 @@ void ChmrInterpreter::GenerateCallbacks()
 
     callbacks[IF_BLOCK_CMD] = [](AstNode *root, CInter i)
     {
+        string val = i->RunAst(root->GetFromLeftNodes());
         CircularList *jump_points = i->CurScopeTree()[i->ScopeLevel()];
         size_t next_jump_point = jump_points->Next();
         i->ScopesRan().push(i->CurScopes().Size());
-        string val = i->RunAst(root->GetFromLeftNodes());
-        bool can_run = i->ProgramMem().GetData(ORIGINAL, val)->ToBool();
+        bool can_run = i->ProgramMem().HasData(val) && i->ProgramMem().GetData(ORIGINAL, val)->ToBool();
         i->IncreaseScopeLevel();
 
         if (can_run)
@@ -400,7 +421,7 @@ void ChmrInterpreter::GenerateCallbacks()
         CircularList *jump = i->CurScopeTree()[i->ScopeLevel()];
         size_t next = jump->Next();
         string var_id = i->RunAst(root->GetFromLeftNodes());
-        bool can_run = i->ProgramMem().GetData(ORIGINAL, var_id)->ToBool();
+        bool can_run = i->ProgramMem().HasData(var_id) && i->ProgramMem().GetData(ORIGINAL, var_id)->ToBool();
         i->ScopesRan().push(i->CurScopes().Size());
         i->IncreaseScopeLevel();
 
@@ -679,5 +700,74 @@ void ChmrInterpreter::GenerateCallbacks()
         }
         string type_name = i->ProgramMem().GetData(ORIGINAL, var)->GetTypeName();
         return i->ProgramMem().GetConstsData(type_name);
+    };
+
+    callbacks[INPUT_USER_DATA_CMD] = [](AstNode *root, CInter i) {
+        string input_msg = i->RunAst(root->GetFromLeftNodes());
+        string input_results;
+        if (i->ProgramMem().HasData(input_msg)) {
+            cout << *i->ProgramMem().GetData(ORIGINAL, input_msg);
+        }
+        else {
+            cout << "no input message: ";
+        }
+        cout << flush;
+
+        getline(cin, input_results);
+        auto IsNum = [](string &str) {
+            bool is_num = true;
+            bool dot_found = false;
+            for(size_t i = 0; i < str.length(); i++) {
+                char c = str[i];
+                bool last_char = i == str.length()-1;
+                bool is_digit = c >= '0' && c <= '9';
+
+                if (c == '.' && !dot_found && !last_char) {
+                    dot_found = true;
+                    continue;
+                }
+
+                if (!is_digit && last_char && str[i-1] != '.') {
+                    continue;
+                }
+
+                if (!is_digit) {
+                    is_num = false;
+                    break;
+                }
+            }
+            return is_num;
+        };
+
+        string empty = EMPTY_VAR_NAME;
+        if (IsNum(input_results)) {
+            switch(input_results.back()) {
+                case 'i': {
+                    auto data = stoll(input_results);
+                    string var_name = i->ProgramMem().CreateData(empty, INT_DATA_TYPE);
+                    i->ProgramMem().InitData(data, var_name);
+                    return var_name;
+                }
+                case 'f': {
+                    auto data = stof(input_results);
+                    string var_name = i->ProgramMem().CreateData(empty, FLOAT_DATA_TYPE);
+                    i->ProgramMem().InitData(data, var_name);
+                    return var_name;
+                }
+                default: {
+                    char c = input_results.back();
+                    if (c == 'd' || (c >= '0' && c <= '9')) {
+                        auto data = (chmr_dbl)stod(input_results);
+                        string var_name = i->ProgramMem().CreateData(empty, DOUBLE_DATA_TYPE);
+                        i->ProgramMem().InitData(data, var_name);
+                        return var_name;
+                    }
+                }
+            }
+        }
+
+        string var_name = i->ProgramMem().CreateData(empty, STRING_DATA_TYPE);
+        i->ProgramMem().InitData(input_results, var_name);
+        return var_name;
     };
 }

@@ -43,6 +43,7 @@ public:
     bool HasData(string &data_name);
     bool HasDataInLocalScope(string &name);
     void TransferData(string &data_name, string &ref_name, Memory &other_memory, MemStates (*Mode)(string &name, Memory &mem));
+    VAR_TYPES GetDataType(string &data_name);
 
     template<class T>
     int InitData(T raw_data, string &mem_data_name);
@@ -86,16 +87,16 @@ string Memory::GetConstsData(T data) {
     ChimeraObject *const_data = copy->GetData(ORIGINAL, key);
 
     if (const_data == nullptr) {
-        if (is_same<T, int64>::value) {
+        if (is_same<T, chmr_int>::value) {
             copy->CreateData(key, INT_DATA_TYPE);
         }
-        else if (is_same<T, float>::value) {
+        else if (is_same<T, chmr_flt>::value) {
             copy->CreateData(key, FLOAT_DATA_TYPE);
         }
-        else if (is_same<T, dbl128>::value) {
+        else if (is_same<T, chmr_dbl>::value) {
             copy->CreateData(key, DOUBLE_DATA_TYPE);
         }
-        else if (is_same<T, char32_t>::value) {
+        else if (is_same<T, chmr_char>::value) {
             copy->CreateData(key, CHAR_DATA_TYPE);
         }
         else if (is_same<T, bool>::value) {
@@ -114,17 +115,21 @@ template<class T>
 string Memory::CreateConstKey(T data) {
     string key;
 
-    bool is_bool = is_same<T, bool>::value;
-    bool is_char = is_same<T, char32_t>::value;
-    if (is_bool)
+    if (is_same<T, bool>::value)
     {
         key = data ? "true" : "false";
     }
-    else if (is_char) {
+    else if (is_same<T, chmr_char>::value) {
         key = "chr" + to_string(data);
     }
+    else if (is_same<T, chmr_flt>::value) {
+        key = "f" + to_string(data);
+    }
+    else if (is_same<T, chmr_dbl>::value) {
+        key = "d" + to_string(data);
+    }
     else {
-        key = to_string(data);
+        key = "i" + to_string(data);
     }
     
     return key + '!';

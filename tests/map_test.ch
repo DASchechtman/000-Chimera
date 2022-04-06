@@ -14,17 +14,6 @@ test_map.put|10 'k'|
 test_map.set|6 'z'|
 
 print|test_map|
-print| 
-    (get test_map 0) 
-    (get test_map 1) 
-    (get test_map 2) 
-    (get test_map 3) 
-    (get test_map 4) 
-    (get test_map 5) 
-    (get test_map 6) 
-    (get test_map 7)
-    (get test_map 8) 
-    (get test_map 9) 
-    (get test_map 10)
-|
+print|(get test_map 10)|
+
 print|"done"|

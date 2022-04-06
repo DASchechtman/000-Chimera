@@ -27,12 +27,13 @@ const int NON_RUNNABLE = 2;
 
 
 
-union ObjectData {
+struct ObjectData {
     string *str;
-    int64 integer;
-    float floating;
-    long double decimal;
-    char32_t character;
+    chmr_int integer;
+    uchmr_int uinteger;
+    chmr_flt floating;
+    chmr_dbl decimal;
+    chmr_char character;
     bool boolean;
 };
 
@@ -62,28 +63,28 @@ public:
 
         switch(obj.GetType()) {
             case INT_DATA_TYPE: {
-                int64 data = 0;
+                chmr_int data = 0;
                 obj.Get(data);
                 output << data;
                 break;
             }
             case FLOAT_DATA_TYPE: {
-                float data = 0;
+                chmr_flt data = 0;
                 obj.Get(data);
                 output << data;
                 break;
             }
             case DOUBLE_DATA_TYPE: {
-                dbl128 data = 0;
+                chmr_dbl data = 0;
                 obj.Get(data); 
                 output << data;
                 break;
             }
             case CHAR_DATA_TYPE: {
-                char32_t data = '\0';
+                chmr_char data = '\0';
                 obj.Get(data);
                 if (data < 255) {
-                    output << (char)data;
+                    output << static_cast<char>(data);
                 }
                 else {
                     output << data;
@@ -126,18 +127,18 @@ public:
     virtual VAR_TYPES GetType();
     virtual VAR_TYPES GetGeneralType();
 
-    virtual int Set(int64 &data);
-    virtual int Set(float &data);
-    virtual int Set(long double &data);
-    virtual int Set(char32_t &data);
+    virtual int Set(chmr_int &data);
+    virtual int Set(chmr_flt &data);
+    virtual int Set(chmr_dbl &data);
+    virtual int Set(chmr_char &data);
     virtual int Set(bool &data);
     virtual int Set(string &data);
     virtual int Set(ChimeraObject *other);
 
-    virtual int Get(int64 &data);
-    virtual int Get(float &data);
-    virtual int Get(long double &data);
-    virtual int Get(char32_t &data);
+    virtual int Get(chmr_int &data);
+    virtual int Get(chmr_flt &data);
+    virtual int Get(chmr_dbl &data);
+    virtual int Get(chmr_char &data);
     virtual int Get(bool &data);
     virtual int Get(string &data);
 
@@ -153,10 +154,10 @@ public:
     virtual bool GetConstStatus();
 
     virtual string ToStr() = 0;
-    virtual int64 ToInt() = 0;
-    virtual float ToFloat() = 0;
-    virtual long double ToDouble() = 0;
-    virtual char32_t ToChar() = 0;
+    virtual chmr_int ToInt() = 0;
+    virtual chmr_flt ToFloat() = 0;
+    virtual chmr_dbl ToDouble() = 0;
+    virtual chmr_char ToChar() = 0;
     virtual bool ToBool() = 0; 
 
     virtual ChimeraObject* Clone() = 0;

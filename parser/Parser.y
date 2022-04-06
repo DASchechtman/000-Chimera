@@ -91,6 +91,7 @@ extern char* yytext;
 %token HAS
 %token REMOVE
 %token TYPEOF
+%token GETINPUT
 
 %token <data> INT_VAL 
 %token <data> DOUBLE_VAL 
@@ -421,6 +422,9 @@ id:                             ID {
 assign:                         '(' ASSIGN opt_ws id opt_ws ':' opt_ws types any_ws expr opt_ws ')' {
                                     $$ = MakeAssignAst($id, $types, $expr);
                                 }
+                                | '(' ASSIGN opt_ws id any_ws expr opt_ws ')' {
+                                    $$ = MakeAssignAst($id, nullptr, $expr);
+                                }
                                 | '(' '=' opt_ws id opt_ws ':' opt_ws types any_ws expr opt_ws ')' {
                                     $$ = MakeAssignAst($id, $types, $expr);
                                 }
@@ -541,8 +545,8 @@ boolExpr:                      '(' AND any_ws expr[first] any_ws expr[second] op
                                 ;
 //BOOL OPER ABOVE -----------------------------------------------------------------------------------------------------------------------------------------------------
 
-indexAccessor:                  '(' GET any_ws id any_ws expr ')' {
-                                    $$ = MakeGetFromCollectionAst($id, $expr);
+indexAccessor:                  '(' GET any_ws expr[container] any_ws expr[index] ')' {
+                                    $$ = MakeGetFromCollectionAst($container, $index);
                                 } 
                                 
                                 ;
@@ -591,6 +595,10 @@ expr:                           term {
                                     $$ = $functionDeclStatement;
                                 }
                                 | functionCall { $$ = $functionCall; }
+                                | '(' GETINPUT any_ws expr[msg] opt_ws ')' {
+                                    $$ = MakeNode(INPUT_USER_DATA_CMD);
+                                    $$->AddToLeftNodes($msg);
+                                }
                                 ;
 
 prog:                           expr { i.EatAst($expr); $expr = nullptr; }

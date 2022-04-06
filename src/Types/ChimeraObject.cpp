@@ -13,19 +13,19 @@ using namespace std;
 
 //PRIVATE METHOD BELOW ------------------------------------------------------------------------------------------------------------------------------
 
-void GetNumData(long double &num, ChimeraObject *obj) {
+void GetNumData(chmr_dbl &num, ChimeraObject *obj) {
     switch (obj->GetType())
     {
     case INT_DATA_TYPE: 
     {
-        int64 val;
+        chmr_int val;
         obj->Get(val);
         num = val;
         break;
     }
     case FLOAT_DATA_TYPE:
     {
-        float val;
+        chmr_flt val;
         obj->Get(val);
         num = val;
         break;
@@ -37,7 +37,7 @@ void GetNumData(long double &num, ChimeraObject *obj) {
     }
     case CHAR_DATA_TYPE:
     {
-        char32_t val;
+        chmr_char val;
         obj->Get(val);
         num = val;
         break;
@@ -60,8 +60,8 @@ bool ChimeraObject::PerformCompareOper(ChimeraObject *other, COMPARE_OPERS oper_
 
     if (other_is_num && self_is_num)
     {
-        long double self_val;
-        long double other_val;
+        chmr_dbl self_val;
+        chmr_dbl other_val;
         GetNumData(self_val, this);
         GetNumData(other_val, other);
         ret = Compare(self_val, other_val, oper_code);
@@ -195,25 +195,25 @@ VAR_TYPES ChimeraObject::GetGeneralType() {
 }
 
 // SET OVERRIDES BELOW ------------------------------------------------------------------------------------------------------------------------------------
-int ChimeraObject::Set(int64 &data)
+int ChimeraObject::Set(chmr_int &data)
 {
     printf(m_set_err, GetTypeName().c_str(), INT_TYPE_NAME.c_str());
     return FAIL;
 }
 
-int ChimeraObject::Set(float &data)
+int ChimeraObject::Set(chmr_flt &data)
 {
     printf(m_set_err, GetTypeName().c_str(), FLOAT_TYPE_NAME.c_str());
     return FAIL;
 }
 
-int ChimeraObject::Set(long double &data)
+int ChimeraObject::Set(chmr_dbl &data)
 {
     printf(m_set_err, GetTypeName().c_str(), DOUBLE_TYPE_NAME.c_str());
     return FAIL;
 }
 
-int ChimeraObject::Set(char32_t &data)
+int ChimeraObject::Set(chmr_char &data)
 {
     printf(m_set_err, GetTypeName().c_str(), CHAR_TYPE_NAME.c_str());
     return FAIL;
@@ -239,28 +239,28 @@ int ChimeraObject::Set(ChimeraObject* other)
     {
         case INT_DATA_TYPE: 
         {
-            int64 val;
+            chmr_int val;
             other->Get(val);
             ret = Set(val);
             break;
         }
         case FLOAT_DATA_TYPE: 
         {
-            float val;
+            chmr_flt val;
             other->Get(val);
             ret = Set(val);
             break;
         }
         case DOUBLE_DATA_TYPE: 
         {
-            dbl128 val;
+            chmr_dbl val;
             other->Get(val);
             ret = Set(val);
             break;
         }
         case CHAR_DATA_TYPE: 
         {
-            char32_t val;
+            chmr_char val;
             other->Get(val);
             ret = Set(val);
             break;
@@ -306,25 +306,25 @@ int ChimeraObject::Set(ChimeraObject* other)
 //SET OVERRIDES ABOVE ----------------------------------------------------------------------------------------------------------------------------------------
 
 //GET OVERRIDES BELOW -----------------------------------------------------------------------------------------------------------------------------------------
-int ChimeraObject::Get(int64 &data)
+int ChimeraObject::Get(chmr_int &data)
 {
     printf(m_get_err, INT_TYPE_NAME.c_str(), GetTypeName().c_str());
     return FAIL;
 }
 
-int ChimeraObject::Get(float &data)
+int ChimeraObject::Get(chmr_flt &data)
 {
     printf(m_get_err, FLOAT_TYPE_NAME.c_str(), GetTypeName().c_str());
     return FAIL;
 }
 
-int ChimeraObject::Get(long double &data)
+int ChimeraObject::Get(chmr_dbl &data)
 {
     printf(m_get_err, DOUBLE_TYPE_NAME.c_str(), GetTypeName().c_str());
     return FAIL;
 }
 
-int ChimeraObject::Get(char32_t &data)
+int ChimeraObject::Get(chmr_char &data)
 {
     printf(m_get_err, CHAR_TYPE_NAME.c_str(), GetTypeName().c_str());
     return FAIL;

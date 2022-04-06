@@ -98,19 +98,19 @@ void ChmrFunc::CopyParamsToNewContext(
     }
 }
 
-int ChmrFunc::Get(int64 &data) {
+int ChmrFunc::Get(chmr_int &data) {
     return ret_val->Get(data);
 }
 
-int ChmrFunc::Get(float &data) {
+int ChmrFunc::Get(chmr_flt &data) {
     return ret_val->Get(data);
 }
 
-int ChmrFunc::Get(dbl128 &data) {
+int ChmrFunc::Get(chmr_dbl &data) {
     return ret_val->Get(data);
 }
 
-int ChmrFunc::Get(char32_t &data) {
+int ChmrFunc::Get(chmr_char &data) {
     return ret_val->Get(data);
 }
 
@@ -126,19 +126,19 @@ string ChmrFunc::ToStr() {
     return m_func_name;
 }
 
-int64 ChmrFunc::ToInt() {
-    return (int64)m_param_type_list.size();
+chmr_int ChmrFunc::ToInt() {
+    return (chmr_int)m_param_type_list.size();
 }
 
-float ChmrFunc::ToFloat() {
-    return (float)ToInt();
+chmr_flt ChmrFunc::ToFloat() {
+    return (chmr_flt)ToInt();
 }
 
-dbl128 ChmrFunc::ToDouble() {
-    return (dbl128)ToInt();
+chmr_dbl ChmrFunc::ToDouble() {
+    return (chmr_dbl)ToInt();
 }
 
-char32_t ChmrFunc::ToChar() {
+chmr_char ChmrFunc::ToChar() {
     return m_func_name[0];
 }
 

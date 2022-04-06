@@ -9,33 +9,33 @@ Float::Float() {
     SetType(FLOAT_DATA_TYPE);
 }
 
-Float::Float(float data) {
+Float::Float(chmr_flt data) {
     m_data.floating = data;
     SetType(FLOAT_DATA_TYPE);
 }
 
-int Float::Set(long long &data) {
+int Float::Set(chmr_int &data) {
     m_data.floating = data;
     return SUCCEED;
 }
 
-int Float::Set(float &data) {
+int Float::Set(chmr_flt &data) {
     m_data.floating = data;
     return SUCCEED;
 }
 
-int Float::Set(long double &data) {
+int Float::Set(chmr_dbl &data) {
     m_data.floating = data;
     return SUCCEED;
 }
 
-int Float::Set(char32_t &data) {
+int Float::Set(chmr_char &data) {
     m_data.floating = data;
     return SUCCEED;
 }
 
 
-int Float::Get(float &data) {
+int Float::Get(chmr_flt &data) {
     data = m_data.floating;
     return SUCCEED;
 }
@@ -72,7 +72,7 @@ int Float::Divide(Number &other) {
 
 int Float::Pow(Number &other) {
     try {
-        long double other_num = GetOtherNumber(other);
+        chmr_dbl other_num = GetOtherNumber(other);
         m_data.floating = pow(m_data.floating, other_num);
     }
     catch (const char *msg) {
@@ -92,7 +92,7 @@ string Float::ToStr() {
     return to_string(m_data.floating);
 }
 
-char32_t Float::ToChar() {
+chmr_char Float::ToChar() {
     char to_char = 0;
 
     if (m_data.floating < 0) {
@@ -108,15 +108,15 @@ char32_t Float::ToChar() {
     return to_char;
 }
 
-int64 Float::ToInt() {
-    return (int64)m_data.floating;
+chmr_int Float::ToInt() {
+    return (chmr_int)m_data.floating;
 }
 
-float Float::ToFloat() {
+chmr_flt Float::ToFloat() {
     return m_data.floating;
 }
 
-long double Float::ToDouble() {
+chmr_dbl Float::ToDouble() {
     return m_data.floating;
 }
 

@@ -2,6 +2,7 @@
 
 enum COMMANDS {
     NO_CMD,
+    INPUT_USER_DATA_CMD,
     RAW_DATA_CMD,
     GET_TYPE_CMD,
     TRACK_TYPE_CMD,

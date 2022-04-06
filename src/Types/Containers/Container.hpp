@@ -28,17 +28,17 @@ public:
     virtual int RemoveItem(ChimeraObject *item) = 0;
     virtual int SetToNewContainer(Container *new_container) = 0;
 
-    virtual int SetItem(int64 index, ChimeraObject *data);
-    virtual int SetItem(float index, ChimeraObject *data);
-    virtual int SetItem(dbl128 index, ChimeraObject *data);
-    virtual int SetItem(char32_t index, ChimeraObject *data);
+    virtual int SetItem(chmr_int index, ChimeraObject *data);
+    virtual int SetItem(chmr_flt index, ChimeraObject *data);
+    virtual int SetItem(chmr_dbl index, ChimeraObject *data);
+    virtual int SetItem(chmr_char index, ChimeraObject *data);
     virtual int SetItem(string index, ChimeraObject *data);
     virtual int SetItem(bool index, ChimeraObject *data);
 
-    virtual ChimeraObject* GetItem(int64 index);
-    virtual ChimeraObject* GetItem(float index);
-    virtual ChimeraObject* GetItem(dbl128 index);
-    virtual ChimeraObject* GetItem(char32_t index);
+    virtual ChimeraObject* GetItem(chmr_int index);
+    virtual ChimeraObject* GetItem(chmr_flt index);
+    virtual ChimeraObject* GetItem(chmr_dbl index);
+    virtual ChimeraObject* GetItem(chmr_char index);
     virtual ChimeraObject* GetItem(string index);
     virtual ChimeraObject* GetItem(bool index);
 };

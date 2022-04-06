@@ -37,7 +37,7 @@ int String::Set(string &data) {
     return SUCCEED;
 }
 
-int String::Set(char32_t &data) {
+int String::Set(chmr_char &data) {
     if (is_const) {
         return SUCCEED;
     }
@@ -86,32 +86,32 @@ string String::ToStr() {
     return *m_data.str;
 }
 
-char32_t String::ToChar() {
+chmr_char String::ToChar() {
     return m_data.str->at(0);
 }
 
-int64 String::ToInt() {
+chmr_int String::ToInt() {
     int to_num = atoi(m_data.str->c_str());
 
     if (to_num == 0) {
-        to_num = (int64)Hash();
+        to_num = (chmr_int)Hash();
     }
 
     return to_num;
 }
 
-float String::ToFloat() {
+chmr_flt String::ToFloat() {
     int to_float = atof(m_data.str->c_str());
 
     if (to_float == 0) {
-        to_float = (float)Hash();
+        to_float = (chmr_flt)Hash();
     }
 
     return to_float;
 }
 
-long double String::ToDouble() {
-    long double to_double = strtod(m_data.str->c_str(), nullptr);
+chmr_dbl String::ToDouble() {
+    chmr_dbl to_double = strtod(m_data.str->c_str(), nullptr);
 
     if (to_double == 0) {
         to_double = Hash();

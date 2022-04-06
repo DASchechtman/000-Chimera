@@ -6,14 +6,14 @@
 class Number : public ChimeraObject {
 private:
 protected:
-    long double GetOtherNumber(Number &other);
-    long double DivideByZeroGuard(Number &other);
+    chmr_dbl GetOtherNumber(Number &other);
+    chmr_dbl DivideByZeroGuard(Number &other);
 
 public:
 
     Number();
 
-    long double GetNumber();
+    chmr_dbl GetNumber();
 
     virtual int Add(Number &other);
     virtual int Subtract(Number &other);

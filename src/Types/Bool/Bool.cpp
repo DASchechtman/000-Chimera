@@ -36,7 +36,7 @@ string Bool::ToStr() {
     }
 }
 
-char32_t Bool::ToChar() {
+chmr_char Bool::ToChar() {
     if (m_data.boolean) {
         return 't';
     }
@@ -45,15 +45,15 @@ char32_t Bool::ToChar() {
     }
 }
 
-int64 Bool::ToInt() {
+chmr_int Bool::ToInt() {
     return m_data.boolean;
 }
 
-float Bool::ToFloat() {
+chmr_flt Bool::ToFloat() {
     return m_data.boolean;
 }
 
-long double Bool::ToDouble() {
+chmr_dbl Bool::ToDouble() {
     return m_data.boolean;
 }
 

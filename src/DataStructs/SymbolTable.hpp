@@ -42,8 +42,8 @@ class SymbolTable
 private:
     map<string, TableItem> m_table;
     map<ChimeraObject *, uint32_t> m_ref_counter;
-    unsigned long long m_cur_reg = 0;
-    unsigned long long m_reg = 0;
+    size_t m_cur_reg = 0;
+    size_t m_reg = 0;
     bool m_is_being_copied = false;
 
     void UpdateCurReg();
@@ -54,7 +54,7 @@ private:
 
     template<class T>
     string GetConstEntry(T data, true_type);
-    string KeyToString(int64 key);
+    string KeyToString(chmr_int key);
     
 
 protected:
@@ -112,7 +112,7 @@ string SymbolTable::GetConstEntry(T data, false_type) {
     string key;
 
     bool is_bool = is_same<T, bool>::value;
-    bool is_char = is_same<T, char32_t>::value;
+    bool is_char = is_same<T, chmr_char>::value;
     if (is_bool)
     {
         key = data ? "true!" : "false!";
@@ -134,10 +134,10 @@ string SymbolTable::GetConstEntry(T data, false_type) {
         const int BOOL_BRANCH = 5;
         int branch = 0;
 
-        branch += INT_BRANCH * is_same<T, int64>::value;
-        branch += FLOAT_BRANCH * is_same<T, float>::value;
-        branch += DOUBLE_BRANCH * is_same<T, dbl128>::value;
-        branch += CHAR_BRANCH * is_same<T, char32_t>::value;
+        branch += INT_BRANCH * is_same<T, chmr_int>::value;
+        branch += FLOAT_BRANCH * is_same<T, chmr_flt>::value;
+        branch += DOUBLE_BRANCH * is_same<T, chmr_dbl>::value;
+        branch += CHAR_BRANCH * is_same<T, chmr_char>::value;
         branch += BOOL_BRANCH * is_same<T, bool>::value;
 
         switch(branch) {
