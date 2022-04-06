@@ -13,6 +13,8 @@ This project is a means of learning how programming languages on the whole work 
 1. [Loops](#loops)
 1. [If-Statement](#if-statements)
 1. [Keywords](#keywords)
+1. [Functions](#functions)
+1. [User Input](#user-input)
 
 ## Installation
 
@@ -36,7 +38,7 @@ sudo apt-get upgrade
 sudo apt-get install flex bison
 ```
 
-### Steps for Mac Only
+### **Steps for Mac Only**
 
 1. will update later when I can figure out how to install on make, flex, and bison on mac
 
@@ -49,7 +51,7 @@ whatever means you perfer.
 Then place it in a folder on your desktop, I will refer to the folder as "PL" in this
 guide.
 
-### In the terminal type the following command
+### **In the terminal type the following command**
 
 for windows (in wsl) ```cd /mnt/c/Users/<your user folder>/Desktop/PL/Chimear-main/```\
 for mac ```cd ~/Desktop/PL/Chimera-main/```
@@ -112,7 +114,7 @@ exit||
 
 [Table of Contents](#table-of-contents)
 
-### Base Data types
+### **Base Data types**
 
 1. int: holds a whole number (example 1, 77)
 1. float: holds a decimal number (example 3.14)
@@ -128,7 +130,7 @@ a character is a single letter surrounded by single quotes, whereas a string is 
 **Note**: you can cast any base type into any other type other base type (maps and lists can be converted to any of the other types but you can't convert any other types to a list or map at this time). In the case of casting a string to a number, if the string represents a number it will be converted to that represented number. Otherwise a hash of the string will be returned
 see [Operations](#operations) to learn how to cast
 
-### Union Types
+### **Union Types**
 
 a variable can be composed of one or more of the above base types. For example
 
@@ -178,14 +180,14 @@ print|(add s_or_i 2)|
 print|(add s_or_i "hello")|
 ```
 
-### Reference Types
+### **Reference Types**
 
 You can make a reference to any variable as well.
 A reference is basically giving a variable extra names
 
 ```text
 (= x:int 10)
-(= y:int<ref> x)
+(= y:{int ref} x)
 
 # changes the value in x
 (= y (add y 1))
@@ -202,18 +204,58 @@ To reassign a ref
 
 ```text
 (= x:int 10)
-(= y:int<ref> x)
+(= y:int{int ref} x)
 
 (= z:int 11)
-(= y z<ref>)
+(= y z{int ref})
 
 print|x y|
 #Output 10 11
 ```
 
+### **implicit typing**
+
+a variable doesn't need to have an explicit type given as long as you give a valid peice of data
+```text
+# will make a string var
+(var str "hello world")
+
+# will make an int type
+(var i 50)
+
+# will decide the type at assignment time
+# could become a string, int, float, or double
+(var user_data (get_input "enter data: "))
+```
+
+note that unlike in languages like python, you cannot reassign the value of a variable to be that of a different type. once you made a variable like this its type is locked in. (see [Union Types](#union-types)) for dynamic runtime typing
+
+### **typeof**
+you can get the type of the a value by doing the following
+```text
+print|(typeof 99)|
+#output: int
+```
+note you can use anything that yields a value as an arguement of typeof
+
+### **string operations**
+
+there are a few operations that strings share with lists and maps
+
+you can get the size of the string, and a character at some index
+```text
+(var str "hello world")
+
+print|str.size| #output: 11
+
+print|(get str 2)| #output: l
+
+# note with indexing a string, if you enter a negative value it will wrap around to the end of the string, and if it's greater then the size of the string it will wrap around to the beginning
+```
+
 ### Containers
 
-#### ***List***
+#### **List**
 
 chimera supports two types of container type currently. A list and a map. A list can contain one or more peices of data
 
@@ -377,8 +419,6 @@ note that the else-if/else parts of the if statement are optional
 
 [Table of Contents](#table-of-contents)
 
-Note: at this current time declaring a return type is mandatory, but functions cannot return anything yet. This is an early implemetation of the feature and will be expanded upon in future iterations of development
-
 The syntax for functions looks like below
 
 ```text
@@ -386,43 +426,134 @@ suro foo|<params>|: <ret type> start
     # code here
 end
 
+suro foo|<params>| start
+    # code here
+end
+
 # a runnable example
 suro bar|val: int|: int start
     print|"passed in val:" val|
+    return 0
+end
+
+suro foo|string|: bool start
+    return (greater arg0.size 0)
 end
 ```
+### **parameter naming**
 
-Note: currently every value passed in (except temp values like the results of [operations](#operations), or constant values) will be passed in by reference
-
-Note: The decision to note pass non-variable associated values by reference makes sure bugs are avoided
+the programmer can choose to name or omit any of the paramters names in the paramter list. if a name is omitted the interpreter will give that argument the name of "arg(n)" where n is the index of the parameter in the list starting at 0
 
 ```text
-suro foo|sum: int|: int start
-    (= sum 77)
-    print|"sum is now:" sum|
+suro foo|int string can_do:bool| start
+    print|arg0 arg1 can_do|
 end
 
-# will act as expected
-(call foo 5)
-
-# will act as expected
-(call foo (add 5 5 2))
-
-# will mutate the value of the var
-(= x:int 5)
-(call foo x)
-print|x| # >>> 77
+(call foo 0 "hello world" false)
+# output: 0 hello world false
 ```
 
-You can also exclude parameter names when creating a function if desired
 
+### **function types**
+
+there are 3 different types of functions within Chimera (suro, furo, and func)
+
+the main difference between the 3 types is how the parameters are passed in
+
+1. suro: everything but consts and temp values are passed in by reference. const and temp vals are cloned in
+1. furo: everything is copied over into the function
+1. func: everything but lists and maps are copied into the function
+
+suro example
 ```text
-# access parameter names via the word "arg" + index of parameter in list
-suro foo|int string|: int start
-    print|"int is:" arg0 " <-> string is:" arg1|
+(var i:int 0)
+(var l:list [])
+
+suro foo|int list| start
+    (= arg0 5)
+    list.addTo|20|
+end
+(call foo i l)
+print|i l| #output: 5 [20] (note the original value was changed)
+
+```
+
+furo example
+```text
+(var i:int 0)
+(var l:list [])
+
+furo foo|int list| start
+    (= arg0 5)
+    arg1.addTo|20|
 end
 
-(call foo 10 "hello") #int is: 10 <-> string is hello
+(call foo i l)
+print|i l| #output: 0 [] (note the original value wasn't changed)
+```
+
+func example
+```text
+(var i:int 0)
+(var l:list [])
+
+func foo|int list| start
+    (= arg0 5)
+    arg1.addTo|20|
+end
+
+(call foo i l)
+print|i l| #output: 0 [20] (notice only the list has an altered value)
+
+```
+
+### **function return vals**
+a function always has a return value. The default return value of a function is an int. in the case no return keyword is used, the function will return 0 (or equivalent value of whatever type declared by the programmer)
+
+note: functions cannot yet return maps or lists, but that will come in a future update
+
+```text
+suro foo||: string start
+    print|"hello world"|
+end
+
+(var ret (call foo))
+print|ret (typeof ret)| #output: 0 string
+#int 0 was casted to a string and returned
+```
+
+# User Input
+[Table of Contents](#table-of-contents)
+
+Chimera allows users to enter data while the program is running
+
+```text
+>>> (var data (get_input "enter data: "))
+enter data: 50
+>>> print|data}
+50
+```
+get_input will return 4 different possible types (int, float, double, or string)
+
+it will only return one of the first 3 if you enter text that represents a number. By default for such data it will return a double, but you can get get_input to return an int or float based on if you add an 'i' or 'f' to the very end of the input
+
+```text
+>>> (var ret (get_input "enter data: "))
+enter data: 50i
+>>> print|ret (typeof ret)|
+50 int
+>>> (var ret2 (get_input "enter data: "))
+enter data: 50.345f
+>>> print|ret2 (typeof ret2)|
+50.345 float
+>>> #note you can include or omit the d because by default get_input will return a double if the input is a valid number
+>>> (var ret3 (get_input "enter data: "))
+enter data: 50
+>>> print|ret3 (typeof ret3)|
+50 double
+>>> print|(typeof (get_input "enter data: "))|
+enter input: 50.tdfaai
+string
 ```
 
 ## Keywords
@@ -431,7 +562,7 @@ end
 
 below is a list of keywords in the langauge
 
-### data types
+### **data types**
 
 [Data Types](#data-types)
 
@@ -446,15 +577,15 @@ below is a list of keywords in the langauge
 1. unknown (used to make a variable hold any type of data)
 1. ref (used to assign another name to an existing variable)
 
-### list
+### **list**
 
 1. [var name].addTo
 
-### map
+### **map**
 
 1. [var name].put
 
-### container operators
+### **container operators**
 
 [Containers](#container-operations)
 
@@ -462,26 +593,26 @@ below is a list of keywords in the langauge
 1. [var name].size
 1. (get [var name] index)
 
-### compare keywords
+### **compare keywords**
 
 [Compare Operators](#compare-operators)
 
-1. less
-1. greater
-1. less-equal
-1. greater-equal
-1. equal
-1. not-equal
+1. < or less
+1. \> or greater
+1. <= less-equal
+1. \>= or greater-equal
+1. == or equal
+1. != or not-equal
 
-### boolean operations
+### **boolean operations**
 
 [Boolean Operators](#bool-operators)
 
-1. and
-1. or
-1. not
+1. and or &&
+1. or or ^^
+1. not or !
 
-### math operators
+### **math operators**
 
 [Math Operators](#math-operations)
 
@@ -491,12 +622,12 @@ below is a list of keywords in the langauge
 1. \\ or div
 1. \^ or pow
 
-### scope
+### **scope**
 
 1. start
 1. end
 
-### if statements
+### **if statements**
 
 [If Statements](#if-statements)
 
@@ -504,31 +635,33 @@ below is a list of keywords in the langauge
 1. else-if
 1. else
 
-### for loop
+### **for loop**
 
 [Loops](#loops)
 
 1. repeat
 1. with
 
-### while loop
+### **while loop**
 
 [Loops](#loops)
 
 1. while
 
-### function
+### **function**
 
 [Functions](#functions)
 
 1. suro
+1. furo
+1. func
 1. (call [func name] [params])
 
-### bool vals
+### **bool vals**
 
 1. true
 1. false
 
-### misc
+### **misc**
 
 1. cast
